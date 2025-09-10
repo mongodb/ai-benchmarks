@@ -17,7 +17,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment: test-ci
     env:
       NODE_OPTIONS: "--max-old-space-size=4096"
