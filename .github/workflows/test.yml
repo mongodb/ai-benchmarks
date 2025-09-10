@@ -95,5 +95,5 @@ jobs:
           npm run test
         env:
           BRAINTRUST_TEXT_TO_DRIVER_PROJECT_NAME: "text-to-node-js-driver-benchmark"
-          # BRAINTRUST_ENDPOINT: "<placeholder>"
+          BRAINTRUST_ENDPOINT: "<placeholder>"
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
