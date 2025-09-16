@@ -174,7 +174,7 @@ async function main() {
   } & Partial<Record<QuizTitle, number>>;
 
   const experimentAggregates: ExperimentAggregate[] = [];
-  const detailedResults: DetailedQuizResult[] = []; // TODO: rename to questionAggregates
+  const detailedResults: DetailedQuizResult[] = [];
 
   // Process each experiment
   for (const { experimentName, model } of experiments) {
