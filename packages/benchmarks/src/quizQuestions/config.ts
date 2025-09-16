@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { BenchmarkConfig } from "../cli/BenchmarkConfig";
 import { getQuizQuestionEvalCasesFromBraintrust } from "./getQuizQuestionEvalCasesFromBraintrust";
 import {
