@@ -18,18 +18,7 @@ ${listExamplesInPrompt([
 
 const tools = `<tools>
 
-Use the following tools to help you accomplish the task:
-
-<tool name="${thinkToolName}">
-1. Use the tool to think about the problem as you are calling tools to respond.
-</tool>
-
-<tool name="${submitFinalSolutionToolName}">
-1. Once you have generated a query that you are confident in, call the ${submitFinalSolutionToolName} tool. 
-2. Only call the ${submitFinalSolutionToolName} tool when you have generated the final solution.
-3. In the tool call, you MUST include the correct database name, collection name, and aggregation pipeline. All fields are required.
-4. Once you have called the tool, you will stop generating.
-</tool>
+Use the provided tools to help you accomplish the task.
 
 </tools>`;
 
@@ -82,6 +71,11 @@ ${listExamplesInPrompt([
   "Avoid using the $search aggregation stage followed by $sort, $group, $count, $match stages. Instead, prefer to use the $search native features such $search.sort (instead of $sort), $search.facet (instead of $group), $search.count (instead of $count), $search.compound.filter (instead of $match).",
   "Avoid using $search.regex operator. It can be very inefficient. Instead, prefer using wildcard, autocomplete, and custom analyzers when possible.",
   'Avoid using MongoDB range queries for pagination. Instead use the $search.searchBefore and $search.searchAfter operators with the searchSequenceToken provided by $meta. E.g. { paginationToken : { $meta : "searchSequenceToken" } }',
+  "NEVER use $sort with { score: { $meta: 'searchScore' } }. Atlas Search results are already sorted by relevance. If you need to sort by searchScore, the $search stage already returns results sorted by score - just use $limit.",
+  'NEVER use unsupported operators like "spanNear" (does not exist). Note that "span" is deprecated - use "phrase" instead.',
+  "Atlas Search supports operators including: text, phrase, autocomplete, wildcard, regex, compound, equals, range, exists, near, geoShape, geoWithin, moreLikeThis.",
+  'NEVER add unsupported fields to operators. For example, "highlight" only supports "path" and "maxNumPassages", not "maxChars". "autocomplete" does not support "diacriticSensitive".',
+  "ALWAYS ensure your pipeline array has at least one stage. An empty pipeline [] will cause an error.",
 ])}
 
 </query-anti-patterns>`;
@@ -98,7 +92,7 @@ ${listExamplesInPrompt([
   "Leverage text search with appropriate analyzers - use text operator for full-text search, phrase for exact matches, autocomplete for type-ahead",
   "Apply scoring and boosting strategically - use boost option to increase importance of certain fields or conditions",
   "Include proper field specifications in your operators - specify which indexed fields to search against",
-  "Use $limit and $sort stages after $search to manage result sets, but avoid blocking operations when possible",
+  "Note: $search results are already sorted by relevance score. Use $limit and $sort stages after $search to manage result sets, but avoid blocking operations when possible.",
   "For complex text matching, consider wildcard or regex operators but note they are resource-intensive",
   "Utilize stored source fields when you need specific fields in subsequent pipeline stages to avoid full document lookup",
   "When using autocomplete, configure appropriate minGrams and maxGrams values (typically maxGrams of 10 for English)",

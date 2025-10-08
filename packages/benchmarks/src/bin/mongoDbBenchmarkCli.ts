@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "dotenv/config";
 import { makeBenchmarkCli } from "../cli/benchmarkCli";
 import { BenchmarkCliConfig } from "../cli/BenchmarkConfig";
 import { MODELS } from "../benchmarkModels";

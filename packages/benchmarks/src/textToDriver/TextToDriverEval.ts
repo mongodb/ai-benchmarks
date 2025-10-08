@@ -20,7 +20,7 @@ export type TextToDriverInput = z.infer<typeof TextToDriverInputSchema>;
   Output of the task.
  */
 export type TextToDriverOutput = {
-  generatedCode: string;
+  generatedCode: string | undefined;
   execution: DatabaseExecutionResult;
 };
 
