@@ -1,5 +1,5 @@
 import { Tool, tool } from "mongodb-rag-core/aiSdk";
-import { pipeline, z } from "zod";
+import { z } from "zod";
 import { listExamplesInPrompt } from "../languagePrompts/listExamplesInPrompt";
 
 const MongoDbAggregateOperationSchema = z.object({
@@ -7,7 +7,7 @@ const MongoDbAggregateOperationSchema = z.object({
   collectionName: z.string(),
   pipeline: z
     .array(z.record(z.string(), z.any()))
-    .describe("MongoDB aggregation pipeline"),
+    .describe("MongoDB aggregation pipeline. Format: `Document[]`"),
 });
 
 export type MongoDbAggregateOperation = z.infer<
@@ -18,16 +18,17 @@ export const submitFinalSolutionToolName = "submit-final-solution";
 
 export const submitFinalSolutionTool: Tool = tool({
   name: submitFinalSolutionToolName,
-  description: `Submit the final solution of MongoDB operation.
+  description: `Call ${submitFinalSolutionToolName} to submit the MongoDB operation that solves the problem. Once you have called the tool, you will stop generating.
 
-<general-requirements>
-${listExamplesInPrompt([
-  `Once you have generated a query that you are confident in, call the ${submitFinalSolutionToolName} tool.`,
-  `Only call the ${submitFinalSolutionToolName} tool when you have generated the final solution.`,
-  `In the tool call, you MUST include the correct database name, collection name, and aggregation pipeline. All fields are required.`,
-  `Once you have called the tool, you will stop generating.`,
-])}
-</general-requirements>
+<output-format>
+The output MUST be a JSON object with the following fields:
+
+- "databaseName": The name of the database to execute the pipeline on. E.g. "sample_mflix"
+- "collectionName": The name of the collection to execute the pipeline on. E.g. "movies"
+- "pipeline": The aggregation pipeline to execute. An array of all the stages in the pipeline. You can use the same pipeline as was created in previous tool steps. E.g. [{"$match": {"status": "active"}}, {"$group": {"_id": "$category", "count": {"$sum": 1}}}]
+
+All fields are required.
+</output-format>
 
 <pipeline-formatting-requirements>
 ${listExamplesInPrompt([
@@ -36,14 +37,6 @@ ${listExamplesInPrompt([
   `Do NOT include comments in the pipeline JSON`,
   `Ensure proper JSON formatting: quoted strings, correct nesting, no trailing commas`,
 ])}
-</pipeline-formatting-requirements>
-
-<example-pipelines>
-${listExamplesInPrompt([
-  `Match and group: [{"$match": {"status": "active"}}, {"$group": {"_id": "$category", "count": {"$sum": 1}}}]`,
-  `Sort and limit: [{"$match": {"year": {"$gte": 2020}}}, {"$sort": {"title": 1}}, {"$limit": 10}]`,
-  `Atlas Search with project: [{"$search": {"index": "default", "text": {"query": "comedy", "path": "genres"}}}, {"$project": {"title": 1, "_id": 1, "text": 0}}]`,
-])}
-</example-pipelines>`,
+</pipeline-formatting-requirements>`,
   inputSchema: MongoDbAggregateOperationSchema,
 });
