@@ -1,4 +1,3 @@
-import "dotenv/config";
 import {
   initDataset,
   BraintrustMiddleware,
