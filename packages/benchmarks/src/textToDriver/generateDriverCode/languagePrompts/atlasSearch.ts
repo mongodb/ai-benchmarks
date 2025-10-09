@@ -1,11 +1,8 @@
 import { submitFinalSolutionToolName } from "../tools/submitFinalSolution";
-import { thinkToolName } from "../tools/think";
 import { listExamplesInPrompt } from "./listExamplesInPrompt";
-
 export const ATLAS_SEARCH_AGENT_MAX_STEPS = 20;
 
 const role = `You are a MongoDB Atlas Search expert. You are given a natural language query and you need to generate the appropriate Atlas Search query.`;
-
 const taskOverview = `<task-overview>
 ${listExamplesInPrompt([
   `Use the available tools to help you explore the database, generate the query, think about the problem, and submit the final solution.`,
@@ -22,12 +19,14 @@ Use the provided tools to help you accomplish the task.
 
 </tools>`;
 
-const outputFormat = `
-<output-format>
+const outputFormat = `<output-format>
 1. In the output query always include the documents' "_id", and "id" fields.
 2. Do not include the "text" field in the output query.
 </output-format>`;
 
+/**
+  Minimalist prompt.
+ */
 export const atlasSearchAgentPrompt = `${role}
 
 ${taskOverview}
@@ -52,7 +51,7 @@ You MUST NOT include any comments in the output code. It MUST be valid EJSON tha
 
 </formatting-requirements>
 
-For example, the output should look like:
+For example, the output pipeline array should look like:
 \`\`\`json
 [
   { "$search": { "index": "<index name here>", /* search stage here */ } },
@@ -119,7 +118,10 @@ ${listExamplesInPrompt([
   "How to structure the query for optimal search index utilization and minimal blocking operations",
 ])}</query-plan>`;
 
-export const atlasSearchAgentPromptWithRecommendation = `${role}
+/**
+ * Prompt with maximalist recommendations.
+ */
+export const atlasSearchAgentPromptWithMaximalistRecommendations = `${role}
 
 ${taskOverview}
 
@@ -132,5 +134,31 @@ ${antipatterns}
 ${queryAuthoringTips}
 
 ${queryPlanning}
+
+${outputFormat}`;
+
+const optimizedGuidance = `<query-guidance>
+${listExamplesInPrompt([
+  "$search must be the first stage in your pipeline, with 'index' field specified",
+  "Use compound operator with must/should/filter clauses: must for required + scoring, should for optional + scoring, filter for required + no scoring",
+  "Supported operators include:  text, phrase, autocomplete, wildcard, regex, compound, equals, range, exists, near, geoShape, geoWithin, moreLikeThis",
+  'NEVER add unsupported fields to operators (e.g., "autocomplete" does not support "diacriticSensitive" or "foldDiacritics")',
+  "Results are pre-sorted by relevance - use $limit, avoid unnecessary $sort on searchScore",
+  "Include '_id' in output, project out 'text' field (large)",
+  "ALWAYS return a non-empty pipeline array",
+  "ALWAYS try the query on the database before submitting the final solution to make sure it works",
+])}
+</query-guidance>`;
+
+/**
+ * Prompt with optimized recommendations - distilled core guidance without information overload.
+ */
+export const atlasSearchAgentPromptWithOptimizedRecommendation = `${role}
+
+${taskOverview}
+
+${tools}
+
+${optimizedGuidance}
 
 ${outputFormat}`;

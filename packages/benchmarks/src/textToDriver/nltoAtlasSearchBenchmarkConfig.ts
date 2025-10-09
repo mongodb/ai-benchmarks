@@ -19,7 +19,8 @@ import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/gen
 import {
   ATLAS_SEARCH_AGENT_MAX_STEPS,
   atlasSearchAgentPrompt,
-  atlasSearchAgentPromptWithRecommendation,
+  atlasSearchAgentPromptWithMaximalistRecommendations,
+  atlasSearchAgentPromptWithOptimizedRecommendation,
 } from "./generateDriverCode/languagePrompts/atlasSearch";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { SuccessfulExecution } from "./scorers/evaluationMetrics";
@@ -102,13 +103,26 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
         });
       },
     },
-    agentic_prompt_recommendation: {
+    agentic_prompt__maximal_recommendation: {
       description:
-        "Agentic workflow-based code generation with a thorough prompt to improve the quality of the generated code",
+        "Agentic workflow-based code generation with a maximalist prompt to improve the quality of the generated code",
       taskFunc: async (provider, modelConfig) => {
         return makeGenerateAtlasSearchCodeAgenticTask({
           model: makeLanguageModel(provider, modelConfig),
-          systemPrompt: atlasSearchAgentPromptWithRecommendation,
+          systemPrompt: atlasSearchAgentPromptWithMaximalistRecommendations,
+          maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
+          mongoClient,
+          mongoDbMcpClient: mcpClient,
+        });
+      },
+    },
+    agentic_prompt_optimized_recommendation: {
+      description:
+        "Agentic workflow-based code generation with an _optimized_ prompt to improve the quality of the generated code",
+      taskFunc: async (provider, modelConfig) => {
+        return makeGenerateAtlasSearchCodeAgenticTask({
+          model: makeLanguageModel(provider, modelConfig),
+          systemPrompt: atlasSearchAgentPromptWithOptimizedRecommendation,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
           mongoDbMcpClient: mcpClient,
