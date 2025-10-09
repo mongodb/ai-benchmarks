@@ -118,6 +118,14 @@ ${listExamplesInPrompt([
   "How to structure the query for optimal search index utilization and minimal blocking operations",
 ])}</query-plan>`;
 
+const outputValidation = `<output-validations>
+${listExamplesInPrompt([
+  "ALWAYS return a non-empty pipeline array",
+  "The output of the search operation should NEVER be empty.",
+  "ALWAYS try the query on the database before submitting the final solution to make sure it works.",
+])}
+</output-validations>`;
+
 /**
  * Prompt with maximalist recommendations.
  */
@@ -135,6 +143,8 @@ ${queryAuthoringTips}
 
 ${queryPlanning}
 
+${outputValidation}
+
 ${outputFormat}`;
 
 const optimizedGuidance = `<query-guidance>
@@ -145,8 +155,7 @@ ${listExamplesInPrompt([
   'NEVER add unsupported fields to operators (e.g., "autocomplete" does not support "diacriticSensitive" or "foldDiacritics")',
   "Results are pre-sorted by relevance - use $limit, avoid unnecessary $sort on searchScore",
   "Include '_id' in output, project out 'text' field (large)",
-  "ALWAYS return a non-empty pipeline array",
-  "ALWAYS try the query on the database before submitting the final solution to make sure it works",
+  ...outputValidation,
 ])}
 </query-guidance>`;
 

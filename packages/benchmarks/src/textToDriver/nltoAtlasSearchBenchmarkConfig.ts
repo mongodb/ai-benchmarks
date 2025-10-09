@@ -103,7 +103,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
         });
       },
     },
-    agentic_prompt__maximal_recommendation: {
+    agentic_prompt_maximal_recommendation: {
       description:
         "Agentic workflow-based code generation with a maximalist prompt to improve the quality of the generated code",
       taskFunc: async (provider, modelConfig) => {
