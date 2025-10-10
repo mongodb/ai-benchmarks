@@ -40,7 +40,7 @@ export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
 const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-gpt-5";
 
 let mongoClient: MongoClient;
-let mcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
+let mongoDbMcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
 
 export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -68,7 +68,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
         MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
       });
-      mcpClient = await experimental_createMCPClient({
+      mongoDbMcpClient = await experimental_createMCPClient({
         transport: new StdioClientTransport({
           command: "npx",
           args: [
@@ -86,7 +86,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
     afterAll: async () => {
       await mongoClient.close();
       console.log("Closed MongoDB client");
-      await mcpClient.close();
+      await mongoDbMcpClient.close();
       console.log("Closed MCP client");
     },
   },
@@ -99,7 +99,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
           systemPrompt: atlasSearchAgentPrompt,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
-          mongoDbMcpClient: mcpClient,
+          mongoDbMcpClient,
         });
       },
     },
@@ -112,7 +112,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
           systemPrompt: atlasSearchAgentPromptWithMaximalistRecommendations,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
-          mongoDbMcpClient: mcpClient,
+          mongoDbMcpClient,
         });
       },
     },
@@ -125,7 +125,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
           systemPrompt: atlasSearchAgentPromptWithOptimizedRecommendation,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
-          mongoDbMcpClient: mcpClient,
+          mongoDbMcpClient,
         });
       },
     },
