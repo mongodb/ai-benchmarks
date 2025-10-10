@@ -117,7 +117,7 @@ export function makeQueryPerformanceMongosh(
 ): TextToDriverEvalScorer {
   return async function QueryPerformance({ output, input }) {
     const { profile, error: profileError } = await profileMongoshQuery(
-      output.generatedCode,
+      output.generatedCode ?? "",
       input.databaseName,
       connectionUri
     );

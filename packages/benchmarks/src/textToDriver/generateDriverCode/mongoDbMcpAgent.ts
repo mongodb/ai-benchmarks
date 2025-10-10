@@ -131,7 +131,6 @@ export async function makeMongoDbMcpAgent({
   mcpToolSet[thinkToolName] = thinkTool;
   // Add submit-final-solution tool for model to submit answer and stop generating.
   mcpToolSet[submitFinalSolutionToolName] = submitFinalSolutionTool;
-
   return wrapTraced(async function mongoDbMcpAgent({
     messages,
   }: MongoDbMcpAgentParams) {

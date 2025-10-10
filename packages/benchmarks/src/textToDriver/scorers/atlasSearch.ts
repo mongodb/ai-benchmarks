@@ -3,7 +3,6 @@ import {
   TextToDriverEvalScorer,
   TextToDriverOutput,
 } from "../TextToDriverEval";
-import { SuccessfulExecution } from "./evaluationMetrics";
 import { binaryNdcgAtK, MatchFunc } from "mongodb-rag-core/eval";
 import { ObjectId } from "mongodb-rag-core/mongodb";
 
@@ -49,9 +48,9 @@ export const SearchOperatorUsed = ({
 }): Score => {
   const generatedCode = output.generatedCode;
   const correctOperatorUsed =
-    generatedCode.includes("$search") ||
-    generatedCode.includes("$vectorSearch");
-  const deprecatedOperatorUsed = generatedCode.includes("$knnBeta");
+    generatedCode?.includes("$search") ||
+    generatedCode?.includes("$vectorSearch");
+  const deprecatedOperatorUsed = generatedCode?.includes("$knnBeta");
   return {
     name: "SearchOperatorUsed",
     // Correct: 1, deprecated: 0.5, incorrect: 0

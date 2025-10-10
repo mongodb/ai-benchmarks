@@ -11,7 +11,8 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "lint": "lerna run lint",
-    "lint:fix": "lerna run lint:fix"
+    "lint:fix": "lerna run lint:fix",
+    "benchmark": "lerna run benchmark --scope=benchmarks -- "
   },
   "devDependencies": {
     "@stylistic/eslint-plugin-js": "^1.7.0",

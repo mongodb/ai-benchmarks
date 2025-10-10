@@ -1,5 +1,5 @@
 import { assertEnvVars } from "mongodb-rag-core";
-import { BenchmarkConfig } from "../cli/BenchmarkConfig";
+import { BenchmarkConfig, ModelProvider } from "../cli/BenchmarkConfig";
 import {
   TextToDriverExpected,
   TextToDriverInput,
@@ -19,6 +19,8 @@ import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/gen
 import {
   ATLAS_SEARCH_AGENT_MAX_STEPS,
   atlasSearchAgentPrompt,
+  atlasSearchAgentPromptWithMaximalistRecommendations,
+  atlasSearchAgentPromptWithOptimizedRecommendation,
 } from "./generateDriverCode/languagePrompts/atlasSearch";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import { SuccessfulExecution } from "./scorers/evaluationMetrics";
@@ -30,6 +32,7 @@ import {
 import { BRAINTRUST_ENV_VARS } from "./TextToDriverEnvVars";
 import { loadTextToDriverBraintrustEvalCases } from "./loadBraintrustDatasets";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { ModelConfig } from "mongodb-rag-core/models";
 
 export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
   "natural-language-to-atlas-search";
@@ -37,7 +40,7 @@ export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
 const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-gpt-5";
 
 let mongoClient: MongoClient;
-let mcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
+let mongoDbMcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
 
 export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -65,7 +68,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
         MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
       });
-      mcpClient = await experimental_createMCPClient({
+      mongoDbMcpClient = await experimental_createMCPClient({
         transport: new StdioClientTransport({
           command: "npx",
           args: [
@@ -83,7 +86,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
     afterAll: async () => {
       await mongoClient.close();
       console.log("Closed MongoDB client");
-      await mcpClient.close();
+      await mongoDbMcpClient.close();
       console.log("Closed MCP client");
     },
   },
@@ -92,21 +95,37 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       description: "Agentic workflow-based code generation",
       taskFunc: async (provider, modelConfig) => {
         return makeGenerateAtlasSearchCodeAgenticTask({
-          model: wrapLanguageModel({
-            model: createOpenAI({
-              apiKey: provider.apiKey,
-              baseURL: provider.baseUrl,
-            }).chat(modelConfig.deployment),
-
-            middleware: [
-              BraintrustMiddleware({ debug: true }),
-              SupportGeminiThroughBraintrustProxy,
-            ],
-          }),
+          model: makeLanguageModel(provider, modelConfig),
           systemPrompt: atlasSearchAgentPrompt,
           maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
           mongoClient,
-          mongoDbMcpClient: mcpClient,
+          mongoDbMcpClient,
+        });
+      },
+    },
+    agentic_prompt_maximal_recommendation: {
+      description:
+        "Agentic workflow-based code generation with a maximalist prompt to improve the quality of the generated code",
+      taskFunc: async (provider, modelConfig) => {
+        return makeGenerateAtlasSearchCodeAgenticTask({
+          model: makeLanguageModel(provider, modelConfig),
+          systemPrompt: atlasSearchAgentPromptWithMaximalistRecommendations,
+          maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
+          mongoClient,
+          mongoDbMcpClient,
+        });
+      },
+    },
+    agentic_prompt_optimized_recommendation: {
+      description:
+        "Agentic workflow-based code generation with an _optimized_ prompt to improve the quality of the generated code",
+      taskFunc: async (provider, modelConfig) => {
+        return makeGenerateAtlasSearchCodeAgenticTask({
+          model: makeLanguageModel(provider, modelConfig),
+          systemPrompt: atlasSearchAgentPromptWithOptimizedRecommendation,
+          maxSteps: ATLAS_SEARCH_AGENT_MAX_STEPS,
+          mongoClient,
+          mongoDbMcpClient,
         });
       },
     },
@@ -132,3 +151,17 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   },
   description: "Natural language to Atlas Search code generation",
 };
+
+function makeLanguageModel(provider: ModelProvider, modelConfig: ModelConfig) {
+  return wrapLanguageModel({
+    model: createOpenAI({
+      apiKey: provider.apiKey,
+      baseURL: provider.baseUrl,
+    }).chat(modelConfig.deployment),
+
+    middleware: [
+      BraintrustMiddleware({ debug: true }),
+      SupportGeminiThroughBraintrustProxy,
+    ],
+  });
+}

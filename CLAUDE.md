@@ -4,40 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is the MongoDB Knowledge Service/Chatbot monorepo, managed with Lerna in independent mode. The project provides AI-powered chatbot functionality for MongoDB documentation and services.
+This is a MongoDB AI Benchmarks repository for evaluating AI models on MongoDB-related tasks. It's a Lerna monorepo with three main packages focused on benchmarking text-to-driver code generation, natural language queries, and MongoDB knowledge tasks.
 
 **Key Architecture:**
-- Monorepo with TypeScript packages managed by Lerna
-- RAG (Retrieval-Augmented Generation) system for document search
-- React UI components with Express.js backend
-- MongoDB Atlas for vector storage and search
-- OpenAI/LLM integration for chat responses
+- Lerna monorepo with independent TypeScript packages
+- Braintrust integration for experiment tracking and evaluation
+- AI SDK (Vercel) for LLM interactions
+- MongoDB for test databases and query execution
+- Evaluation pipelines with custom scorers
 
 ## Essential Commands
 
-### Development
+### Setup
 ```bash
 # Initial setup
 npm install
 npm run bootstrap
 
-# Start development servers (server + UI with hot reload)
-npm run dev
-
-# Individual development servers
-npm run dev:server    # chatbot-server-mongodb-public only
-npm run dev:ui        # mongodb-chatbot-ui only
-```
-
-### Building
-```bash
 # Build all packages
 npm run build
 
-# Build specific packages
-npm run build -- --scope='{mongodb-rag-core,chatbot-server-mongodb-public}'
-
-# Build mongodb-rag-core first (required dependency for most packages)
+# Build specific packages (mongodb-rag-core must be built first)
+npm run build -- --scope='{mongodb-rag-core,benchmarks}'
 cd packages/mongodb-rag-core && npm run build
 ```
 
@@ -46,76 +34,126 @@ cd packages/mongodb-rag-core && npm run build
 # Run all tests
 npm run test
 
-# Lint all packages
+# Test specific package
+cd packages/<package-name> && npm test
+
+# Linting
 npm run lint
 npm run lint:fix
-
-# Individual package testing
-cd packages/<package-name> && npm test
-```
-
-### Scripts & Utilities
-```bash
-# Analysis scripts
-npm run scripts:analyzeMessages
-npm run scripts:findFaq
-npm run scripts:getConversationText
-
-# Database management
-npm run scripts:removeTestDatabases
-
-# Server management
-npm run server:start
 ```
 
 ## Package Structure
 
-### Core Libraries
-- **mongodb-rag-core**: Shared utilities, types, and functions. Must be built first.
-- **mongodb-rag-ingest**: CLI for ingesting documents into vector store
-- **mongodb-chatbot-server**: Generic Express.js chatbot server
-- **mongodb-chatbot-ui**: React UI components (built with Leafygreen/Vite)
+### Core Packages
 
-### Implementations
-- **ingest-mongodb-public**: MongoDB-specific ingestion service
-- **chatbot-server-mongodb-public**: MongoDB-specific server implementation
+**mongodb-rag-core**: Shared utilities, types, and functions used across all packages. Build this first before other packages.
+- Exports: `/braintrust`, `/aiSdk`, `/mongodb`, `/executeCode`, `/eval`, `/models`
+- Contains Braintrust integration, LLM utilities, MongoDB helpers, code execution
+- Dependency for both benchmarks and datasets packages
 
-### Tools & Scripts
-- **mongodb-artifact-generator**: CLI for generating docs and code examples
-- **scripts**: Miscellaneous utility scripts
-- **benchmarks**: Performance evaluation and testing
-- **datasets**: Data management for training/evaluation
+**benchmarks**: Benchmarking suite for evaluating AI models on MongoDB tasks
+- Text-to-driver code generation (natural language to MongoDB queries)
+- Quiz questions (MongoDB University multiple choice questions)
+- Discovery tasks (finding relevant MongoDB documentation)
+- Uses Braintrust `Eval()` for experiment tracking
+- Includes custom scorers for MongoDB query evaluation
+
+**datasets**: Tools for generating and managing evaluation datasets
+- Extract and process code examples from MongoDB docs
+- Generate synthetic natural language queries for databases
+- Upload datasets to Hugging Face
+- Schema generation for MongoDB databases
+
+## Key Implementation Details
+
+### Evaluations
+- Use `Eval()` from `mongodb-rag-core/braintrust` (re-exported from `braintrust` npm package)
+- Evaluation files named `*.eval.ts` contain Braintrust experiments
+- Each eval defines: project name, experiment name, data, task function, scorers
+- Results tracked in Braintrust web UI with experiment comparisons
+
+### Text-to-Driver Benchmarks
+Located in `packages/benchmarks/src/textToDriver/`:
+- **Agentic approach**: `generateMongoshCodeAgentic.ts` - iterative query generation with tool calling
+- **Prompt completion**: `generateMongoshCodePromptCompletion.ts` - single-shot generation
+- **Tool calling**: `generateMongoshCodeToolCall.ts` - structured output generation
+- Custom scorers compare generated queries against expected results
+- Supports different prompt strategies: annotated schemas, interpreted schemas, few-shot examples, chain-of-thought
+
+### Database Execution
+- `makeExecuteMongoshQuery()` from `mongodb-rag-core/executeCode` runs generated code
+- Test databases created with `textToDriver:makeDatabases` script
+- Results validated using custom scoring functions in `scorers/`
+
+### Braintrust Integration
+- Import from `mongodb-rag-core/braintrust` not `braintrust` directly
+- `wrapOpenAI()` and `wrapAzureOpenAI()` for automatic logging
+- Experiments tracked with metadata, tags, and custom scores
+- Use Braintrust MCP server (available via `/mcp` command) to query results
 
 ## Development Workflow
 
 1. **Environment Setup**: Each package requires `.env` file (see `.env.example`)
-2. **Build Dependencies**: Always build `mongodb-rag-core` first
-3. **Network Access**: MongoDB corporate network/VPN required for many services
-4. **Testing**: Run tests locally before committing
-5. **Branches**: Use Jira ticket names (e.g., `DOCSP-1234`) or descriptive names
+2. **Build Order**: Always build `mongodb-rag-core` first, then dependent packages
+3. **Dependencies**: Most packages depend on `mongodb-rag-core` - rebuild it after changes
+4. **Testing**: MongoDB Memory Server used for tests (no external DB required for unit tests)
+5. **Benchmarks**: Require MongoDB connection URI in `.env` for real database tests
 
-## Key Implementation Details
+## Common Patterns
 
-- **Dependency Chain**: Most packages depend on `mongodb-rag-core`
-- **Vector Search**: Uses MongoDB Atlas Vector Search for document retrieval
-- **LLM Integration**: OpenAI API integration with custom prompts and tools
-- **Evaluation**: Braintrust integration for benchmarking and evaluation
-- **CI/CD**: Drone pipeline with Kubernetes/Kanopy deployment
+### Running an Evaluation
+```typescript
+import { Eval } from "mongodb-rag-core/braintrust";
 
-## Testing Strategy
+await Eval("project-name", {
+  experimentName: "experiment-name",
+  data: evalCases,
+  async task(input) {
+    // Your task implementation
+    return output;
+  },
+  scorers: [customScorer1, customScorer2],
+});
+```
 
-- Unit tests with Jest in individual packages
-- Integration tests for chatbot functionality
-- Performance testing with k6 framework
+### Using AI SDK
+```typescript
+import { generateText, tool } from "mongodb-rag-core/aiSdk";
 
-## Evaluation Strategy
-- Use `braintrust` library imported from `mongodb-rag-core/braintrust`
-- Evalutions using files named `*.eval.ts`
-- Evaluation pipelines for conversation quality
+const result = await generateText({
+  model: openai,
+  tools: { toolName: tool({ description, inputSchema, execute }) },
+  system: systemPrompt,
+  prompt: userPrompt,
+});
+```
 
-## Common Issues
+## Benchmarking CLI
 
-- Build `mongodb-rag-core` after any changes to it
-- Ensure VPN connection for MongoDB services
-- Check `.env` files match `.env.example` requirements
-- Run `npm run bootstrap` after dependency changes
+From `packages/benchmarks`, run:
+```bash
+npm run benchmark -- --help
+```
+
+Key benchmark types:
+- `textToDriver`: Natural language to MongoDB driver code
+- `quizQuestions`: MongoDB knowledge quiz questions
+- `nlPromptResponse`: Natural language prompt responses
+
+### Running Benchmarks
+
+Run all benchmarks with the benchmark CLI:
+
+```sh
+# Get started
+npm run benchmark -- --help
+
+# List available benchmarks
+npm run benchmark -- list
+
+# List available models
+npm run benchmark -- models list
+
+# Run a benchmark
+npm run benchmark -- run --type nl_prompt_response --model gpt-4.1-nano --dataset top_questions
+```

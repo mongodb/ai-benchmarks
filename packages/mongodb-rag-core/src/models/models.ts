@@ -299,6 +299,16 @@ const allModels = [
     generation: "claude-4",
   },
   {
+    label: "anthropic/claude-sonnet-4.5",
+    deployment: "claude-sonnet-4-5-20250929",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 5,
+    authorized: true,
+    parent: "claude-37-sonnet",
+    generation: "claude-4",
+  },
+  {
     label: "anthropic/claude-opus-4",
     deployment: "claude-opus-4-20250514",
     provider: "braintrust",

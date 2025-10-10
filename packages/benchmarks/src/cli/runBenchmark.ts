@@ -44,8 +44,8 @@ export async function runBenchmark(
   }
 
   // Resolve tasks
-  const taskToRun = Object.entries(benchmarkConfig.tasks).find(([name]) =>
-    task.includes(name)
+  const taskToRun = Object.entries(benchmarkConfig.tasks).find(
+    ([name]) => task === name
   )?.[1];
 
   if (!taskToRun) {
