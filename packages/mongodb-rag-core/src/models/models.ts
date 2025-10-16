@@ -299,13 +299,23 @@ const allModels = [
     generation: "claude-4",
   },
   {
+    label: "anthropic/claude-3.7-sonnet",
+    deployment: "claude-3-7-sonnet-20250219",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 1,
+    authorized: true,
+    parent: "claude-35-sonnet-v2",
+    generation: "claude-3",
+  },
+  {
     label: "anthropic/claude-sonnet-4.5",
     deployment: "claude-sonnet-4-5-20250929",
     provider: "braintrust",
     developer: "Anthropic",
     maxConcurrency: 5,
     authorized: true,
-    parent: "claude-37-sonnet",
+    parent: "claude-4-sonnet",
     generation: "claude-4",
   },
   {
@@ -315,7 +325,7 @@ const allModels = [
     developer: "Anthropic",
     maxConcurrency: 5,
     authorized: true,
-    parent: "claude-37-sonnet",
+    parent: "claude-35-haiku",
     generation: "claude-4",
   },
   {

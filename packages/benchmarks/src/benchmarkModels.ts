@@ -14,6 +14,7 @@ export const MODELS = (
     "claude-35-sonnet",
     "claude-35-sonnet-v2",
     "claude-37-sonnet",
+    "anthropic/claude-3.7-sonnet",
     "anthropic/claude-sonnet-4",
     "anthropic/claude-sonnet-4.5",
     "anthropic/claude-haiku-4.5",
