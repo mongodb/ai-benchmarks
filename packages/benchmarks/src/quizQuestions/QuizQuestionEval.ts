@@ -13,7 +13,7 @@ import {
   MakeHelmQuizQuestionPromptParams,
 } from "./makeHelmQuizQuestionPrompt";
 import {
-  CoreMessage,
+  ModelMessage,
   generateText,
   LanguageModel,
 } from "mongodb-rag-core/aiSdk";
@@ -66,7 +66,7 @@ export function makeQuizQuestionTask({
     const promptMessages = makeHelmQuizQuestionPrompt({
       quizQuestion: input,
       ...promptOptions,
-    }) satisfies CoreMessage[];
+    }) satisfies ModelMessage[];
     const { text } = await generateText({
       model: languageModel,
       messages: promptMessages,

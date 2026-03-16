@@ -1,12 +1,13 @@
 import {
   generateText,
+  GenerateTextResult,
   LanguageModel,
   ModelMessage,
   stepCountIs,
   hasToolCall,
-  experimental_createMCPClient,
   ToolSet,
 } from "mongodb-rag-core/aiSdk";
+import { createMCPClient } from "@ai-sdk/mcp";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { MongoClient } from "mongodb-rag-core/mongodb";
 import {
@@ -25,7 +26,7 @@ export interface MakeMongoDbMcpAgentParams {
   mongoClient: MongoClient;
   availableMongoDbMcpTools?: MongoDbMcpToolName[];
   maxSteps: number;
-  mongoDbMcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
+  mongoDbMcpClient: Awaited<ReturnType<typeof createMCPClient>>;
 }
 
 const availableToolNames = [
@@ -133,7 +134,7 @@ export async function makeMongoDbMcpAgent({
   mcpToolSet[submitFinalSolutionToolName] = submitFinalSolutionTool;
   return wrapTraced(async function mongoDbMcpAgent({
     messages,
-  }: MongoDbMcpAgentParams) {
+  }: MongoDbMcpAgentParams): Promise<GenerateTextResult<ToolSet, any>> {
     const response = await generateText({
       model,
       system: systemPrompt,

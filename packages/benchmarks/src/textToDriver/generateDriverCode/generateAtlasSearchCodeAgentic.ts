@@ -35,7 +35,7 @@ Natural language query: ${nlQuery}`,
 }
 
 async function extractOutputFromMessages(
-  agentResponse: GenerateTextResult<ToolSet, unknown>,
+  agentResponse: GenerateTextResult<ToolSet, any>,
   mongoClient: MongoClient
 ): Promise<TextToDriverOutput> {
   // Get the result from the tool results in the steps

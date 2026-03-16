@@ -12,9 +12,9 @@ import {
 } from "mongodb-rag-core/braintrust";
 import {
   createOpenAI,
-  experimental_createMCPClient,
   wrapLanguageModel,
 } from "mongodb-rag-core/aiSdk";
+import { createMCPClient } from "@ai-sdk/mcp";
 import { makeGenerateAtlasSearchCodeAgenticTask } from "./generateDriverCode/generateAtlasSearchCodeAgentic";
 import {
   ATLAS_SEARCH_AGENT_MAX_STEPS,
@@ -40,7 +40,7 @@ export const NL_TO_ATLAS_SEARCH_PROJECT_NAME =
 const NL_TO_ATLAS_SEARCH_DATASET_NAME = "atlas-search-dataset-gpt-5";
 
 let mongoClient: MongoClient;
-let mongoDbMcpClient: Awaited<ReturnType<typeof experimental_createMCPClient>>;
+let mongoDbMcpClient: Awaited<ReturnType<typeof createMCPClient>>;
 
 export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
   TextToDriverInput,
@@ -68,7 +68,7 @@ export const nlToAtlasSearchBenchmarkConfig: BenchmarkConfig<
       const { MONGODB_TEXT_TO_DRIVER_CONNECTION_URI } = assertEnvVars({
         MONGODB_TEXT_TO_DRIVER_CONNECTION_URI: "",
       });
-      mongoDbMcpClient = await experimental_createMCPClient({
+      mongoDbMcpClient = await createMCPClient({
         transport: new StdioClientTransport({
           command: "npx",
           args: [

@@ -4,13 +4,13 @@ import { NlPromptResponseEvalTask } from "./NlQuestionAnswerEval";
 import {
   LanguageModel,
   generateText,
-  CoreMessage,
+  ModelMessage,
 } from "mongodb-rag-core/aiSdk";
 
 interface MakeNlPromptCompletionTaskParams {
   llmOptions: Omit<LlmOptions, "openAiClient" | "model">;
   languageModel: LanguageModel;
-  initialMessages?: CoreMessage[];
+  initialMessages?: ModelMessage[];
 }
 
 export function makeNlPromptCompletionTask({
