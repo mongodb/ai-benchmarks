@@ -1,0 +1,1260 @@
+- name: "[beginner] Build a Research Assistant app where users should be able to upload PDFs, store ..."
+  messages:
+    - role: user
+      content: Build a Research Assistant app where users should be able to upload PDFs, store them, and ask a chatbot
+        questions based on the content. The app needs to save a history of all questions and answers for each user.
+  tags:
+    - app-development
+    - beginner
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: AI
+- name: "[beginner] Build a chatbot interface that stores every conversation session, allowing users..."
+  messages:
+    - role: user
+      content: Build a chatbot interface that stores every conversation session, allowing users to go back and search through
+        their past chat history.
+  tags:
+    - app-development
+    - beginner
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: AI
+- name: '[beginner] Build an app that acts like a "second brain." I want to save random snippets of ...'
+  messages:
+    - role: user
+      content: Build an app that acts like a "second brain." I want to save random snippets of text, video or web links, and
+        have the app automatically find related things I’ve saved in the past whenever I add something new.
+  tags:
+    - app-development
+    - beginner
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: AI
+- name: "[beginner] Build a style inspector app for an interior design studio. Designers should be a..."
+  messages:
+    - role: user
+      content: Build a style inspector app for an interior design studio. Designers should be able to upload photos of
+        furniture or room layouts and instantly find visually similar items from our catalog, even if they don't have
+        matching text descriptions or tags.
+  tags:
+    - app-development
+    - beginner
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: AI
+- name: "[beginner] Build an app for my small business so customers can view their full order histor..."
+  messages:
+    - role: user
+      content: Build an app for my small business so customers can view their full order history, including real-time status
+        updates and a detailed log of every item purchased.
+  tags:
+    - app-development
+    - beginner
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[beginner] Build a shopping cart application that saves a user's selected items across sess..."
+  messages:
+    - role: user
+      content: Build a shopping cart application that saves a user's selected items across sessions and allows for promotional
+        codes that apply to specific item groups.
+  tags:
+    - app-development
+    - beginner
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[beginner] Build a store-front app that allows me to list products, like clothing with size..."
+  messages:
+    - role: user
+      content: Build a store-front app that allows me to list products, like clothing with sizes/colors, in a searchable
+        inventory.
+  tags:
+    - app-development
+    - beginner
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[beginner] Create a gift registry app. A user should be able to create multiple registries ..."
+  messages:
+    - role: user
+      content: Create a gift registry app. A user should be able to create multiple registries (e.g., 'Wedding,'
+        'Housewarming'). Each registry needs its own list of items, a "claimed" status, options to buy a portion of a
+        gift (e.g. 6 place settings when 12 are requested), and a personalized note from the registry owner.
+  tags:
+    - app-development
+    - beginner
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[beginner] Build a hobby app where users join different groups based on interests. Every gr..."
+  messages:
+    - role: user
+      content: Build a hobby app where users join different groups based on interests. Every group has a different set of
+        rules and a completely different layout for posts (e.g., a photograph group shows images, while a writing group
+        shows text).
+  tags:
+    - app-development
+    - beginner
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[beginner] Build an app where users can drop digital pins on a map with a message or a phot..."
+  messages:
+    - role: user
+      content: Build an app where users can drop digital pins on a map with a message or a photo. Other people can walk by
+        that location in real life, see the pin on their phone, and leave comments or thumbs up on it.
+  tags:
+    - app-development
+    - beginner
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[beginner] Build a get-together app for friend groups that creates an event, has everyone v..."
+  messages:
+    - role: user
+      content: Build a get-together app for friend groups that creates an event, has everyone vote on the time/place, shares a
+        photo album for that specific night, and keep a running chat just for that event.
+  tags:
+    - app-development
+    - beginner
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[beginner] Build a portfolio website where I can add and update projects with different con..."
+  messages:
+    - role: user
+      content: Build a portfolio website where I can add and update projects with different content, like video, blog posts,
+        etc, and organize them in different groups.
+  tags:
+    - app-development
+    - beginner
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[beginner] Build a bookshelf app where different book clubs can list books they've read, wr..."
+  messages:
+    - role: user
+      content: Build a bookshelf app where different book clubs can list books they've read, write long reviews, give star
+        ratings, and tag books with custom tags like "spooky" or "inspirational".
+  tags:
+    - app-development
+    - beginner
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[beginner] Build a fan app for artists. Fans should be able to subscribe to see 'behind-the..."
+  messages:
+    - role: user
+      content: Build a fan app for artists. Fans should be able to subscribe to see 'behind-the-scenes' posts, leave comments
+        (and comments on comments) on videos, and see a countdown for when the next piece of content and concert is
+        coming.
+  tags:
+    - app-development
+    - beginner
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[beginner] Build a learning app where teachers can upload lessons that include a mix of vid..."
+  messages:
+    - role: user
+      content: Build a learning app where teachers can upload lessons that include a mix of video, text, and interactive
+        quizzes. Students should be able to leave reviews and ratings for each lesson.
+  tags:
+    - app-development
+    - beginner
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[beginner] Build a tool-tracking app for construction companies. Each company should be abl..."
+  messages:
+    - role: user
+      content: Build a tool-tracking app for construction companies. Each company should be able to sign up, add their own
+        employees, and list their own equipment without ever seeing another company's data.
+  tags:
+    - app-development
+    - beginner
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[beginner] Build an app for school districts where each school can create their own custom ..."
+  messages:
+    - role: user
+      content: Build an app for school districts where each school can create their own custom volunteer signup forms and
+        permission slips with different questions, but all the data is managed under one district account.
+  tags:
+    - app-development
+    - beginner
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[beginner] Build a top calculator app that saves past calculations and server names, if app..."
+  messages:
+    - role: user
+      content: Build a top calculator app that saves past calculations and server names, if applicable, so users can refer by
+        to them
+  tags:
+    - app-development
+    - beginner
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[beginner] Build a clinic manager app where different independent doctors can sign up to ma..."
+  messages:
+    - role: user
+      content: Build a clinic manager app where different independent doctors can sign up to manage their own patients and
+        appointments. It's critical that one doctor's patient data is never visible to another doctor.
+  tags:
+    - app-development
+    - beginner
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[intermediate] Build a backend service that retrieves relevant document snippets for a chatbot,..."
+  messages:
+    - role: user
+      content: Build a backend service that retrieves relevant document snippets for a chatbot, but only allows searches
+        within the specific folders a user has permission to see.
+  tags:
+    - app-development
+    - intermediate
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: AI
+- name: "[intermediate] Build a feature to store and search through thousands of AI-generated image desc..."
+  messages:
+    - role: user
+      content: Build a feature to store and search through thousands of AI-generated image descriptions, allowing users to
+        find images using both keyword search and semantic similarity.
+  tags:
+    - app-development
+    - intermediate
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: AI
+- name: "[intermediate] Create a feature that saves user-AI interactions but automatically purges data o..."
+  messages:
+    - role: user
+      content: Create a feature that saves user-AI interactions but automatically purges data older than 30 days.
+  tags:
+    - app-development
+    - intermediate
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: AI
+- name: "[intermediate] Build a citation feature for a chatbot that not only retrieves the answer to a u..."
+  messages:
+    - role: user
+      content: Build a citation feature for a chatbot that not only retrieves the answer to a user's question but also returns
+        the exact page number and source url of the top 3 snippets used, ensuring the model doesn't hallucinate sources.
+  tags:
+    - app-development
+    - intermediate
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: AI
+- name: "[intermediate] Build me a REST API for a product catalog with nested categories and variable pr..."
+  messages:
+    - role: user
+      content: Build me a REST API for a product catalog with nested categories and variable product attributes.
+  tags:
+    - app-development
+    - intermediate
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[intermediate] Build a checkout application that handles high-concurrency stock updates and ens..."
+  messages:
+    - role: user
+      content: Build a checkout application that handles high-concurrency stock updates and ensures that if the payment fails,
+        the inventory count is instantly restored.
+  tags:
+    - app-development
+    - intermediate
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[intermediate] Create an analytics dashboard query that calculates 'Top 5 Trending Products' by..."
+  messages:
+    - role: user
+      content: Create an analytics dashboard query that calculates 'Top 5 Trending Products' by category, based on sales
+        volume over the last 24 hours.
+  tags:
+    - app-development
+    - intermediate
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[intermediate] Build a refund feature that verifies if a refund request is within a 30-day wind..."
+  messages:
+    - role: user
+      content: Build a refund feature that verifies if a refund request is within a 30-day window and automatically updates
+        the stock level for that specific product variant across all warehouse locations.
+  tags:
+    - app-development
+    - intermediate
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[intermediate] Design a feature that finds other users who share at least three specific hobby ..."
+  messages:
+    - role: user
+      content: Design a feature that finds other users who share at least three specific hobby tags with the current user.
+  tags:
+    - app-development
+    - intermediate
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[intermediate] Create a background sync that updates a user's \"Follower Count\" in real-time eve..."
+  messages:
+    - role: user
+      content: Create a background sync that updates a user's "Follower Count" in real-time every time someone new hits the
+        "Follow" button.
+  tags:
+    - app-development
+    - intermediate
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[intermediate] Build a search feature that finds local events and nearby users based on a 15-mi..."
+  messages:
+    - role: user
+      content: Build a search feature that finds local events and nearby users based on a 15-mile radius from the person’s
+        current GPS coordinates.
+  tags:
+    - app-development
+    - intermediate
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[intermediate] Build a safe feed feature that hides posts from a user’s timeline if they contai..."
+  messages:
+    - role: user
+      content: Build a safe feed feature that hides posts from a user’s timeline if they contain certain blocked keywords or
+        come from users that the current person has muted in their settings.
+  tags:
+    - app-development
+    - intermediate
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[intermediate] Build a document storage and retrieval feature for an enterprise knowledge base ..."
+  messages:
+    - role: user
+      content: Build a document storage and retrieval feature for an enterprise knowledge base that includes multiple content
+        types.
+  tags:
+    - app-development
+    - intermediate
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[intermediate] Build a backend for a recipe app that stores ingredients, instructions, nutritio..."
+  messages:
+    - role: user
+      content: Build a backend for a recipe app that stores ingredients, instructions, nutritional data, and user-generated
+        variations can be searched by user name or ingredients.
+  tags:
+    - app-development
+    - intermediate
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[intermediate] Build a multi-language content platform that stores translations and regional va..."
+  messages:
+    - role: user
+      content: Build a multi-language content platform that stores translations and regional variations of the same content.
+  tags:
+    - app-development
+    - intermediate
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[intermediate] Build a content scheduling feature that allows authors to set a future publish d..."
+  messages:
+    - role: user
+      content: Build a content scheduling feature that allows authors to set a future publish date. The public API should
+        automatically begin serving these posts the moment the time passes without requiring a manual status update.
+  tags:
+    - app-development
+    - intermediate
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[intermediate] Build a usage billing feature that tracks how many '\"units\" (like emails sent or..."
+  messages:
+    - role: user
+      content: Build a usage billing feature that tracks how many '"units" (like emails sent or files stored) each customer
+        uses daily for monthly invoicing.
+  tags:
+    - app-development
+    - intermediate
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[intermediate] Build a feature so that if one client has a massive spike in activity, it doesn'..."
+  messages:
+    - role: user
+      content: Build a feature so that if one client has a massive spike in activity, it doesn't slow down the experience for
+        all the other companies sharing the infrastructure.
+  tags:
+    - app-development
+    - intermediate
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[intermediate] Build an app that serves hundreds of different companies, ensuring that no user ..."
+  messages:
+    - role: user
+      content: Build an app that serves hundreds of different companies, ensuring that no user can ever accidentally see or
+        modify another company's records.
+  tags:
+    - app-development
+    - intermediate
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[intermediate] Build a tenant adding feature that, when a new company signs up, automatically c..."
+  messages:
+    - role: user
+      content: Build a tenant adding feature that, when a new company signs up, automatically creates their initial database
+        indexes and seeds a set of default category templates specific to that company's ID.
+  tags:
+    - app-development
+    - intermediate
+    - mongodb-optimal
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: true
+- name: "[advanced] Build a self-correcting loop for a RAG pipeline where the system automatically e..."
+  messages:
+    - role: user
+      content: >
+        Build a self-correcting loop for a RAG pipeline where the system automatically evaluates the quality of
+        retrieved context and triggers a re-indexing job if the relevance score falls below a certain threshold.
+  tags:
+    - app-development
+    - advanced
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: AI
+- name: "[advanced] Build a RAG pipeline for a library of 100 million documents. Propose a system th..."
+  messages:
+    - role: user
+      content: Build a RAG pipeline for a library of 100 million documents. Propose a system that triggers a re-indexing event
+        the moment a document is edited and ensures the vector search remains low-latency for users across the globe.
+  tags:
+    - app-development
+    - advanced
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: AI
+- name: "[advanced] Build an app with long-term memory that manages petabytes of conversation logs. ..."
+  messages:
+    - role: user
+      content: Build an app with long-term memory that manages petabytes of conversation logs. It must provide sub-second
+        semantic retrieval of "remembered" facts while automatically moving data older than 1 year to a cost-effective
+        cold storage tier without breaking searchability.
+  tags:
+    - app-development
+    - advanced
+    - ai
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: AI
+- name: "[advanced] Build an inventory management system for a retailer with multiple warehouses acr..."
+  messages:
+    - role: user
+      content: Build an inventory management system for a retailer with multiple warehouses across the globe and SKU variants.
+  tags:
+    - app-development
+    - advanced
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[advanced] Build an app that can handle a Black Friday launch. We expect 100k writes per se..."
+  messages:
+    - role: user
+      content: Build an app that can handle a Black Friday launch. We expect 100k writes per second on a single item. Ensures
+        100% data consistency.
+  tags:
+    - app-development
+    - advanced
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[advanced] Build a dynamic pricing app that calculates real-time discounts based on a user’..."
+  messages:
+    - role: user
+      content: Build a dynamic pricing app that calculates real-time discounts based on a user’s 12-month purchase history,
+        current warehouse stock levels, and geographic demand. This must minimize latency.
+  tags:
+    - app-development
+    - advanced
+    - e-commerce
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: E-commerce
+- name: "[advanced] Build a real-time notification feature. When a user with 5 million followers pos..."
+  messages:
+    - role: user
+      content: "Build a real-time notification feature. When a user with 5 million followers posts, the system must push an
+        alert to all active followers in under 500ms. "
+  tags:
+    - app-development
+    - advanced
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[advanced] Build an app that ranks local events not just by physical distance, but by a wei..."
+  messages:
+    - role: user
+      content: 'Build an app that ranks local events not just by physical distance, but by a weighted score of "social
+        density: (number of check-ins) and user interest overlap, all computed in a single geospatial query.'
+  tags:
+    - app-development
+    - advanced
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Social media
+- name: '[advanced] Build a trend engagement feature that monitors every "Like," "Share," and "Comme...'
+  messages:
+    - role: user
+      content: Build a trend engagement feature that monitors every "Like," "Share," and "Comment" across the entire platform.
+        The feature must maintain a live leaderboard of the top 100 trending posts per hour, updated every 10 seconds.
+        You must ensure that high-velocity engagement on a single viral post doesn't cause database write contention or
+        lag in the notification service.
+  tags:
+    - app-development
+    - advanced
+    - social-media
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Social media
+- name: "[advanced] Build a media streaming app that supports infinite nested categories and regiona..."
+  messages:
+    - role: user
+      content: Build a media streaming app that supports infinite nested categories and regional licensing. The app must allow
+        for updates when new licensing fields are added for specific content types (e.g., Podcasts vs. Movies).
+  tags:
+    - app-development
+    - advanced
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[advanced] Build a usage-based billing feature for a streaming site. It must ingest 1 billi..."
+  messages:
+    - role: user
+      content: Build a usage-based billing feature for a streaming site. It must ingest 1 billion "heartbeat" events per day
+        (indicating someone is watching) and aggregate them into monthly invoices without locking up the production
+        database.
+  tags:
+    - app-development
+    - advanced
+    - content-platform
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Content platform
+- name: "[advanced] Build a Data Privacy Vault for a healthcare SaaS. All PII (Personally Identifiab..."
+  messages:
+    - role: user
+      content: Build a Data Privacy Vault for a healthcare SaaS. All PII (Personally Identifiable Information) must be
+        encrypted at the field level before reaching the database, but remain searchable for authorized audit logs
+        without decrypting the entire document.
+  tags:
+    - app-development
+    - advanced
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[advanced] Build a usage-based metering feature that tracks API calls per tenant in real-ti..."
+  messages:
+    - role: user
+      content: Build a usage-based metering feature that tracks API calls per tenant in real-time. It must handle high-volume
+        increments and provide sub-second "Credit Check" lookups to block over-limit tenants.
+  tags:
+    - app-development
+    - advanced
+    - multi-tenant
+    - mongodb-optimal
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: true
+    category: Multi-tenant
+- name: "[beginner] Build me a simple app where my team can track tasks and deadlines."
+  messages:
+    - role: user
+      content: Build me a simple app where my team can track tasks and deadlines.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build me a website where people can sign, log in, and save their preferences."
+  messages:
+    - role: user
+      content: Build me a website where people can sign, log in, and save their preferences.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build an app for my small business to track customer orders and send follow-up e..."
+  messages:
+    - role: user
+      content: Build an app for my small business to track customer orders and send follow-up emails.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a personal budgeting app that lets users og expenses by category."
+  messages:
+    - role: user
+      content: Build a personal budgeting app that lets users og expenses by category.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build an app where users can post photos and comments like a private Instagram f..."
+  messages:
+    - role: user
+      content: Build an app where users can post photos and comments like a private Instagram for my community.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a simple quiz app where teachers can create questions and students can sub..."
+  messages:
+    - role: user
+      content: Build a simple quiz app where teachers can create questions and students can submit answers.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a portfolio website where I can add and update projects without editing co..."
+  messages:
+    - role: user
+      content: Build a portfolio website where I can add and update projects without editing code every time.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build an app for my restaurant where customers can place orders and I can see th..."
+  messages:
+    - role: user
+      content: Build an app for my restaurant where customers can place orders and I can see them in real time.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a directory of local businesses with search and filter by category."
+  messages:
+    - role: user
+      content: Build a directory of local businesses with search and filter by category.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a habit tracker app where users check off daily goals and see their streak..."
+  messages:
+    - role: user
+      content: Build a habit tracker app where users check off daily goals and see their streaks.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build an app that lets users RSVP to events and shows how many spots are left."
+  messages:
+    - role: user
+      content: Build an app that lets users RSVP to events and shows how many spots are left.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a digital guestbook where visitors can leave messages and I can moderate t..."
+  messages:
+    - role: user
+      content: Build a digital guestbook where visitors can leave messages and I can moderate them.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a simple app where my book club can log what we've read and leave reviews."
+  messages:
+    - role: user
+      content: Build a simple app where my book club can log what we've read and leave reviews.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a contact list app for my nonprofit where volunteers can be searched by sk..."
+  messages:
+    - role: user
+      content: Build a contact list app for my nonprofit where volunteers can be searched by skill.
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[beginner] Build a top calculator app that saves past calculations and server names, if app..."
+  messages:
+    - role: user
+      content: Build a top calculator app that saves past calculations and server names, if applicable, so users can refer by
+        to them
+  tags:
+    - app-development
+    - beginner
+  metadata:
+    difficulty: beginner
+    is_mongodb_optimal: false
+- name: "[intermediate] Build me a REST API for a product catalog with nested categories and variable pr..."
+  messages:
+    - role: user
+      content: Build me a REST API for a product catalog with nested categories and variable product attributes.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create a backend for a mobile app that stores user profiles, preferences, and ac..."
+  messages:
+    - role: user
+      content: Create a backend for a mobile app that stores user profiles, preferences, and activity history.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create a content management system backend that supports flexible content types ..."
+  messages:
+    - role: user
+      content: Create a content management system backend that supports flexible content types and rich media.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a recommendation engine that stores user behavior and serves personalized ..."
+  messages:
+    - role: user
+      content: Build a recommendation engine that stores user behavior and serves personalized suggestions.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a log aggregation and querying tool for application event tracking."
+  messages:
+    - role: user
+      content: Build a log aggregation and querying tool for application event tracking.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create a backend for a social platform that handles posts, comments, likes, and ..."
+  messages:
+    - role: user
+      content: Create a backend for a social platform that handles posts, comments, likes, and follower graphs.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a booking and reservation system that manages availability, scheduling, an..."
+  messages:
+    - role: user
+      content: Build a booking and reservation system that manages availability, scheduling, and confirmations.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a document storage and retrieval system for an enterprise knowledge base."
+  messages:
+    - role: user
+      content: Build a document storage and retrieval system for an enterprise knowledge base.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a backend for a recipe app that stores ingredients, instructions, nutritio..."
+  messages:
+    - role: user
+      content: Build a backend for a recipe app that stores ingredients, instructions, nutritional data, and user-generated
+        variations.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create an event management platform that handles registrations, ticketing, and a..."
+  messages:
+    - role: user
+      content: Create an event management platform that handles registrations, ticketing, and attendee data.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a job board that stores listings with variable fields depending on industr..."
+  messages:
+    - role: user
+      content: Build a job board that stores listings with variable fields depending on industry and role type.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a multi-language content platform that stores translations and regional va..."
+  messages:
+    - role: user
+      content: Build a multi-language content platform that stores translations and regional variations of the same content.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create a backend for a fitness app that logs workouts, tracks progress, and stor..."
+  messages:
+    - role: user
+      content: Create a backend for a fitness app that logs workouts, tracks progress, and stores custom exercise definitions.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a survey and form builder that stores dynamic question types and captures ..."
+  messages:
+    - role: user
+      content: Build a survey and form builder that stores dynamic question types and captures variable response formats.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create a notification service that stores user preferences, delivery history, an..."
+  messages:
+    - role: user
+      content: Create a notification service that stores user preferences, delivery history, and message templates.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a helpdesk ticketing system that tracks issues, comments, attachments, and..."
+  messages:
+    - role: user
+      content: Build a helpdesk ticketing system that tracks issues, comments, attachments, and status history.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Create a backend for a real estate platform that stores property listings with v..."
+  messages:
+    - role: user
+      content: Create a backend for a real estate platform that stores property listings with variable attributes by property
+        type.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a news aggregator that ingests articles from multiple sources and stores m..."
+  messages:
+    - role: user
+      content: Build a news aggregator that ingests articles from multiple sources and stores metadata, tags, and engagement
+        metrics.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a backend for a carpooling app that matches riders and drivers based on ro..."
+  messages:
+    - role: user
+      content: Build a backend for a carpooling app that matches riders and drivers based on routes, schedules, and seat
+        availability.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[intermediate] Build a coupon and promotions engine that stores discount rules, tracks redempti..."
+  messages:
+    - role: user
+      content: Build a coupon and promotions engine that stores discount rules, tracks redemptions, and applies eligibility
+        logic at checkout.
+  tags:
+    - app-development
+    - intermediate
+  metadata:
+    difficulty: intermediate
+    is_mongodb_optimal: false
+- name: "[advanced] Build a real-time leaderboard system for a multiplayer game that handles million..."
+  messages:
+    - role: user
+      content: |
+        Build a real-time leaderboard system for a multiplayer game that handles millions of concurrent users.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a backend for an IoT platform that ingests sensor data from thousands of ..."
+  messages:
+    - role: user
+      content: Create a backend for an IoT platform that ingests sensor data from thousands of devices.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a search and filtering system for an e-commerce site with faceted navigati..."
+  messages:
+    - role: user
+      content: Build a search and filtering system for an e-commerce site with faceted navigation.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a patient records system that handles variable data fields across differe..."
+  messages:
+    - role: user
+      content: Create a patient records system that handles variable data fields across different medical specialties.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a financial transaction ledger that supports complex querying and reportin..."
+  messages:
+    - role: user
+      content: Build a financial transaction ledger that supports complex querying and reporting.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a data pipeline that ingests, transforms, and stores semi-structured data..."
+  messages:
+    - role: user
+      content: Create a data pipeline that ingests, transforms, and stores semi-structured data from third-party APIs.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a multi-tenant SaaS app that stores customer data with strict isolation be..."
+  messages:
+    - role: user
+      content: Build a multi-tenant SaaS app that stores customer data with strict isolation between accounts.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a backend for a ride-sharing app that tracks driver locations, trip histo..."
+  messages:
+    - role: user
+      content: Create a backend for a ride-sharing app that tracks driver locations, trip history, and ratings in real time.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build an inventory management system for a retailer with multiple warehouses and..."
+  messages:
+    - role: user
+      content: Build an inventory management system for a retailer with multiple warehouses and SKU variants.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a backend for a marketplace that handles seller profiles, product listing..."
+  messages:
+    - role: user
+      content: Create a backend for a marketplace that handles seller profiles, product listings, and transaction records.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a backend for a video streaming platform that manages metadata, playlists..."
+  messages:
+    - role: user
+      content: Create a backend for a video streaming platform that manages metadata, playlists, and viewing history.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a fleet management system that tracks vehicle locations, maintenance recor..."
+  messages:
+    - role: user
+      content: Build a fleet management system that tracks vehicle locations, maintenance records, and driver assignments.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Create a backend for a social platform that handles posts, comments, likes, and ..."
+  messages:
+    - role: user
+      content: Create a backend for a social platform that handles posts, comments, likes, and follower graphs.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a financial transaction ledger that supports complex querying and reportin..."
+  messages:
+    - role: user
+      content: Build a financial transaction ledger that supports complex querying and reporting.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a distributed queue system that manages job scheduling, retries, and prior..."
+  messages:
+    - role: user
+      content: Build a distributed queue system that manages job scheduling, retries, and priority across multiple worker nodes.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a real-time collaborative document editing backend that handles concurrent..."
+  messages:
+    - role: user
+      content: Build a real-time collaborative document editing backend that handles concurrent edits, version history, and
+        conflict resolution.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false
+- name: "[advanced] Build a machine learning feature store that ingest, transforms, and serves train..."
+  messages:
+    - role: user
+      content: Build a machine learning feature store that ingest, transforms, and serves training data and model features at
+        low latency.
+  tags:
+    - app-development
+    - advanced
+  metadata:
+    difficulty: advanced
+    is_mongodb_optimal: false

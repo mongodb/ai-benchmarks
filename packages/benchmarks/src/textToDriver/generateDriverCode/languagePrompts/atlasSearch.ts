@@ -155,9 +155,10 @@ ${listExamplesInPrompt([
   'NEVER add unsupported fields to operators (e.g., "autocomplete" does not support "diacriticSensitive" or "foldDiacritics")',
   "Results are pre-sorted by relevance - use $limit, avoid unnecessary $sort on searchScore",
   "Include '_id' in output, project out 'text' field (large)",
-  ...outputValidation,
 ])}
-</query-guidance>`;
+</query-guidance>
+
+${outputValidation}`;
 
 /**
  * Prompt with optimized recommendations - distilled core guidance without information overload.
