@@ -6,6 +6,7 @@ import {
 } from "mongodb-rag-core/braintrust";
 import { ConversationEvalCase } from "mongodb-rag-core/eval";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
+import { AppStackClassification } from "./metrics/classifyAppStack";
 
 export type AppDevelopmentEvalCaseInput = {
   name: string;
@@ -32,6 +33,7 @@ export interface AppDevelopmentEvalCase
 
 export type AppDevelopmentTaskOutput = {
   response: string;
+  appStack: AppStackClassification;
 };
 
 export type AppDevelopmentTaskExpected = void;

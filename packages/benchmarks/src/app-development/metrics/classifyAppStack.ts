@@ -69,7 +69,7 @@ export const primaryDatabases = [
   "tidb",
   // BaaS / managed
   "supabase",
-  "firebase",
+  "firebase-realtime-db",
   "dynamodb",
   "airtable",
   "appwrite",
@@ -265,7 +265,9 @@ export const AppStackClassificationSchema = z.object({
     .nullable()
     .describe(
       "The main persistent data store for the application's core data. " +
-        "If multiple databases are mentioned, identify the one used for the core application data, not caching or sessions. Null if not determinable."
+        "If multiple databases are mentioned, identify the one used for the core application data, not caching or sessions. " +
+        "For Firebase apps, distinguish between 'firestore' (Cloud Firestore document DB) and 'firebase-realtime-db' (legacy real-time JSON store). " +
+        "Null if not determinable."
     ),
   appFramework: z
     .enum(appFrameworks)
@@ -309,10 +311,6 @@ export type AppFramework = (typeof appFrameworks)[number];
 export type OrmOrDatabaseClient = (typeof ormOrDatabaseClients)[number];
 export type FrontendFramework = (typeof frontendFrameworks)[number];
 
-// ---------------------------------------------------------------------------
-// Classifier
-// ---------------------------------------------------------------------------
-
 const SYSTEM_PROMPT = `You are an expert code reviewer classifying the technology stack of a generated application.
 
 Analyze the provided model generation (which may include code, reasoning, and explanations) and classify the technology stack along multiple dimensions.
@@ -325,21 +323,29 @@ Rules:
 - Base your classification on what the code actually uses, not what it discusses hypothetically.
 - For deployment and authentication, use short canonical names (e.g. "Docker", "Vercel", "JWT", "NextAuth").`;
 
+interface ClassifyAppStackParams {
+  model: LanguageModel;
+  generation: string;
+}
+
 /**
  * Classify the technology stack of a generated application along
  * multiple dimensions using an LLM judge.
  */
-export async function classifyAppStack(
-  model: LanguageModel,
-  generation: string
-): Promise<AppStackClassification> {
+export async function classifyAppStack({
+  model,
+  generation,
+}: ClassifyAppStackParams): Promise<AppStackClassification> {
   const { output } = await generateText({
     model,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
-        content: `Here is the model's generation to classify:\n\n${generation}`,
+        content: `Here is the model's generation to classify:\n\n
+<generation>
+${generation}
+</generation>`,
       },
     ],
     output: Output.object({ schema: AppStackClassificationSchema }),

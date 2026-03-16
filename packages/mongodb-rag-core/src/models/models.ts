@@ -202,6 +202,15 @@ const allModels = [
     generation: "gpt-5",
   },
   {
+    label: "gpt-5.3-codex",
+    deployment: "gpt-5.3-codex",
+    developer: "OpenAI",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 25,
+    generation: "gpt-5",
+  },
+  {
     label: "claude-3-sonnet",
     deployment: "us.anthropic.claude-3-sonnet-20240229-v1:0",
     developer: "Anthropic",
