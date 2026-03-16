@@ -1,5 +1,5 @@
 import { PrimaryDatabaseIsMongoDb } from "./PrimaryDatabaseIsMongoDb";
-import { AppStackClassification } from "./classifyAppStack";
+import { AppStackClassification } from "../classifyAppStack";
 
 function score(appStack: Partial<AppStackClassification>) {
   return PrimaryDatabaseIsMongoDb({
