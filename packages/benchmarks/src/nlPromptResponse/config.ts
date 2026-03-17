@@ -18,7 +18,7 @@ import { getModelsFromLabels } from "../benchmarkModels";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import {
   createOpenAI,
-  CoreMessage,
+  ModelMessage,
   wrapLanguageModel,
 } from "mongodb-rag-core/aiSdk";
 
@@ -26,7 +26,7 @@ export const systemMessage = {
   role: "system",
   content:
     "You are a helpful MongoDB assistant. Answer the user's question directly, completely, and concisely.",
-} satisfies CoreMessage;
+} satisfies ModelMessage;
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
   ...BRAINTRUST_ENV_VARS,

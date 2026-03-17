@@ -1,4 +1,4 @@
-import { Tool, tool } from "mongodb-rag-core/aiSdk";
+import { tool } from "mongodb-rag-core/aiSdk";
 import { z } from "zod";
 import { listExamplesInPrompt } from "../languagePrompts/listExamplesInPrompt";
 
@@ -16,8 +16,7 @@ export type MongoDbAggregateOperation = z.infer<
 
 export const submitFinalSolutionToolName = "submit-final-solution";
 
-export const submitFinalSolutionTool: Tool = tool({
-  name: submitFinalSolutionToolName,
+export const submitFinalSolutionTool = tool({
   description: `Call ${submitFinalSolutionToolName} to submit the MongoDB operation that solves the problem. Once you have called the tool, you will stop generating.
 
 <output-format>

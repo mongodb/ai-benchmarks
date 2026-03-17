@@ -1,4 +1,4 @@
-import { Tool, tool } from "mongodb-rag-core/aiSdk";
+import { tool } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "mongodb-rag-core/braintrust";
 import { z } from "zod";
 import { listExamplesInPrompt } from "../languagePrompts/listExamplesInPrompt";
@@ -14,8 +14,7 @@ export const thinkToolName = "think";
 /**
   Taken from [Claude 'think' tool blog post](https://www.anthropic.com/engineering/claude-think-tool).
  */
-export const thinkTool: Tool = tool({
-  name: thinkToolName,
+export const thinkTool = tool({
   description: `Use the tool to think about something.
   
 ${listExamplesInPrompt([

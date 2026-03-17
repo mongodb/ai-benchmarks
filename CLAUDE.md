@@ -91,6 +91,10 @@ Located in `packages/benchmarks/src/textToDriver/`:
 - Experiments tracked with metadata, tags, and custom scores
 - Use Braintrust MCP server (available via `/mcp` command) to query results
 
+## Code Style
+
+- Do not use banner/section-divider comments (e.g. `// -----------  <SECTION_NAME>  -----------`). Let the code structure speak for itself. A blank line between sections is sufficient.
+
 ## Development Workflow
 
 1. **Environment Setup**: Each package requires `.env` file (see `.env.example`)

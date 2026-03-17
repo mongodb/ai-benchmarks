@@ -1,7 +1,7 @@
 import { QuizQuestionData } from "./QuizQuestionData";
-import { CoreMessage } from "mongodb-rag-core/aiSdk";
+import { ModelMessage } from "mongodb-rag-core/aiSdk";
 
-type ChatMessage = CoreMessage;
+type ChatMessage = ModelMessage;
 
 /**
   Create a HELM-style quiz question prompt string.

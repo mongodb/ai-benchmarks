@@ -5,11 +5,23 @@ import {
   Logger,
   NoopSpan,
   withCurrent,
+  BraintrustMiddleware as _BraintrustMiddleware,
 } from "braintrust";
 import { z } from "zod";
 import { LanguageModelMiddleware } from "./aiSdk";
 
 export * from "braintrust";
+
+// Re-export BraintrustMiddleware with the correct v3 middleware type.
+// The braintrust package still returns a v2 middleware, but the shape is
+// compatible — only the specificationVersion discriminant is missing.
+export const BraintrustMiddleware = (
+  ...args: Parameters<typeof _BraintrustMiddleware>
+): LanguageModelMiddleware =>
+  ({
+    ..._BraintrustMiddleware(...args),
+    specificationVersion: "v3",
+  }) as LanguageModelMiddleware;
 
 export const makeBraintrustLogger = (
   params: Parameters<typeof initLogger>[0]
@@ -77,6 +89,7 @@ export function wrapNoTrace<T extends (...args: any[]) => any>(
   Gemini does not support the $schema key in the input schema of the tools.
  */
 export const SupportGeminiThroughBraintrustProxy: LanguageModelMiddleware = {
+  specificationVersion: "v3",
   async transformParams(options) {
     if (options.model.modelId.includes("gemini")) {
       options.params.tools = options.params.tools?.map((tool) => {
