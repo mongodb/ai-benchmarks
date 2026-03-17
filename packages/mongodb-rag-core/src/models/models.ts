@@ -203,6 +203,15 @@ const allModels = [
   },
   {
     label: "gpt-5.3-codex",
+    deployment: "gpt-5.4",
+    developer: "OpenAI",
+    provider: "braintrust",
+    authorized: true,
+    maxConcurrency: 25,
+    generation: "gpt-5",
+  },
+  {
+    label: "gpt-5.4",
     deployment: "gpt-5.3-codex",
     developer: "OpenAI",
     provider: "braintrust",

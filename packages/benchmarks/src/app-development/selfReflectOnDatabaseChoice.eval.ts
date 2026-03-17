@@ -12,6 +12,7 @@ import {
 } from "./selfReflectOnDatabaseChoice";
 import { PrimaryDatabase } from "./classifyAppStack";
 import { JustificationReason, MongoDbFitLevel } from "./analyzeDatabaseChoice";
+import { judgeModel, judgeModelConfig, judgeModelLabel } from "./config";
 
 interface SelfReflectEvalCase {
   name: string;
@@ -78,7 +79,10 @@ app.listen(3000);
     expected: {
       chosenDatabase: "mongodb",
       consideredMongoDb: true,
-      expectedReasons: ["document-model-fits-data", "flexible-schema-requirements"],
+      expectedReasons: [
+        "document-model-fits-data",
+        "flexible-schema-requirements",
+      ],
       mongoDbFitAssessment: "strong-fit",
       whyMongoDbPresent: true,
       whyNotMongoDbPresent: false,
@@ -211,7 +215,8 @@ export const notes = pgTable('notes', {
       originalMessages: [
         {
           role: "user",
-          content: "Set up a blog with Next.js and Prisma. Users can create posts.",
+          content:
+            "Set up a blog with Next.js and Prisma. Users can create posts.",
         },
       ],
       generation: `
@@ -287,7 +292,10 @@ const Content = mongoose.model('Content', contentSchema);
     expected: {
       chosenDatabase: "mongodb",
       consideredMongoDb: true,
-      expectedReasons: ["user-requested-mongodb", "flexible-schema-requirements"],
+      expectedReasons: [
+        "user-requested-mongodb",
+        "flexible-schema-requirements",
+      ],
       mongoDbFitAssessment: "strong-fit",
       whyMongoDbPresent: true,
       whyNotMongoDbPresent: false,
@@ -464,7 +472,10 @@ const consideredMongoDbCorrect: SelfReflectScorer = (args) => {
   }
   return {
     name,
-    score: args.expected.consideredMongoDb === args.output?.consideredMongoDb ? 1 : 0,
+    score:
+      args.expected.consideredMongoDb === args.output?.consideredMongoDb
+        ? 1
+        : 0,
     metadata: {
       expected: args.expected.consideredMongoDb,
       actual: args.output?.consideredMongoDb,
@@ -515,14 +526,17 @@ const whyMongoDbDirectionCorrect: SelfReflectScorer = (args) => {
 
   if (args.expected?.whyMongoDbPresent !== undefined) {
     const hasWhyMongoDb =
-      args.output?.whyMongoDb != null && args.output.whyMongoDb.trim().length > 0;
+      args.output?.whyMongoDb != null &&
+      args.output.whyMongoDb.trim().length > 0;
     if (hasWhyMongoDb !== args.expected.whyMongoDbPresent) correct = false;
   }
 
   if (args.expected?.whyNotMongoDbPresent !== undefined) {
     const hasWhyNotMongoDb =
-      args.output?.whyNotMongoDb != null && args.output.whyNotMongoDb.trim().length > 0;
-    if (hasWhyNotMongoDb !== args.expected.whyNotMongoDbPresent) correct = false;
+      args.output?.whyNotMongoDb != null &&
+      args.output.whyNotMongoDb.trim().length > 0;
+    if (hasWhyNotMongoDb !== args.expected.whyNotMongoDbPresent)
+      correct = false;
   }
 
   return {
@@ -555,43 +569,25 @@ const scorers = [
 ];
 
 async function main() {
-  const modelLabel = "gpt-4.1";
-  const modelConfig = models.find((m) => m.label === modelLabel);
-  assert(modelConfig, `Model ${modelLabel} not found`);
-
-  const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
-    ...BRAINTRUST_ENV_VARS,
-  });
-
-  const openai = createOpenAI({
-    apiKey: BRAINTRUST_API_KEY,
-    baseURL: BRAINTRUST_ENDPOINT,
-  });
-
   Eval("self-reflect-database-choice", {
     data: evalCases,
-    experimentName: modelLabel,
+    experimentName: judgeModelLabel,
     metadata: {
       description:
         "Evaluates whether a model can honestly self-reflect on its database choice",
-      model: modelLabel,
+      model: judgeModelLabel,
     },
-    maxConcurrency: modelConfig.maxConcurrency,
+    maxConcurrency: judgeModelConfig.maxConcurrency,
     timeout: 60000,
     async task(input) {
       try {
         return await selfReflectOnDatabaseChoice({
-          model: wrapLanguageModel({
-            model: openai.chat(modelLabel),
-            middleware: [BraintrustMiddleware({ debug: true })],
-          }),
+          model: judgeModel,
           originalMessages: input.originalMessages,
           generation: input.generation,
         });
       } catch (error) {
-        console.error(
-          `Error reflecting: ${input.generation.slice(0, 100)}...`
-        );
+        console.error(`Error reflecting: ${input.generation.slice(0, 100)}...`);
         console.error(error);
         throw error;
       }

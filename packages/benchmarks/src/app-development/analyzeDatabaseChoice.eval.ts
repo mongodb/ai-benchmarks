@@ -1,10 +1,5 @@
 import "dotenv/config";
-import { strict as assert } from "assert";
 import { Eval, EvalScorer } from "mongodb-rag-core/braintrust";
-import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
-import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
-import { models } from "mongodb-rag-core/models";
-import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 
 import {
   analyzeDatabaseChoice,
@@ -13,6 +8,7 @@ import {
   MongoDbFitLevel,
 } from "./analyzeDatabaseChoice";
 import { PrimaryDatabase } from "./classifyAppStack";
+import { judgeModel, judgeModelConfig, judgeModelLabel } from "./config";
 
 interface AnalyzeDatabaseChoiceEvalCase {
   name: string;
@@ -607,19 +603,6 @@ const scorers = [
 ];
 
 async function main() {
-  const judgeModelLabel = "gpt-4.1";
-  const judgeModelConfig = models.find((m) => m.label === judgeModelLabel);
-  assert(judgeModelConfig, `Model ${judgeModelLabel} not found`);
-
-  const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
-    ...BRAINTRUST_ENV_VARS,
-  });
-
-  const openai = createOpenAI({
-    apiKey: BRAINTRUST_API_KEY,
-    baseURL: BRAINTRUST_ENDPOINT,
-  });
-
   Eval("analyze-database-choice", {
     data: evalCases,
     experimentName: judgeModelLabel,
@@ -633,10 +616,7 @@ async function main() {
     async task(input) {
       try {
         return await analyzeDatabaseChoice({
-          model: wrapLanguageModel({
-            model: openai.chat(judgeModelLabel),
-            middleware: [BraintrustMiddleware({ debug: true })],
-          }),
+          model: judgeModel,
           generation: input.generation,
           classifiedDatabase: input.classifiedDatabase,
         });
