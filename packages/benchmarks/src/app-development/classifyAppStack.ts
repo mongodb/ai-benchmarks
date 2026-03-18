@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { generateText, LanguageModel, Output } from "mongodb-rag-core/aiSdk";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 // ---------------------------------------------------------------------------
 // Enum values for each classifiable dimension.
@@ -332,7 +333,7 @@ interface ClassifyAppStackParams {
  * Classify the technology stack of a generated application along
  * multiple dimensions using an LLM judge.
  */
-export async function classifyAppStack({
+export const classifyAppStack = wrapTraced(async function classifyAppStack({
   model,
   generation,
 }: ClassifyAppStackParams): Promise<AppStackClassification> {
@@ -352,4 +353,4 @@ ${generation}
   });
 
   return output;
-}
+});

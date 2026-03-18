@@ -100,7 +100,7 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
 
   tasks: Object.fromEntries(
     Object.entries(systemPromptVariants).map(([key, variant]) => [
-      key === "none" ? "simple_prompt_completion" : `prompt_${key}`,
+      `prompt_${key}`,
       {
         description: variant.description,
         taskFunc: (modelProvider, modelConfig) => {
@@ -108,7 +108,7 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
             model: createOpenAI({
               apiKey: modelProvider.apiKey,
               baseURL: modelProvider.baseUrl,
-            }).responses(modelConfig.deployment),
+            }).chat(modelConfig.deployment),
             middleware: [BraintrustMiddleware({ debug: true })],
           });
 

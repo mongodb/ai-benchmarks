@@ -7,6 +7,7 @@ import {
   mongoDbFitLevels,
   mongoDbFitLevelDefinitions,
 } from "./analyzeDatabaseChoice";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export const SelfReflectionSchema = z.object({
   chosenDatabase: z
@@ -128,26 +129,28 @@ interface SelfReflectOnDatabaseChoiceParams {
  * This captures the model's self-reported reasoning, which can
  * be compared against the external analysis from `analyzeDatabaseChoice`.
  */
-export async function selfReflectOnDatabaseChoice({
-  model,
-  originalMessages,
-  generation,
-}: SelfReflectOnDatabaseChoiceParams): Promise<SelfReflection> {
-  const { output } = await generateText({
+export const selfReflectOnDatabaseChoice = wrapTraced(
+  async function selfReflectOnDatabaseChoice({
     model,
-    messages: [
-      ...originalMessages,
-      {
-        role: "assistant" as const,
-        content: generation,
-      },
-      {
-        role: "user" as const,
-        content: REFLECTION_PROMPT,
-      },
-    ],
-    output: Output.object({ schema: SelfReflectionSchema }),
-  });
+    originalMessages,
+    generation,
+  }: SelfReflectOnDatabaseChoiceParams): Promise<SelfReflection> {
+    const { output } = await generateText({
+      model,
+      messages: [
+        ...originalMessages,
+        {
+          role: "assistant" as const,
+          content: generation,
+        },
+        {
+          role: "user" as const,
+          content: REFLECTION_PROMPT,
+        },
+      ],
+      output: Output.object({ schema: SelfReflectionSchema }),
+    });
 
-  return output;
-}
+    return output;
+  }
+);

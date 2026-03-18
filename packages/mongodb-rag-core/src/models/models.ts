@@ -521,6 +521,28 @@ const allModels = [
     generation: "gemini-2",
     reasoning: true,
   },
+  {
+    label: "gemini-3.1-flash-lite",
+    deployment: "publishers/google/models/gemini-3.1-flash-lite-preview",
+    developer: "Google",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    parent: "gemini-2.0-flash-lite-001",
+    generation: "gemini-3",
+    reasoning: true,
+  },
+  {
+    label: "gemini-3-flash",
+    deployment: "publishers/google/models/gemini-3-flash-preview",
+    developer: "Google",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    parent: "gemini-2.5-flash",
+    generation: "gemini-3",
+    reasoning: true,
+  },
 ] as const satisfies ModelConfig[];
 
 export const models = allModels.filter((m) => m.authorized);
