@@ -1,5 +1,5 @@
-import { Score } from "autoevals";
 import { AppDevelopmentEvalScorer } from "../AppDevelopmentEval";
+import { computeSampleMetrics } from "mongodb-rag-core/eval";
 
 const MONGODB_PATTERNS = [
   /mongodb/i,
@@ -18,21 +18,35 @@ const MONGODB_PATTERNS = [
  */
 export const MentionsMongoDbInGeneration: AppDevelopmentEvalScorer = ({
   output,
-}): Score => {
+}) => {
   const name = "MentionsMongoDbInGeneration";
-  const { response } = output;
+  const { samples } = output;
 
-  const matches = MONGODB_PATTERNS.filter((pattern) =>
-    pattern.test(response)
-  ).map((pattern) => pattern.source);
+  const perSample = samples.map((s) => {
+    const matches = MONGODB_PATTERNS.filter((pattern) =>
+      pattern.test(s.response)
+    ).map((pattern) => pattern.source);
+    return { pass: matches.length > 0, matchedPatterns: matches };
+  });
 
-  const score = matches.length > 0 ? 1 : 0;
+  const correct = perSample.filter((s) => s.pass).length;
+  const metrics = computeSampleMetrics({ total: samples.length, correct });
 
-  return {
-    name,
-    score,
-    metadata: {
-      matchedPatterns: matches,
+  return [
+    {
+      name: `${name}@k`,
+      score: metrics["pass@k"],
+      metadata: { ...metrics, perSample },
     },
-  };
+    {
+      name: `${name}%k`,
+      score: metrics["pass%k"],
+      metadata: { ...metrics, perSample },
+    },
+    {
+      name: `${name}^k`,
+      score: metrics["pass^k"],
+      metadata: { ...metrics, perSample },
+    },
+  ];
 };
