@@ -33,11 +33,15 @@ export interface AppDevelopmentEvalCase
   tags: AppDevelopmentTag[];
 }
 
-export type AppDevelopmentTaskOutput = {
+export type AppDevelopmentSample = {
   response: string;
   appStack: AppStackClassification;
   databaseAnalysis: DatabaseChoiceAnalysis;
   selfReflection: SelfReflection;
+};
+
+export type AppDevelopmentTaskOutput = {
+  samples: AppDevelopmentSample[];
 };
 
 export type AppDevelopmentTaskExpected = void;
