@@ -24,8 +24,6 @@ export const SelfReflectionSchema = z.object({
     ),
   reasonsForChoice: z
     .array(z.enum(justificationReasons))
-    .min(1)
-    .max(5)
     .describe(
       "The 1-5 most important reasons for your database choice, " +
         "ordered by importance."
@@ -114,7 +112,10 @@ interface SelfReflectOnDatabaseChoiceParams {
   /** The same model that generated the original response. */
   model: LanguageModel;
   /** The original conversation messages that led to the generation. */
-  originalMessages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  originalMessages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }>;
   /** The model's original generation/response. */
   generation: string;
 }

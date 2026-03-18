@@ -155,8 +155,6 @@ export const DatabaseChoiceAnalysisSchema = z.object({
     ),
   mainJustifications: z
     .array(z.enum(justificationReasons))
-    .min(1)
-    .max(5)
     .describe(
       "The 1-5 most important reasons why the model chose or did not choose MongoDB, " +
         "ordered by importance. The first element is the primary driver. " +
