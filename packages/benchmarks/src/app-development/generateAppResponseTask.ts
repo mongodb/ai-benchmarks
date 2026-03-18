@@ -8,6 +8,7 @@ import {
 import { classifyAppStack } from "./classifyAppStack";
 import { analyzeDatabaseChoice } from "./analyzeDatabaseChoice";
 import { selfReflectOnDatabaseChoice } from "./selfReflectOnDatabaseChoice";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 export interface MakeGenerateAppResponseTaskParams {
   /** The model being evaluated — generates the app and does self-reflection. */
@@ -82,8 +83,12 @@ async function generateSingleSample({
     }))
   );
 
+  const wrappedGenerateText = wrapTraced(generateText, {
+    name: "generateAppResponse",
+  });
+
   // Step 1: Generate app response
-  const { text: response } = await generateText({
+  const { text: response } = await wrappedGenerateText({
     model: subjectModel,
     messages,
   });

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { generateText, LanguageModel, Output } from "mongodb-rag-core/aiSdk";
 import { primaryDatabases, PrimaryDatabase } from "./classifyAppStack";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 
 interface JustificationReasonDefinition {
   name: string;
@@ -155,8 +156,6 @@ export const DatabaseChoiceAnalysisSchema = z.object({
     ),
   mainJustifications: z
     .array(z.enum(justificationReasons))
-    .min(1)
-    .max(5)
     .describe(
       "The 1-5 most important reasons why the model chose or did not choose MongoDB, " +
         "ordered by importance. The first element is the primary driver. " +
@@ -236,30 +235,32 @@ interface AnalyzeDatabaseChoiceParams {
  * Uses an LLM judge to produce structured analysis including
  * justification reasons, alternatives considered, and a fit assessment.
  */
-export async function analyzeDatabaseChoice({
-  model,
-  generation,
-  classifiedDatabase,
-}: AnalyzeDatabaseChoiceParams): Promise<DatabaseChoiceAnalysis> {
-  const { output } = await generateText({
+export const analyzeDatabaseChoice = wrapTraced(
+  async function analyzeDatabaseChoice({
     model,
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      {
-        role: "user",
-        content: `The classified primary database is: ${
-          classifiedDatabase ?? "none identified"
-        }
+    generation,
+    classifiedDatabase,
+  }: AnalyzeDatabaseChoiceParams): Promise<DatabaseChoiceAnalysis> {
+    const { output } = await generateText({
+      model,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `The classified primary database is: ${
+            classifiedDatabase ?? "none identified"
+          }
 
 Here is the model's generation to analyze:
 
 <generation>
 ${generation}
 </generation>`,
-      },
-    ],
-    output: Output.object({ schema: DatabaseChoiceAnalysisSchema }),
-  });
+        },
+      ],
+      output: Output.object({ schema: DatabaseChoiceAnalysisSchema }),
+    });
 
-  return output;
-}
+    return output;
+  }
+);
