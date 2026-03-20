@@ -6,7 +6,15 @@ export type ModelDeveloper =
   | "Mistral"
   | "Amazon"
   | "DeepSeek"
-  | "Alibaba Cloud";
+  | "Alibaba Cloud"
+  | "X.ai";
+
+export type ModelHost =
+  | "AWS Bedrock"
+  | "GCP Vertex AI"
+  | "Microsoft Azure"
+  | "Anthropic"
+  | "OpenAI";
 
 export type ModelProvider = "braintrust";
 
@@ -26,6 +34,10 @@ export interface ModelConfig {
    */
   provider: ModelProvider;
 
+  /**
+    Where model is hosted.
+   */
+  host: ModelHost;
   /**
     Developer of the model. Used for reporting/analysis.
    */
@@ -95,6 +107,7 @@ const allModels = [
     },
     authorized: true,
     generation: "gpt-4o",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-4o-mini",
@@ -108,6 +121,7 @@ const allModels = [
     },
     authorized: true,
     generation: "gpt-4o",
+    host: "Microsoft Azure",
   },
   {
     label: "o3-mini",
@@ -119,6 +133,7 @@ const allModels = [
     parent: "o1-mini",
     generation: "o3",
     reasoning: true,
+    host: "Microsoft Azure",
   },
   {
     label: "o3",
@@ -130,6 +145,7 @@ const allModels = [
     parent: "o1",
     generation: "o3",
     reasoning: true,
+    host: "Microsoft Azure",
   },
   {
     label: "o4-mini",
@@ -141,6 +157,7 @@ const allModels = [
     parent: "o3-mini",
     generation: "o4",
     reasoning: true,
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-4.1",
@@ -151,6 +168,7 @@ const allModels = [
     maxConcurrency: 20,
     parent: "gpt-4o",
     generation: "gpt-4.1",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-4.1-mini",
@@ -161,6 +179,7 @@ const allModels = [
     maxConcurrency: 25,
     parent: "gpt-4o-mini",
     generation: "gpt-4.1",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-4.1-nano",
@@ -170,6 +189,7 @@ const allModels = [
     authorized: true,
     maxConcurrency: 25,
     generation: "gpt-4.1",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5",
@@ -180,6 +200,7 @@ const allModels = [
     maxConcurrency: 20,
     parent: "gpt-4.1",
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5-mini",
@@ -190,6 +211,7 @@ const allModels = [
     maxConcurrency: 25,
     parent: "gpt-4.1-mini",
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5-nano",
@@ -200,6 +222,7 @@ const allModels = [
     maxConcurrency: 25,
     parent: "gpt-4.1-nano",
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5.3-codex",
@@ -209,6 +232,7 @@ const allModels = [
     authorized: true,
     maxConcurrency: 25,
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5.4",
@@ -218,6 +242,7 @@ const allModels = [
     authorized: true,
     maxConcurrency: 25,
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5.4-mini",
@@ -227,6 +252,7 @@ const allModels = [
     authorized: true,
     maxConcurrency: 25,
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "gpt-5.4-nano",
@@ -236,6 +262,7 @@ const allModels = [
     authorized: true,
     maxConcurrency: 25,
     generation: "gpt-5",
+    host: "Microsoft Azure",
   },
   {
     label: "claude-3-sonnet",
@@ -245,6 +272,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     generation: "claude-3",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-3-haiku",
@@ -254,6 +282,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     generation: "claude-3",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-35-sonnet",
@@ -264,6 +293,7 @@ const allModels = [
     authorized: true,
     parent: "claude-3-sonnet",
     generation: "claude-3",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-35-sonnet-v2",
@@ -274,6 +304,7 @@ const allModels = [
     authorized: true,
     parent: "claude-35-sonnet",
     generation: "claude-3",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-37-sonnet",
@@ -284,6 +315,7 @@ const allModels = [
     authorized: true,
     parent: "claude-35-sonnet-v2",
     generation: "claude-3",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-35-haiku",
@@ -294,6 +326,7 @@ const allModels = [
     authorized: true,
     parent: "claude-3-haiku",
     generation: "claude-3",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-sonnet-4",
@@ -304,6 +337,7 @@ const allModels = [
     authorized: true,
     generation: "claude-4",
     parent: "claude-37-sonnet",
+    host: "AWS Bedrock",
   },
   {
     label: "claude-opus-4",
@@ -313,6 +347,7 @@ const allModels = [
     maxConcurrency: 5,
     authorized: true,
     generation: "claude-4",
+    host: "AWS Bedrock",
   },
   {
     label: "anthropic/claude-opus-4.1",
@@ -323,6 +358,7 @@ const allModels = [
     authorized: true,
     parent: "claude-opus-4",
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-opus-4.6",
@@ -333,6 +369,7 @@ const allModels = [
     authorized: true,
     parent: "claude-opus-4.5",
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-sonnet-4",
@@ -343,6 +380,7 @@ const allModels = [
     authorized: true,
     parent: "claude-37-sonnet",
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-3.7-sonnet",
@@ -353,6 +391,7 @@ const allModels = [
     authorized: true,
     parent: "claude-35-sonnet-v2",
     generation: "claude-3",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-sonnet-4.5",
@@ -363,6 +402,7 @@ const allModels = [
     authorized: true,
     parent: "claude-4-sonnet",
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-sonnet-4.6",
@@ -373,6 +413,7 @@ const allModels = [
     authorized: true,
     parent: "claude-sonnet-4.5",
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-haiku-4.5",
@@ -383,6 +424,7 @@ const allModels = [
     authorized: true,
     parent: "claude-35-haiku",
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "anthropic/claude-opus-4",
@@ -392,6 +434,7 @@ const allModels = [
     maxConcurrency: 5,
     authorized: true,
     generation: "claude-4",
+    host: "Anthropic",
   },
   {
     label: "llama-3-70b",
@@ -401,6 +444,7 @@ const allModels = [
     provider: "braintrust",
     authorized: true,
     generation: "llama-3",
+    host: "AWS Bedrock",
   },
   {
     label: "mistral-large-2",
@@ -409,6 +453,7 @@ const allModels = [
     maxConcurrency: 1,
     provider: "braintrust",
     authorized: true,
+    host: "AWS Bedrock",
   },
   {
     label: "llama-3.1-70b",
@@ -419,6 +464,7 @@ const allModels = [
     authorized: true,
     parent: "llama-3-70b",
     generation: "llama-3",
+    host: "AWS Bedrock",
   },
   {
     label: "llama-3.2-90b",
@@ -429,6 +475,7 @@ const allModels = [
     authorized: true,
     parent: "llama-3.1-70b",
     generation: "llama-3",
+    host: "AWS Bedrock",
   },
   {
     label: "llama-3.3-70b",
@@ -439,6 +486,7 @@ const allModels = [
     authorized: true,
     parent: "llama-3.2-90b",
     generation: "llama-3",
+    host: "AWS Bedrock",
   },
   {
     label: "nova-lite-v1:0",
@@ -448,6 +496,7 @@ const allModels = [
     maxConcurrency: 5,
     authorized: true,
     generation: "nova-1",
+    host: "AWS Bedrock",
   },
   {
     label: "nova-micro-v1:0",
@@ -457,6 +506,7 @@ const allModels = [
     maxConcurrency: 20,
     authorized: true,
     generation: "nova-1",
+    host: "AWS Bedrock",
   },
   {
     label: "nova-pro-v1:0",
@@ -466,28 +516,8 @@ const allModels = [
     authorized: true,
     maxConcurrency: 30,
     generation: "nova-1",
+    host: "AWS Bedrock",
   },
-  {
-    label: "gemini-2-flash",
-    deployment: "publishers/google/models/gemini-2.0-flash-001",
-    developer: "Google",
-    maxConcurrency: 10,
-    provider: "braintrust",
-    authorized: true,
-    parent: "gemini-1.5-flash-002",
-    generation: "gemini-2",
-  },
-
-  {
-    label: "gemini-2.0-flash-lite-001",
-    deployment: "publishers/google/models/gemini-2.0-flash-lite-001",
-    developer: "Google",
-    maxConcurrency: 10,
-    provider: "braintrust",
-    authorized: true,
-    generation: "gemini-2",
-  },
-
   {
     label: "gemini-2.5-pro",
     deployment: "publishers/google/models/gemini-2.5-pro",
@@ -498,6 +528,7 @@ const allModels = [
     parent: "gemini-1.5-pro-002",
     generation: "gemini-2",
     reasoning: true,
+    host: "GCP Vertex AI",
   },
   {
     label: "gemini-2.5-flash",
@@ -509,6 +540,7 @@ const allModels = [
     parent: "gemini-2-flash",
     generation: "gemini-2",
     reasoning: true,
+    host: "GCP Vertex AI",
   },
   {
     label: "gemini-2.5-flash-lite",
@@ -520,6 +552,7 @@ const allModels = [
     parent: "gemini-2.0-flash-lite-001",
     generation: "gemini-2",
     reasoning: true,
+    host: "GCP Vertex AI",
   },
   {
     label: "gemini-3.1-flash-lite",
@@ -531,6 +564,7 @@ const allModels = [
     parent: "gemini-2.0-flash-lite-001",
     generation: "gemini-3",
     reasoning: true,
+    host: "GCP Vertex AI",
   },
   {
     label: "gemini-3-flash",
@@ -542,6 +576,29 @@ const allModels = [
     parent: "gemini-2.5-flash",
     generation: "gemini-3",
     reasoning: true,
+    host: "GCP Vertex AI",
+  },
+  {
+    label: "gemini-3.1-pro",
+    deployment: "publishers/google/models/gemini-3.1-pro-preview",
+    developer: "Google",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    parent: "gemini-2.5-pro",
+    generation: "gemini-3",
+    reasoning: true,
+    host: "GCP Vertex AI",
+  },
+  {
+    label: "grok-3",
+    deployment: "grok-3",
+    developer: "X.ai",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    reasoning: true,
+    host: "Microsoft Azure",
   },
 ] as const satisfies ModelConfig[];
 
