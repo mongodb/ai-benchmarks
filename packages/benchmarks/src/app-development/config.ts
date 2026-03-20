@@ -67,6 +67,8 @@ function loadDataset(): AppDevelopmentEvalCase[] {
   }));
 }
 
+const SAMPLES_PER_CASE = 3;
+
 export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
   AppDevelopmentEvalCaseInput,
   AppDevelopmentTaskOutput,
@@ -126,7 +128,7 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
 
       return [
         [`prompt_${key}`, makeTask(1)],
-        [`prompt_${key}_x5`, makeTask(5)],
+        [`prompt_${key}_x${SAMPLES_PER_CASE}`, makeTask(SAMPLES_PER_CASE)],
       ];
     })
   ),
