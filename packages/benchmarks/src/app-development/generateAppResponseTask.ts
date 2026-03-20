@@ -41,16 +41,17 @@ export function makeGenerateAppResponseTask({
   return async function generateAppResponseTask(
     input: AppDevelopmentEvalCaseInput
   ): Promise<AppDevelopmentTaskOutput> {
-    const samples: AppDevelopmentSample[] = await Promise.all(
-      Array.from({ length: sampleSize }, () =>
-        generateSingleSample({
+    const samples: AppDevelopmentSample[] = [];
+    for (let i = 0; i < sampleSize; i++) {
+      samples.push(
+        await generateSingleSample({
           subjectModel,
           judgeModel,
           systemPrompt,
           input,
         })
-      )
-    );
+      );
+    }
 
     return { samples };
   };
@@ -94,16 +95,16 @@ async function generateSingleSample({
   });
 
   // Step 2: Classify app stack (needed by step 3)
+  const appStack = await classifyAppStack({
+    model: judgeModel,
+    generation: response,
+  });
   // Step 3: Self-reflect can run in parallel with step 2 since it doesn't depend on it
-  const [appStack, selfReflection] = await Promise.all([
-    classifyAppStack({ model: judgeModel, generation: response }),
-    selfReflectOnDatabaseChoice({
-      model: subjectModel,
-      originalMessages: messages,
-      generation: response,
-    }),
-  ]);
-
+  const selfReflection = await selfReflectOnDatabaseChoice({
+    model: subjectModel,
+    originalMessages: messages,
+    generation: response,
+  });
   // Step 4: Analyze database choice (needs classifiedDatabase from step 2)
   const databaseAnalysis = await analyzeDatabaseChoice({
     model: judgeModel,
