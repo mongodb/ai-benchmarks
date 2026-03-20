@@ -6,7 +6,8 @@ export type ModelDeveloper =
   | "Mistral"
   | "Amazon"
   | "DeepSeek"
-  | "Alibaba Cloud";
+  | "Alibaba Cloud"
+  | "X.ai";
 
 export type ModelHost =
   | "AWS Bedrock"
@@ -588,6 +589,16 @@ const allModels = [
     generation: "gemini-3",
     reasoning: true,
     host: "GCP Vertex AI",
+  },
+  {
+    label: "grok-3",
+    deployment: "grok-3",
+    developer: "X.ai",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    reasoning: true,
+    host: "Microsoft Azure",
   },
 ] as const satisfies ModelConfig[];
 
