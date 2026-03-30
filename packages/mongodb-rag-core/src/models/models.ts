@@ -600,6 +600,16 @@ const allModels = [
     reasoning: true,
     host: "Microsoft Azure",
   },
+  {
+    label: "azure/claude-sonnet-4-6",
+    deployment: "azure-claude-sonnet-4-6",
+    developer: "Anthropic",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    reasoning: true,
+    host: "Microsoft Azure",
+  },
 ] as const satisfies ModelConfig[];
 
 export const models = allModels.filter((m) => m.authorized);
