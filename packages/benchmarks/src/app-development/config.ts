@@ -4,10 +4,10 @@ import yaml from "yaml";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { ModelProvider, models } from "mongodb-rag-core/models";
+import { ModelConfig, models } from "mongodb-rag-core/models";
 import assert from "assert";
 
-import { BenchmarkConfig } from "../cli/BenchmarkConfig";
+import { BenchmarkConfig, ModelProvider } from "../cli/BenchmarkConfig";
 import {
   AppDevelopmentEvalCase,
   AppDevelopmentEvalCaseInput,
@@ -29,7 +29,8 @@ const braintrustOpenAI = createOpenAI({
   baseURL: BRAINTRUST_ENDPOINT,
 });
 
-export const judgeModelLabel = "gpt-5.4";
+export const judgeModelLabel: (typeof models)[number]["label"] =
+  "gpt-5.3-codex";
 export const judgeModelConfig = models.find(
   (m) => m.label === judgeModelLabel
 )!;
@@ -66,6 +67,8 @@ function loadDataset(): AppDevelopmentEvalCase[] {
   }));
 }
 
+const SAMPLES_PER_CASE = 3;
+
 export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
   AppDevelopmentEvalCaseInput,
   AppDevelopmentTaskOutput,
@@ -99,11 +102,13 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
   },
 
   tasks: Object.fromEntries(
-    Object.entries(systemPromptVariants).map(([key, variant]) => [
-      `prompt_${key}`,
-      {
-        description: variant.description,
-        taskFunc: (modelProvider, modelConfig) => {
+    Object.entries(systemPromptVariants).flatMap(([key, variant]) => {
+      const makeTask = (sampleSize: number) => ({
+        description:
+          sampleSize === 1
+            ? variant.description
+            : `${variant.description} (${sampleSize}x samples)`,
+        taskFunc: (modelProvider: ModelProvider, modelConfig: ModelConfig) => {
           const subjectModel = wrapLanguageModel({
             model: createOpenAI({
               apiKey: modelProvider.apiKey,
@@ -115,11 +120,17 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
           return makeGenerateAppResponseTask({
             subjectModel,
             judgeModel,
-            systemPrompt: variant.prompt ?? undefined,
+            systemPrompt: variant.prompt || undefined,
+            sampleSize,
           });
         },
-      },
-    ])
+      });
+
+      return [
+        [`prompt_${key}`, makeTask(1)],
+        [`prompt_${key}_x${SAMPLES_PER_CASE}`, makeTask(SAMPLES_PER_CASE)],
+      ];
+    })
   ),
 
   scorers: {

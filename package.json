@@ -12,7 +12,8 @@
     "test": "lerna run test",
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
-    "benchmark": "lerna run benchmark --scope=benchmarks -- "
+    "benchmark": "lerna run benchmark --scope=benchmarks -- ",
+    "test:model-integration": "lerna run test:model-integration --scope=mongodb-rag-core"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin-js": "^1.7.0",

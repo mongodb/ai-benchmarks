@@ -41,8 +41,8 @@ export const systemPromptVariants: Record<string, SystemPromptVariant> = {
       "Explain your reasoning for each major decision, especially your choice of database, framework, and infrastructure.",
     ].join(" "),
   },
-  stack_agnostic: {
-    name: "stack_agnostic",
+  stack_agnostic_coding_assistant: {
+    name: "stack_agnostic_coding_assistant",
     description:
       "Explicitly asks the model to evaluate database options before choosing",
     prompt: [

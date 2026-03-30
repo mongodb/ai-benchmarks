@@ -21,6 +21,7 @@ describe("makeBenchmarkCli", () => {
         {
           label: "test-model-1",
           provider: "braintrust",
+          host: "OpenAI",
           developer: "OpenAI",
           deployment: "gpt-4",
           maxConcurrency: 5,
@@ -28,6 +29,7 @@ describe("makeBenchmarkCli", () => {
         {
           label: "test-model-2",
           provider: "braintrust",
+          host: "OpenAI",
           developer: "OpenAI",
           deployment: "gpt-3.5-turbo",
           maxConcurrency: 10,

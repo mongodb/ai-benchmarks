@@ -40,6 +40,7 @@
     "clean": "rm -rf build",
     "build": "tsc -b tsconfig.build.json",
     "test": "jest --forceExit",
+    "test:model-integration": "RUN_MODEL_INTEGRATION_TESTS=1 jest --forceExit src/models/models.test.ts",
     "lint": "eslint ./src --ext ts,tsx,js,jsx --report-unused-disable-directives",
     "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "docs": "npx typedoc --excludePrivate --exclude '**/*.test.ts' --out docs src",

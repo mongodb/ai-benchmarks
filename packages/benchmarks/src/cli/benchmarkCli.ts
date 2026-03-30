@@ -55,6 +55,7 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               "Number of models to run experiments on at once. Default is 2.",
             default: 2,
           })
+          .strict()
           .check((argv) => {
             const errors: string[] = [];
             // Check if benchmark type exists
