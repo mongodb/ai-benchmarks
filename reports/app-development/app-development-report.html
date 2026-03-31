@@ -7332,12 +7332,7 @@ a.anchor-link {
     if (!diagrams.length) {
       return;
     }
-    const mermaid = (await import("https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.0/mermaid.esm.min.mjs")).default;
-    const elkUrl = "https://cdnjs.cloudflare.com/ajax/libs/mermaid-layout-elk/0.1.9/mermaid-layout-elk.esm.min.mjs";
-    if(elkUrl) {
-      const elkLayouts = (await import(elkUrl)).default;
-      mermaid.registerLayoutLoaders(elkLayouts);
-    }
+    const mermaid = (await import("https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.esm.min.mjs")).default;
     const parser = new DOMParser();
 
     mermaid.initialize({
@@ -7434,8 +7429,7 @@ a.anchor-link {
      * Post-process to ensure mermaid diagrams contain only valid SVG and XHTML.
      */
     function cleanMermaidSvg(svg) {
-      svg = svg.replace(RE_VOID_ELEMENT, replaceVoidElement);
-      return `${SVG_XML_HEADER}${svg}`;
+      return svg.replace(RE_VOID_ELEMENT, replaceVoidElement);
     }
 
 
@@ -7461,285 +7455,6 @@ a.anchor-link {
       }
       return `<${tag} ${rest}>`;
     }
-
-
-  /**
-   * Named HTML entities with their decimal equivalent codes.
-   *
-   * @see https://www.w3.org/TR/WD-html40-970708/sgml/entities.html
-   * */
-  const HTML_ENTITIES = `<!ENTITY Aacute "&#193;">
-<!ENTITY aacute "&#225;">
-<!ENTITY Acirc "&#194;">
-<!ENTITY acirc "&#226;">
-<!ENTITY acute "&#180;">
-<!ENTITY AElig "&#198;">
-<!ENTITY aelig "&#230;">
-<!ENTITY Agrave "&#192;">
-<!ENTITY agrave "&#224;">
-<!ENTITY alefsym "&#8501;">
-<!ENTITY Alpha "&#913;">
-<!ENTITY alpha "&#945;">
-<!ENTITY amp "&#38;">
-<!ENTITY and "&#8869;">
-<!ENTITY ang "&#8736;">
-<!ENTITY Aring "&#197;">
-<!ENTITY aring "&#229;">
-<!ENTITY asymp "&#8776;">
-<!ENTITY Atilde "&#195;">
-<!ENTITY atilde "&#227;">
-<!ENTITY Auml "&#196;">
-<!ENTITY auml "&#228;">
-<!ENTITY bdquo "&#8222;">
-<!ENTITY Beta "&#914;">
-<!ENTITY beta "&#946;">
-<!ENTITY brvbar "&#166;">
-<!ENTITY bull "&#8226;">
-<!ENTITY cap "&#8745;">
-<!ENTITY Ccedil "&#199;">
-<!ENTITY ccedil "&#231;">
-<!ENTITY cedil "&#184;">
-<!ENTITY cent "&#162;">
-<!ENTITY Chi "&#935;">
-<!ENTITY chi "&#967;">
-<!ENTITY circ "&#710;">
-<!ENTITY clubs "&#9827;">
-<!ENTITY cong "&#8773;">
-<!ENTITY copy "&#169;">
-<!ENTITY crarr "&#8629;">
-<!ENTITY cup "&#8746;">
-<!ENTITY curren "&#164;">
-<!ENTITY dagger "&#8224;">
-<!ENTITY Dagger "&#8225;">
-<!ENTITY darr "&#8595;">
-<!ENTITY dArr "&#8659;">
-<!ENTITY deg "&#176;">
-<!ENTITY Delta "&#916;">
-<!ENTITY delta "&#948;">
-<!ENTITY diams "&#9830;">
-<!ENTITY divide "&#247;">
-<!ENTITY Eacute "&#201;">
-<!ENTITY eacute "&#233;">
-<!ENTITY Ecirc "&#202;">
-<!ENTITY ecirc "&#234;">
-<!ENTITY Egrave "&#200;">
-<!ENTITY egrave "&#232;">
-<!ENTITY empty "&#8709;">
-<!ENTITY emsp "&#8195;">
-<!ENTITY ensp "&#8194;">
-<!ENTITY epsilon "&#949;">
-<!ENTITY Epsilon "&#917;">
-<!ENTITY equiv "&#8801;">
-<!ENTITY Eta "&#919;">
-<!ENTITY eta "&#951;">
-<!ENTITY ETH "&#208;">
-<!ENTITY eth "&#240;">
-<!ENTITY Euml "&#203;">
-<!ENTITY euml "&#235;">
-<!ENTITY exist "&#8707;">
-<!ENTITY fnof "&#402;">
-<!ENTITY forall "&#8704;">
-<!ENTITY frac12 "&#189;">
-<!ENTITY frac14 "&#188;">
-<!ENTITY frac34 "&#190;">
-<!ENTITY frasl "&#8260;">
-<!ENTITY Gamma "&#915;">
-<!ENTITY gamma "&#947;">
-<!ENTITY ge "&#8805;">
-<!ENTITY gt "&#62;">
-<!ENTITY harr "&#8596;">
-<!ENTITY hArr "&#8660;">
-<!ENTITY hearts "&#9829;">
-<!ENTITY hellip "&#8230;">
-<!ENTITY Iacute "&#205;">
-<!ENTITY iacute "&#237;">
-<!ENTITY Icirc "&#206;">
-<!ENTITY icirc "&#238;">
-<!ENTITY iexcl "&#161;">
-<!ENTITY Igrave "&#204;">
-<!ENTITY igrave "&#236;">
-<!ENTITY image "&#8465;">
-<!ENTITY infin "&#8734;">
-<!ENTITY int "&#8747;">
-<!ENTITY Iota "&#921;">
-<!ENTITY iota "&#953;">
-<!ENTITY iquest "&#191;">
-<!ENTITY isin "&#8712;">
-<!ENTITY Iuml "&#207;">
-<!ENTITY iuml "&#239;">
-<!ENTITY Kappa "&#922;">
-<!ENTITY kappa "&#954;">
-<!ENTITY Lambda "&#923;">
-<!ENTITY lambda "&#955;">
-<!ENTITY lang "&#9001;">
-<!ENTITY laquo "&#171;">
-<!ENTITY larr "&#8592;">
-<!ENTITY lArr "&#8656;">
-<!ENTITY lceil "&#8968;">
-<!ENTITY ldquo "&#8220;">
-<!ENTITY le "&#8804;">
-<!ENTITY lfloor "&#8970;">
-<!ENTITY lowast "&#8727;">
-<!ENTITY loz "&#9674;">
-<!ENTITY lrm "&#8206;">
-<!ENTITY lsaquo "&#8249;">
-<!ENTITY lsquo "&#8216;">
-<!ENTITY lt "&#60;">
-<!ENTITY macr "&#175;">
-<!ENTITY mdash "&#8212;">
-<!ENTITY micro "&#181;">
-<!ENTITY middot "&#183;">
-<!ENTITY minus "&#8722;">
-<!ENTITY Mu "&#924;">
-<!ENTITY mu "&#956;">
-<!ENTITY nabla "&#8711;">
-<!ENTITY nbsp "&#160;">
-<!ENTITY ndash "&#8211;">
-<!ENTITY ne "&#8800;">
-<!ENTITY ni "&#8715;">
-<!ENTITY not "&#172;">
-<!ENTITY notin "&#8713;">
-<!ENTITY nsub "&#8836;">
-<!ENTITY Ntilde "&#209;">
-<!ENTITY ntilde "&#241;">
-<!ENTITY Nu "&#925;">
-<!ENTITY nu "&#957;">
-<!ENTITY Oacute "&#211;">
-<!ENTITY oacute "&#243;">
-<!ENTITY Ocirc "&#212;">
-<!ENTITY ocirc "&#244;">
-<!ENTITY OElig "&#338;">
-<!ENTITY oelig "&#339;">
-<!ENTITY Ograve "&#210;">
-<!ENTITY ograve "&#242;">
-<!ENTITY oline "&#8254;">
-<!ENTITY Omega "&#937;">
-<!ENTITY omega "&#969;">
-<!ENTITY Omicron "&#927;">
-<!ENTITY omicron "&#959;">
-<!ENTITY oplus "&#8853;">
-<!ENTITY or "&#8870;">
-<!ENTITY ordf "&#170;">
-<!ENTITY ordm "&#186;">
-<!ENTITY Oslash "&#216;">
-<!ENTITY oslash "&#248;">
-<!ENTITY Otilde "&#213;">
-<!ENTITY otilde "&#245;">
-<!ENTITY otimes "&#8855;">
-<!ENTITY Ouml "&#214;">
-<!ENTITY ouml "&#246;">
-<!ENTITY para "&#182;">
-<!ENTITY part "&#8706;">
-<!ENTITY permil "&#8240;">
-<!ENTITY perp "&#8869;">
-<!ENTITY Phi "&#934;">
-<!ENTITY phi "&#966;">
-<!ENTITY Pi "&#928;">
-<!ENTITY pi "&#960;">
-<!ENTITY piv "&#982;">
-<!ENTITY plusmn "&#177;">
-<!ENTITY pound "&#163;">
-<!ENTITY prime "&#8242;">
-<!ENTITY Prime "&#8243;">
-<!ENTITY prod "&#8719;">
-<!ENTITY prop "&#8733;">
-<!ENTITY Psi "&#936;">
-<!ENTITY psi "&#968;">
-<!ENTITY quot "&#34;">
-<!ENTITY radic "&#8730;">
-<!ENTITY rang "&#9002;">
-<!ENTITY raquo "&#187;">
-<!ENTITY rarr "&#8594;">
-<!ENTITY rArr "&#8658;">
-<!ENTITY rceil "&#8969;">
-<!ENTITY rdquo "&#8221;">
-<!ENTITY real "&#8476;">
-<!ENTITY reg "&#174;">
-<!ENTITY rfloor "&#8971;">
-<!ENTITY Rho "&#929;">
-<!ENTITY rho "&#961;">
-<!ENTITY rlm "&#8207;">
-<!ENTITY rsaquo "&#8250;">
-<!ENTITY rsquo "&#8217;">
-<!ENTITY sbquo "&#8218;">
-<!ENTITY Scaron "&#352;">
-<!ENTITY scaron "&#353;">
-<!ENTITY sdot "&#8901;">
-<!ENTITY sect "&#167;">
-<!ENTITY shy "&#173;">
-<!ENTITY Sigma "&#931;">
-<!ENTITY sigma "&#963;">
-<!ENTITY sigmaf "&#962;">
-<!ENTITY sim "&#8764;">
-<!ENTITY spades "&#9824;">
-<!ENTITY sub "&#8834;">
-<!ENTITY sube "&#8838;">
-<!ENTITY sum "&#8721;">
-<!ENTITY sup "&#8835;">
-<!ENTITY sup1 "&#185;">
-<!ENTITY sup2 "&#178;">
-<!ENTITY sup3 "&#179;">
-<!ENTITY supe "&#8839;">
-<!ENTITY szlig "&#223;">
-<!ENTITY Tau "&#932;">
-<!ENTITY tau "&#964;">
-<!ENTITY there4 "&#8756;">
-<!ENTITY Theta "&#920;">
-<!ENTITY theta "&#952;">
-<!ENTITY thetasym "&#977;">
-<!ENTITY thinsp "&#8201;">
-<!ENTITY THORN "&#222;">
-<!ENTITY thorn "&#254;">
-<!ENTITY tilde "&#732;">
-<!ENTITY times "&#215;">
-<!ENTITY trade "&#8482;">
-<!ENTITY Uacute "&#218;">
-<!ENTITY uacute "&#250;">
-<!ENTITY uarr "&#8593;">
-<!ENTITY uArr "&#8657;">
-<!ENTITY Ucirc "&#219;">
-<!ENTITY ucirc "&#251;">
-<!ENTITY Ugrave "&#217;">
-<!ENTITY ugrave "&#249;">
-<!ENTITY uml "&#168;">
-<!ENTITY upsih "&#978;">
-<!ENTITY Upsilon "&#933;">
-<!ENTITY upsilon "&#965;">
-<!ENTITY Uuml "&#220;">
-<!ENTITY uuml "&#252;">
-<!ENTITY weierp "&#8472;">
-<!ENTITY Xi "&#926;">
-<!ENTITY xi "&#958;">
-<!ENTITY Yacute "&#221;">
-<!ENTITY yacute "&#253;">
-<!ENTITY yen "&#165;">
-<!ENTITY Yuml "&#376;">
-<!ENTITY yuml "&#255;">
-<!ENTITY Zeta "&#918;">
-<!ENTITY zeta "&#950;">
-<!ENTITY zwj "&#8205;">
-<!ENTITY zwnj "&#8204;">`.replace(/\n/g, ' ');
-
-  /**
-   * A reasonably strict xml declaration.
-   */
-  const XML_DECL = '<?xml version="1.0" standalone="no"?>';
-
-  /**
-   * The beginning of the XML doctype declaration.
-   */
-  const DOCTYPE_START = `<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [`;
-
-  /**
-   * The end of the XML docype declaration.
-   */
-  const DOCTYPE_END = ']>';
-
-  /**
-   * A full header for an SVG XML document.
-   */
-  const SVG_XML_HEADER = `${XML_DECL}
-    ${DOCTYPE_START}${HTML_ENTITIES}${DOCTYPE_END}`;
 
     void Promise.all([...diagrams].map(renderOneMarmaid));
   });
@@ -7800,123 +7515,220 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="App-Development-Benchmark-Report">App Development Benchmark Report<a class="anchor-link" href="#App-Development-Benchmark-Report">¶</a></h1><p>How do LLMs choose databases when generating full-stack applications?<br/>
-Focus: MongoDB selection rates across models and prompt strategies.</p>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="App-Development-Benchmark-Report">App Development Benchmark Report<a class="anchor-link" href="#App-Development-Benchmark-Report">¶</a></h1>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">plotly.subplots</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_subplots</span>
-
-<span class="n">CHART_WIDTH</span> <span class="o">=</span> <span class="mi">900</span>
-<span class="n">CHART_HEIGHT</span> <span class="o">=</span> <span class="mi">500</span>
-<span class="n">TEMPLATE</span> <span class="o">=</span> <span class="s2">"plotly_white"</span>
-<span class="n">COLOR_GENERIC</span> <span class="o">=</span> <span class="s2">"#636EFA"</span>
-<span class="n">COLOR_STACK_AGNOSTIC</span> <span class="o">=</span> <span class="s2">"#EF553B"</span>
-<span class="n">PALETTE</span> <span class="o">=</span> <span class="p">[</span><span class="n">COLOR_GENERIC</span><span class="p">,</span> <span class="n">COLOR_STACK_AGNOSTIC</span><span class="p">]</span>
-</pre></div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Introduction">Introduction<a class="anchor-link" href="#Introduction">¶</a></h2><p>When developers ask an LLM to "build me an app," the model doesn't just write code — it makes technology decisions on the developer's behalf. One of the most consequential is the choice of database. This benchmark measures how three frontier LLMs choose databases when generating full-stack applications, with a focus on MongoDB.</p>
+<p>The core questions:</p>
+<ul>
+<li><strong>How often do models choose MongoDB</strong>, and does that change when the prompt asks them to consider alternatives?</li>
+<li><strong>Do models choose MongoDB when it's a strong fit?</strong> Half of the prompts are labeled as MongoDB-optimal by a product manager — do models pick it up in those cases?</li>
+<li><strong>Is the model's self-reported reasoning consistent with external analysis?</strong> When asked to explain its database choice, does the model's account match what an independent judge concludes from the generated code?</li>
+</ul>
+<p>This report presents results from 1,860 generated samples across 3 models, 2 prompt strategies, and 104 application prompts.</p>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data/results"</span><span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">parse_filename</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Extract model and experiment type from the Braintrust export filename."""</span>
-    <span class="n">stem</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">stem</span>
-    <span class="n">model_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"model=([^&amp;]+)"</span><span class="p">,</span> <span class="n">stem</span><span class="p">)</span>
-    <span class="n">exp_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"experimentType=([^&amp;_]+(?:_[^&amp;_]+)*?)_x\d+"</span><span class="p">,</span> <span class="n">stem</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">"model"</span><span class="p">:</span> <span class="n">model_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">model_match</span> <span class="k">else</span> <span class="n">stem</span><span class="p">,</span>
-        <span class="s2">"experiment_type"</span><span class="p">:</span> <span class="n">exp_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">exp_match</span> <span class="k">else</span> <span class="s2">"unknown"</span><span class="p">,</span>
-    <span class="p">}</span>
-
-<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">DATA_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">)):</span>
-    <span class="n">meta</span> <span class="o">=</span> <span class="n">parse_filename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">cases</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">cases</span><span class="p">:</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">case</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"output"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">output</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"samples"</span><span class="p">,</span> <span class="p">[])):</span>
-            <span class="n">row</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"model"</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"model"</span><span class="p">],</span>
-                <span class="s2">"experiment_type"</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">],</span>
-                <span class="s2">"prompt_name"</span><span class="p">:</span> <span class="n">case</span><span class="p">[</span><span class="s2">"input"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
-                <span class="s2">"sample_idx"</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
-                <span class="c1"># metadata</span>
-                <span class="s2">"difficulty"</span><span class="p">:</span> <span class="n">case</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"difficulty"</span><span class="p">),</span>
-                <span class="s2">"category"</span><span class="p">:</span> <span class="n">case</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"category"</span><span class="p">),</span>
-                <span class="s2">"is_mongodb_optimal"</span><span class="p">:</span> <span class="n">case</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"is_mongodb_optimal"</span><span class="p">),</span>
-                <span class="c1"># appStack</span>
-                <span class="s2">"primary_database"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"appStack"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"primaryDatabase"</span><span class="p">),</span>
-                <span class="s2">"app_framework"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"appStack"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"appFramework"</span><span class="p">),</span>
-                <span class="s2">"orm"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"appStack"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ormOrDatabaseClient"</span><span class="p">),</span>
-                <span class="s2">"language"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"appStack"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"programmingLanguage"</span><span class="p">),</span>
-                <span class="c1"># databaseAnalysis</span>
-                <span class="s2">"chose_mongodb"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"databaseAnalysis"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"choseMongoDb"</span><span class="p">),</span>
-                <span class="s2">"judge_justifications"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"databaseAnalysis"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mainJustifications"</span><span class="p">,</span> <span class="p">[]),</span>
-                <span class="s2">"judge_primary_reason"</span><span class="p">:</span> <span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"databaseAnalysis"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mainJustifications"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">"mongodb_fit"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"databaseAnalysis"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mongoDbFitAssessment"</span><span class="p">),</span>
-                <span class="s2">"alternatives_considered"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"databaseAnalysis"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"alternativeDatabasesConsidered"</span><span class="p">,</span> <span class="p">[]),</span>
-                <span class="c1"># selfReflection</span>
-                <span class="s2">"self_reasons"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"selfReflection"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reasonsForChoice"</span><span class="p">,</span> <span class="p">[]),</span>
-                <span class="s2">"self_primary_reason"</span><span class="p">:</span> <span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"selfReflection"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reasonsForChoice"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">"considered_mongodb"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"selfReflection"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"consideredMongoDb"</span><span class="p">),</span>
-                <span class="s2">"would_change"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"selfReflection"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"wouldChangeChoice"</span><span class="p">),</span>
-                <span class="s2">"self_mongodb_fit"</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"selfReflection"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mongoDbFitAssessment"</span><span class="p">),</span>
-            <span class="p">}</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
-
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2"> samples loaded from </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2"> models × </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">'experiment_type'</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2"> experiment types"</span><span class="p">)</span>
-<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</pre></div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Top-Line-Results">Top-Line Results<a class="anchor-link" href="#Top-Line-Results">¶</a></h2><ul>
+<li><strong>MongoDB is almost never chosen.</strong> Across all models and prompts, MongoDB selection rates range from 0% to 3.8%. Even on prompts where MongoDB is labeled as the optimal choice, models overwhelmingly default to SQL databases (PostgreSQL, SQLite).</li>
+<li><strong>Prompting to "consider options" doesn't help.</strong> The stack-agnostic prompt, which explicitly asks models to evaluate multiple database options, produced no meaningful change in MongoDB rates. Asking models to deliberate does not overcome their SQL defaults.</li>
+<li><strong>MongoDB is rarely chosen even when it's the best fit.</strong> On the 52 prompts labeled MongoDB-optimal, models still overwhelmingly default to SQL — suggesting they aren't distinguishing between applications that suit MongoDB and those that don't.</li>
+<li><strong>Models rationalize defaults as deliberate choices.</strong> When the judge identifies an unjustified SQL default, models frequently claim in self-reflection that they made a deliberate technical decision (e.g. "relational data needs SQL" or "specific technical requirement").</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Methodology">Methodology<a class="anchor-link" href="#Methodology">¶</a></h2><h3 id="Models-Evaluated">Models Evaluated<a class="anchor-link" href="#Models-Evaluated">¶</a></h3><p>Three frontier models were benchmarked:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Developer</th>
+<th>Release Date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Sonnet 4.6</td>
+<td>Anthropic</td>
+<td>February 2026</td>
+</tr>
+<tr>
+<td>Gemini 3 Flash</td>
+<td>Google</td>
+<td>December 2025</td>
+</tr>
+<tr>
+<td>GPT-5.4</td>
+<td>OpenAI</td>
+<td>March 2026</td>
+</tr>
+</tbody>
+</table>
+<p>These represent the current state-of-the-art at the practical tier — fast and cost-effective enough for real developer usage. Higher-end variants (e.g. Claude Opus, GPT-5.4 Pro) were excluded because they are significantly slower and more expensive while exhibiting similar behavior profiles for code generation tasks.</p>
+<h3 id="Prompt-Conditions">Prompt Conditions<a class="anchor-link" href="#Prompt-Conditions">¶</a></h3><p>Each of the 104 prompts was run under two system prompt strategies:</p>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>System prompt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Generic coding assistant</strong> (baseline)</td>
+<td><em>"You are an expert software engineer. Help the user build their application. Provide a complete, production-ready application with clear explanations of your technical decisions."</em></td>
+</tr>
+<tr>
+<td><strong>Stack-agnostic coding assistant</strong></td>
+<td>Same as above, plus: <em>"When choosing each element of the application stack, briefly consider multiple options and explain why you picked the one you did."</em></td>
+</tr>
+</tbody>
+</table>
+<h3 id="Sampling">Sampling<a class="anchor-link" href="#Sampling">¶</a></h3><p>Each prompt × model × condition was sampled <strong>3 times</strong> (3 independent LLM calls) to account for non-determinism in generation. This produces 3 samples per eval case, yielding 104 × 3 = 312 samples per model per prompt strategy, and 1,860 total samples across the benchmark.</p>
+<h3 id="Evaluation-Pipeline-(per-Sample)">Evaluation Pipeline (per Sample)<a class="anchor-link" href="#Evaluation-Pipeline-(per-Sample)">¶</a></h3><p>Each sample goes through a 4-step pipeline:</p>
+<ol>
+<li><strong>Generate app response</strong>: the subject model produces a full application given the prompt and system message.</li>
+<li><strong>Classify app stack</strong> (LLM-as-judge): a judge model (<code>gpt-5.3-codex</code>) extracts the chosen database, framework, language, ORM, and other stack elements from the generated code.</li>
+<li><strong>Self-reflect on database choice</strong> (subject model): the same model that generated the app is asked to reflect on its database decision: why it chose what it did, whether it considered MongoDB, and whether it would change its choice.</li>
+<li><strong>Analyze database choice</strong> (LLM-as-judge): the judge model classifies the database choice into structured justification reasons (from a shared enum), assesses MongoDB fit, and identifies alternatives considered.</li>
+</ol>
+<p>Steps 2 and 4 use structured output with a predefined schema, so the results are directly comparable across models. The justification reasons enum is shared between the judge analysis and self-reflection, enabling direct agreement measurement.</p>
+<h3 id="Metrics">Metrics<a class="anchor-link" href="#Metrics">¶</a></h3><ul>
+<li><strong>PrimaryDatabaseIsMongoDb</strong> — programmatic: did the classified <code>primaryDatabase</code> equal MongoDB?</li>
+<li><strong>MentionsMongoDbInGeneration</strong> — programmatic: does the generation text reference MongoDB at all?</li>
+<li>Both metrics are computed as pass@k, pass%k, and pass^k across the 3 samples.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Dataset-Profile">Dataset Profile<a class="anchor-link" href="#Dataset-Profile">¶</a></h2><p>The benchmark uses <strong>104 unique application prompts</strong> — each a single user message asking a model to build a specific application (e.g. "Build a machine learning feature store," "Create a real-time event ticketing platform").</p>
+<h3 id="Difficulty-Distribution">Difficulty Distribution<a class="anchor-link" href="#Difficulty-Distribution">¶</a></h3><table>
+<thead>
+<tr>
+<th>Difficulty</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Beginner</td>
+<td>34</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>40</td>
+</tr>
+<tr>
+<td>Advanced</td>
+<td>30</td>
+</tr>
+</tbody>
+</table>
+<h3 id="MongoDB-Optimal-Split">MongoDB-Optimal Split<a class="anchor-link" href="#MongoDB-Optimal-Split">¶</a></h3><p>Each prompt is labeled by a product manager as either <strong>MongoDB-optimal</strong> (MongoDB is a good fit for this application) or <strong>not MongoDB-optimal</strong> (a different database may be more appropriate):</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MongoDB optimal</td>
+<td>52</td>
+</tr>
+<tr>
+<td>Not MongoDB optimal</td>
+<td>52</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Category-Labels">Category Labels<a class="anchor-link" href="#Category-Labels">¶</a></h3><p>51 of 104 prompts have an application category label. The remaining 53 are uncategorized.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI</td>
+<td>11</td>
+</tr>
+<tr>
+<td>Content platform</td>
+<td>10</td>
+</tr>
+<tr>
+<td>E-commerce</td>
+<td>11</td>
+</tr>
+<tr>
+<td>Multi-tenant</td>
+<td>9</td>
+</tr>
+<tr>
+<td>Social media</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h2 id="Data-Loading">Data Loading<a class="anchor-link" href="#Data-Loading">¶</a></h2><p>Reads all experiment JSON files from <code>data/results/</code>, extracts model and prompt condition from each filename, and flattens every sample into a single row. The summary table is a sanity check that all data loaded correctly.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>1860 samples loaded from 3 models × 2 experiment types
+<pre>1860 total samples loaded
+
 </pre>
 </div>
 </div>
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -7935,82 +7747,65 @@ Focus: MongoDB selection rates across models and prompt strategies.</p>
 <thead>
 <tr style="text-align: right;">
 <th></th>
-<th>model</th>
-<th>experiment_type</th>
-<th>prompt_name</th>
-<th>sample_idx</th>
-<th>difficulty</th>
-<th>category</th>
-<th>is_mongodb_optimal</th>
-<th>primary_database</th>
-<th>app_framework</th>
-<th>orm</th>
-<th>...</th>
-<th>chose_mongodb</th>
-<th>judge_justifications</th>
-<th>judge_primary_reason</th>
-<th>mongodb_fit</th>
-<th>alternatives_considered</th>
-<th>self_reasons</th>
-<th>self_primary_reason</th>
-<th>considered_mongodb</th>
-<th>would_change</th>
-<th>self_mongodb_fit</th>
+<th>Model</th>
+<th>Prompt</th>
+<th>Samples</th>
+<th>Prompts</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <th>0</th>
 <td>anthropic_claude-sonnet-4.6</td>
-<td>prompt_generic_coding_assistant</td>
-<td>[advanced] Build a machine learning feature st...</td>
-<td>0</td>
-<td>advanced</td>
-<td>NaN</td>
-<td>False</td>
-<td>sqlite</td>
-<td>fastapi</td>
-<td>sqlalchemy</td>
-<td>...</td>
-<td>False</td>
-<td>[model-default-sql-no-justification, orm-or-fr...</td>
-<td>model-default-sql-no-justification</td>
-<td>moderate-fit</td>
-<td>[redis]</td>
-<td>[specific-technical-requirement, orm-or-framew...</td>
-<td>specific-technical-requirement</td>
-<td>True</td>
-<td>True</td>
-<td>moderate-fit</td>
+<td>generic</td>
+<td>312</td>
+<td>104</td>
 </tr>
 <tr>
 <th>1</th>
 <td>anthropic_claude-sonnet-4.6</td>
-<td>prompt_generic_coding_assistant</td>
-<td>[advanced] Build a machine learning feature st...</td>
-<td>1</td>
-<td>advanced</td>
-<td>NaN</td>
-<td>False</td>
-<td>sqlite</td>
-<td>fastapi</td>
-<td>sqlalchemy</td>
-<td>...</td>
-<td>False</td>
-<td>[model-default-sql-no-justification, orm-or-fr...</td>
-<td>model-default-sql-no-justification</td>
-<td>moderate-fit</td>
-<td>[redis]</td>
-<td>[orm-or-framework-defaults-to-sql, specific-te...</td>
-<td>orm-or-framework-defaults-to-sql</td>
-<td>True</td>
-<td>False</td>
-<td>moderate-fit</td>
+<td>stack_agnostic</td>
+<td>312</td>
+<td>104</td>
+</tr>
+<tr>
+<th>2</th>
+<td>gemini-3-flash</td>
+<td>generic</td>
+<td>312</td>
+<td>104</td>
+</tr>
+<tr>
+<th>3</th>
+<td>gemini-3-flash</td>
+<td>stack_agnostic</td>
+<td>312</td>
+<td>104</td>
+</tr>
+<tr>
+<th>4</th>
+<td>gpt-5.4</td>
+<td>generic</td>
+<td>312</td>
+<td>104</td>
+</tr>
+<tr>
+<th>5</th>
+<td>gpt-5.4</td>
+<td>stack_agnostic</td>
+<td>300</td>
+<td>100</td>
 </tr>
 </tbody>
 </table>
-<p>2 rows × 21 columns</p>
 </div>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>
+Note: GPT-5.4 stack-agnostic has 100 prompts instead of 104 due to 4 cases with null output (failed generations).
+</pre>
 </div>
 </div>
 </div>
@@ -8020,627 +7815,69 @@ Focus: MongoDB selection rates across models and prompt strategies.</p>
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="1.-Model-Comparison-Table">1. Model Comparison Table<a class="anchor-link" href="#1.-Model-Comparison-Table">¶</a></h2>
+<h2 id="Results">Results<a class="anchor-link" href="#Results">¶</a></h2><h3 id="Model-Comparison-Table">Model Comparison Table<a class="anchor-link" href="#Model-Comparison-Table">¶</a></h3><p>Top-level summary of each model's MongoDB behavior. <strong>MongoDB %</strong> is the share of samples where MongoDB was chosen as the primary database. <strong>Mentions MongoDB %</strong> is broader — it includes cases where MongoDB appeared in the generation at all (chosen or listed as an alternative). <strong>Delta</strong> shows whether the stack-agnostic prompt increases or decreases MongoDB selection relative to the generic baseline.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_pct</span><span class="p">(</span><span class="n">series</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="n">mentions_mongo</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">mentions_mongo</span><span class="p">[</span><span class="s2">"mentions_mongodb"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df</span><span class="p">[</span><span class="s2">"chose_mongodb"</span><span class="p">]</span>
-    <span class="o">|</span> <span class="n">df</span><span class="p">[</span><span class="s2">"alternatives_considered"</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">xs</span><span class="p">:</span> <span class="s2">"mongodb"</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">]</span> <span class="k">if</span> <span class="n">xs</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="n">summary</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">mentions_mongo</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"model"</span><span class="p">,</span> <span class="s2">"experiment_type"</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
-        <span class="n">mongodb_rate</span><span class="o">=</span><span class="p">(</span><span class="s2">"chose_mongodb"</span><span class="p">,</span> <span class="s2">"mean"</span><span class="p">),</span>
-        <span class="n">mentions_rate</span><span class="o">=</span><span class="p">(</span><span class="s2">"mentions_mongodb"</span><span class="p">,</span> <span class="s2">"mean"</span><span class="p">),</span>
-        <span class="n">n</span><span class="o">=</span><span class="p">(</span><span class="s2">"chose_mongodb"</span><span class="p">,</span> <span class="s2">"count"</span><span class="p">),</span>
-    <span class="p">)</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-<span class="p">)</span>
-
-<span class="n">pivot</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">"experiment_type"</span><span class="p">)</span>
-<span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-    <span class="s2">"MongoDB % (generic)"</span><span class="p">:</span> <span class="p">(</span><span class="n">pivot</span><span class="p">[(</span><span class="s2">"mongodb_rate"</span><span class="p">,</span> <span class="s2">"prompt_generic_coding_assistant"</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-    <span class="s2">"MongoDB % (stack-agnostic)"</span><span class="p">:</span> <span class="p">(</span><span class="n">pivot</span><span class="p">[(</span><span class="s2">"mongodb_rate"</span><span class="p">,</span> <span class="s2">"prompt_stack_agnostic_coding_assistant"</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-    <span class="s2">"Mentions MongoDB % (generic)"</span><span class="p">:</span> <span class="p">(</span><span class="n">pivot</span><span class="p">[(</span><span class="s2">"mentions_rate"</span><span class="p">,</span> <span class="s2">"prompt_generic_coding_assistant"</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-    <span class="s2">"Mentions MongoDB % (stack-agnostic)"</span><span class="p">:</span> <span class="p">(</span><span class="n">pivot</span><span class="p">[(</span><span class="s2">"mentions_rate"</span><span class="p">,</span> <span class="s2">"prompt_stack_agnostic_coding_assistant"</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-<span class="p">})</span>
-<span class="n">table</span><span class="p">[</span><span class="s2">"Delta (pp)"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"MongoDB % (stack-agnostic)"</span><span class="p">]</span> <span class="o">-</span> <span class="n">table</span><span class="p">[</span><span class="s2">"MongoDB % (generic)"</span><span class="p">])</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">table</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">"MongoDB % (generic)"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"</span><span class="si">{:.1f}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">"RdYlGn"</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"Delta (pp)"</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/compat/_optional.py:158</span>, in <span class="ansi-cyan-fg">import_optional_dependency</span><span class="ansi-blue-fg">(name, extra, min_version, errors)</span>
-<span class="ansi-green-fg">    157</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">158</span>     module = <span class="ansi-yellow-bg">importlib</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">import_module</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">name</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">    159</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">ImportError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> err:
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/opt/homebrew/Cellar/python@3.14/3.14.0_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/importlib/__init__.py:88</span>, in <span class="ansi-cyan-fg">import_module</span><span class="ansi-blue-fg">(name, package)</span>
-<span class="ansi-green-fg">     87</span>         level += <span class="ansi-green-fg">1</span>
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">88</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg">_bootstrap</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">_gcd_import</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">name</span><span class="ansi-yellow-bg">[</span><span class="ansi-yellow-bg">level</span><span class="ansi-yellow-bg">:</span><span class="ansi-yellow-bg">]</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">package</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">level</span><span class="ansi-yellow-bg">)</span>
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">&lt;frozen importlib._bootstrap&gt;:1398</span>, in <span class="ansi-cyan-fg">_gcd_import</span><span class="ansi-blue-fg">(name, package, level)</span>
-<span class="ansi-green-fg">   1396</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> level &gt; <span class="ansi-green-fg">0</span>:
-<span class="ansi-green-fg">   1397</span>         name = _resolve_name(name, package, level)
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1398</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> _find_and_load(name, _gcd_import)
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">&lt;frozen importlib._bootstrap&gt;:1371</span>, in <span class="ansi-cyan-fg">_find_and_load</span><span class="ansi-blue-fg">(name, import_)</span>
-<span class="ansi-green-fg">   1369</span>             module = sys.modules.get(name, _NEEDS_LOADING)
-<span class="ansi-green-fg">   1370</span>             <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> module <span class="ansi-bold" style="color: rgb(0,135,0)">is</span> _NEEDS_LOADING:
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1371</span>                 <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> _find_and_load_unlocked(name, import_)
-<span class="ansi-green-fg">   1372</span> 
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">&lt;frozen importlib._bootstrap&gt;:1335</span>, in <span class="ansi-cyan-fg">_find_and_load_unlocked</span><span class="ansi-blue-fg">(name, import_)</span>
-<span class="ansi-green-fg">   1333</span>     spec = _find_spec(name, path)
-<span class="ansi-green-fg">   1334</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> spec <span class="ansi-bold" style="color: rgb(0,135,0)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1335</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> ModuleNotFoundError(f'{_ERR_MSG_PREFIX}{name!r}', name=name)
-<span class="ansi-green-fg">   1336</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
-
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named 'matplotlib'
-
-The above exception was the direct cause of the following exception:
-
-<span class="ansi-red-fg">ImportError</span>                               Traceback (most recent call last)
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style.py:374</span>, in <span class="ansi-cyan-fg">Styler._repr_html_</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-fg">    369</span> <span class="ansi-yellow-fg">"""</span>
-<span class="ansi-green-fg">    370</span> <span class="ansi-yellow-fg">Hooks into Jupyter notebook rich display system, which calls _repr_html_ by</span>
-<span class="ansi-green-fg">    371</span> <span class="ansi-yellow-fg">default if an object is returned at the end of a cell.</span>
-<span class="ansi-green-fg">    372</span> <span class="ansi-yellow-fg">"""</span>
-<span class="ansi-green-fg">    373</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> get_option(<span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">styler.render.repr</span><span class="ansi-yellow-fg">"</span>) == <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">html</span><span class="ansi-yellow-fg">"</span>:
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">374</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">to_html</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">    375</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style.py:1553</span>, in <span class="ansi-cyan-fg">Styler.to_html</span><span class="ansi-blue-fg">(self, buf, table_uuid, table_attributes, sparse_index, sparse_columns, bold_headers, caption, max_rows, max_columns, encoding, doctype_html, exclude_styles, **kwargs)</span>
-<span class="ansi-green-fg">   1550</span>     obj.set_caption(caption)
-<span class="ansi-green-fg">   1552</span> <span style="color: rgb(95,135,135)"># Build HTML string..</span>
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1553</span> html = <span class="ansi-yellow-bg">obj</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">_render_html</span><span class="ansi-yellow-bg">(</span>
-<span class="ansi-green-fg">   1554</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">sparse_index</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">sparse_index</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1555</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">sparse_columns</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">sparse_columns</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1556</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">max_rows</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">max_rows</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1557</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">max_cols</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">max_columns</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1558</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">exclude_styles</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">exclude_styles</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1559</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">encoding</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg ansi-bold" style="color: rgb(175,0,255)">or</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">get_option</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-fg ansi-yellow-bg">styler.render.encoding</span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-bg">)</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1560</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">doctype_html</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-bg">doctype_html</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1561</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">,</span>
-<span class="ansi-green-fg">   1562</span> <span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   1564</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> save_to_buffer(
-<span class="ansi-green-fg">   1565</span>     html, buf=buf, encoding=(encoding <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> buf <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>)
-<span class="ansi-green-fg">   1566</span> )
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style_render.py:215</span>, in <span class="ansi-cyan-fg">StylerRenderer._render_html</span><span class="ansi-blue-fg">(self, sparse_index, sparse_columns, max_rows, max_cols, **kwargs)</span>
-<span class="ansi-green-fg">    203</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">_render_html</span>(
-<span class="ansi-green-fg">    204</span>     <span style="color: rgb(0,135,0)">self</span>,
-<span class="ansi-green-fg">    205</span>     sparse_index: <span style="color: rgb(0,135,0)">bool</span>,
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    209</span>     **kwargs,
-<span class="ansi-green-fg">    210</span> ) -&gt; <span style="color: rgb(0,135,0)">str</span>:
-<span class="ansi-green-fg">    211</span> <span style="color: rgb(188,188,188)">    </span><span class="ansi-yellow-fg">"""</span>
-<span class="ansi-green-fg">    212</span> <span class="ansi-yellow-fg">    Renders the ``Styler`` including all applied styles to HTML.</span>
-<span class="ansi-green-fg">    213</span> <span class="ansi-yellow-fg">    Generates a dict with necessary kwargs passed to jinja2 template.</span>
-<span class="ansi-green-fg">    214</span> <span class="ansi-yellow-fg">    """</span>
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">215</span>     d = <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">_render</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">sparse_index</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">sparse_columns</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">max_rows</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">max_cols</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-fg ansi-yellow-bg">&amp;nbsp;</span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">    216</span>     d.update(kwargs)
-<span class="ansi-green-fg">    217</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span>.template_html.render(
-<span class="ansi-green-fg">    218</span>         **d,
-<span class="ansi-green-fg">    219</span>         html_table_tpl=<span style="color: rgb(0,135,0)">self</span>.template_html_table,
-<span class="ansi-green-fg">    220</span>         html_style_tpl=<span style="color: rgb(0,135,0)">self</span>.template_html_style,
-<span class="ansi-green-fg">    221</span>     )
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style_render.py:172</span>, in <span class="ansi-cyan-fg">StylerRenderer._render</span><span class="ansi-blue-fg">(self, sparse_index, sparse_columns, max_rows, max_cols, blank)</span>
-<span class="ansi-green-fg">    158</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">_render</span>(
-<span class="ansi-green-fg">    159</span>     <span style="color: rgb(0,135,0)">self</span>,
-<span class="ansi-green-fg">    160</span>     sparse_index: <span style="color: rgb(0,135,0)">bool</span>,
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    164</span>     blank: <span style="color: rgb(0,135,0)">str</span> = <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">"</span>,
-<span class="ansi-green-fg">    165</span> ):
-<span class="ansi-green-fg">    166</span> <span style="color: rgb(188,188,188)">    </span><span class="ansi-yellow-fg">"""</span>
-<span class="ansi-green-fg">    167</span> <span class="ansi-yellow-fg">    Computes and applies styles and then generates the general render dicts.</span>
-<span class="ansi-green-fg">    168</span> 
-<span class="ansi-green-fg">    169</span> <span class="ansi-yellow-fg">    Also extends the `ctx` and `ctx_index` attributes with those of concatenated</span>
-<span class="ansi-green-fg">    170</span> <span class="ansi-yellow-fg">    stylers for use within `_translate_latex`</span>
-<span class="ansi-green-fg">    171</span> <span class="ansi-yellow-fg">    """</span>
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">172</span>     <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">_compute</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">    173</span>     dxs = []
-<span class="ansi-green-fg">    174</span>     ctx_len = <span style="color: rgb(0,135,0)">len</span>(<span style="color: rgb(0,135,0)">self</span>.index)
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style_render.py:282</span>, in <span class="ansi-cyan-fg">StylerRenderer._compute</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-fg">    280</span> r = <span style="color: rgb(0,135,0)">self</span>
-<span class="ansi-green-fg">    281</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> func, args, kwargs <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">self</span>._todo:
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">282</span>     r = <span class="ansi-yellow-bg">func</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">)</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">    283</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> r
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style.py:1955</span>, in <span class="ansi-cyan-fg">Styler._apply</span><span class="ansi-blue-fg">(self, func, axis, subset, **kwargs)</span>
-<span class="ansi-green-fg">   1953</span> axis = <span style="color: rgb(0,135,0)">self</span>.data._get_axis_number(axis)
-<span class="ansi-green-fg">   1954</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> axis == <span class="ansi-green-fg">0</span>:
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1955</span>     result = <span class="ansi-yellow-bg">data</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">apply</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">func</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">axis</span><span class="ansi-yellow-bg">=</span><span class="ansi-green-fg ansi-yellow-bg">0</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   1956</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
-<span class="ansi-green-fg">   1957</span>     result = data.T.apply(func, axis=<span class="ansi-green-fg">0</span>, **kwargs).T  <span style="color: rgb(95,135,135)"># see GH 42005</span>
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/core/frame.py:12419</span>, in <span class="ansi-cyan-fg">DataFrame.apply</span><span class="ansi-blue-fg">(self, func, axis, raw, result_type, args, by_row, engine, engine_kwargs, **kwargs)</span>
-<span class="ansi-green-fg">  12415</span>                 engine_kwargs=engine_kwargs,
-<span class="ansi-green-fg">  12416</span>                 args=args,
-<span class="ansi-green-fg">  12417</span>                 kwargs=kwargs,
-<span class="ansi-green-fg">  12418</span>             )
-<span class="ansi-green-fg">&gt; </span><span class="ansi-green-fg">12419</span>             <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> op.apply().__finalize__(self, method=<span class="ansi-yellow-fg">"apply"</span>)
-<span class="ansi-green-fg">  12420</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">elif</span> hasattr(engine, <span class="ansi-yellow-fg">"__pandas_udf__"</span>):
-<span class="ansi-green-fg">  12421</span>             <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> result_type <span class="ansi-bold" style="color: rgb(0,135,0)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
-<span class="ansi-green-fg">  12422</span>                 raise NotImplementedError(
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/core/apply.py:1015</span>, in <span class="ansi-cyan-fg">FrameApply.apply</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-fg">   1012</span> <span class="ansi-bold" style="color: rgb(0,135,0)">elif</span> <span style="color: rgb(0,135,0)">self</span>.raw:
-<span class="ansi-green-fg">   1013</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span>.apply_raw(engine=<span style="color: rgb(0,135,0)">self</span>.engine, engine_kwargs=<span style="color: rgb(0,135,0)">self</span>.engine_kwargs)
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1015</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">apply_standard</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/core/apply.py:1167</span>, in <span class="ansi-cyan-fg">FrameApply.apply_standard</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-fg">   1165</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">apply_standard</span>(<span style="color: rgb(0,135,0)">self</span>):
-<span class="ansi-green-fg">   1166</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">self</span>.engine == <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">python</span><span class="ansi-yellow-fg">"</span>:
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1167</span>         results, res_index = <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">apply_series_generator</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   1168</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
-<span class="ansi-green-fg">   1169</span>         results, res_index = <span style="color: rgb(0,135,0)">self</span>.apply_series_numba()
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/core/apply.py:1183</span>, in <span class="ansi-cyan-fg">FrameApply.apply_series_generator</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-fg">   1180</span> results = {}
-<span class="ansi-green-fg">   1182</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i, v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">enumerate</span>(series_gen):
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1183</span>     results[i] = <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">func</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">v</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">args</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg">*</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">kwargs</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   1184</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">isinstance</span>(results[i], ABCSeries):
-<span class="ansi-green-fg">   1185</span>         <span style="color: rgb(95,135,135)"># If we have a view on v, we need to make a copy because</span>
-<span class="ansi-green-fg">   1186</span>         <span style="color: rgb(95,135,135)">#  series_generator will swap out the underlying data</span>
-<span class="ansi-green-fg">   1187</span>         results[i] = results[i].copy(deep=<span class="ansi-bold" style="color: rgb(0,135,0)">False</span>)
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/io/formats/style.py:4205</span>, in <span class="ansi-cyan-fg">_background_gradient</span><span class="ansi-blue-fg">(data, cmap, low, high, text_color_threshold, vmin, vmax, gmap, text_only)</span>
-<span class="ansi-green-fg">   4203</span> smax = np.nanmax(gmap) <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> vmax <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> vmax
-<span class="ansi-green-fg">   4204</span> rng = smax - smin
-<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">4205</span> _matplotlib = <span class="ansi-yellow-bg">import_optional_dependency</span><span class="ansi-yellow-bg">(</span>
-<span class="ansi-green-fg">   4206</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-fg ansi-yellow-bg">matplotlib</span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">extra</span><span class="ansi-yellow-bg">=</span><span class="ansi-yellow-fg ansi-yellow-bg">"</span><span class="ansi-yellow-fg ansi-yellow-bg">Styler.background_gradient requires matplotlib.</span><span class="ansi-yellow-fg ansi-yellow-bg">"</span>
-<span class="ansi-green-fg">   4207</span> <span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">   4208</span> <span style="color: rgb(95,135,135)"># extend lower / upper bounds, compresses color range</span>
-<span class="ansi-green-fg">   4209</span> norm = _matplotlib.colors.Normalize(smin - (rng * low), smax + (rng * high))
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/projects/ai-benchmarks/reports/app-development/.venv/lib/python3.14/site-packages/pandas/compat/_optional.py:161</span>, in <span class="ansi-cyan-fg">import_optional_dependency</span><span class="ansi-blue-fg">(name, extra, min_version, errors)</span>
-<span class="ansi-green-fg">    159</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">ImportError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> err:
-<span class="ansi-green-fg">    160</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> errors == <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">raise</span><span class="ansi-yellow-fg">"</span>:
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">161</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span class="ansi-bold" style="color: rgb(215,95,95)">ImportError</span>(msg) <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">err</span>
-<span class="ansi-green-fg">    162</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
-<span class="ansi-green-fg">    164</span> <span style="color: rgb(95,135,135)"># Handle submodules: if we have submodule, grab parent module from sys.modules</span>
-
-<span class="ansi-red-fg">ImportError</span>: `Import matplotlib` failed. Styler.background_gradient requires matplotlib. Use pip or conda to install the matplotlib package.</pre>
-</div>
-</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>&lt;pandas.io.formats.style.Styler at 0x1160dd7f0&gt;</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="2.-MongoDB-Selection-Rate">2. MongoDB Selection Rate<a class="anchor-link" href="#2.-MongoDB-Selection-Rate">¶</a></h2>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">plot_df</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">plot_df</span><span class="p">[</span><span class="s2">"mongodb_pct"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">plot_df</span><span class="p">[</span><span class="s2">"mongodb_rate"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">plot_df</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"prompt_"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_coding_assistant"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="n">plot_df</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"mongodb_pct"</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"experiment_type"</span><span class="p">,</span>
-    <span class="n">barmode</span><span class="o">=</span><span class="s2">"group"</span><span class="p">,</span>
-    <span class="n">text</span><span class="o">=</span><span class="s2">"mongodb_pct"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"mongodb_pct"</span><span class="p">:</span> <span class="s2">"MongoDB chosen (%)"</span><span class="p">,</span> <span class="s2">"model"</span><span class="p">:</span> <span class="s2">"Model"</span><span class="p">,</span> <span class="s2">"experiment_type"</span><span class="p">:</span> <span class="s2">"Prompt"</span><span class="p">},</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"MongoDB Selection Rate by Model &amp; Prompt Strategy"</span><span class="p">,</span>
-    <span class="n">color_discrete_sequence</span><span class="o">=</span><span class="n">PALETTE</span><span class="p">,</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">"outside"</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="3.-Database-Distribution">3. Database Distribution<a class="anchor-link" href="#3.-Database-Distribution">¶</a></h2>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">db_norm</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">db_norm</span><span class="p">[</span><span class="s2">"db"</span><span class="p">]</span> <span class="o">=</span> <span class="n">db_norm</span><span class="p">[</span><span class="s2">"primary_database"</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-
-<span class="n">top_dbs</span> <span class="o">=</span> <span class="n">db_norm</span><span class="p">[</span><span class="s2">"db"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="n">db_norm</span><span class="p">[</span><span class="s2">"db_grouped"</span><span class="p">]</span> <span class="o">=</span> <span class="n">db_norm</span><span class="p">[</span><span class="s2">"db"</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">db_norm</span><span class="p">[</span><span class="s2">"db"</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">top_dbs</span><span class="p">),</span> <span class="s2">"other"</span><span class="p">)</span>
-
-<span class="n">dist</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">db_norm</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"model"</span><span class="p">,</span> <span class="s2">"experiment_type"</span><span class="p">,</span> <span class="s2">"db_grouped"</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">size</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"count"</span><span class="p">)</span>
-<span class="p">)</span>
-<span class="n">dist</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"prompt_"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_coding_assistant"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="n">dist</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"count"</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"db_grouped"</span><span class="p">,</span>
-    <span class="n">facet_col</span><span class="o">=</span><span class="s2">"experiment_type"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Database Distribution by Model"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"count"</span><span class="p">:</span> <span class="s2">"Samples"</span><span class="p">,</span> <span class="s2">"db_grouped"</span><span class="p">:</span> <span class="s2">"Database"</span><span class="p">,</span> <span class="s2">"model"</span><span class="p">:</span> <span class="s2">""</span><span class="p">},</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="4.-Why-MongoDB-Was-/-Wasn't-Chosen">4. Why MongoDB Was / Wasn't Chosen<a class="anchor-link" href="#4.-Why-MongoDB-Was-/-Wasn't-Chosen">¶</a></h2>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">reasons_exploded</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="s2">"judge_justifications"</span><span class="p">)</span>
-<span class="n">reasons_exploded</span><span class="p">[</span><span class="s2">"chose_label"</span><span class="p">]</span> <span class="o">=</span> <span class="n">reasons_exploded</span><span class="p">[</span><span class="s2">"chose_mongodb"</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="kc">True</span><span class="p">:</span> <span class="s2">"Chose MongoDB"</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">"Did not choose MongoDB"</span><span class="p">})</span>
-
-<span class="n">reason_counts</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">reasons_exploded</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"chose_label"</span><span class="p">,</span> <span class="s2">"judge_justifications"</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">size</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"count"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">"count"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="n">reason_counts</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"judge_justifications"</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"count"</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"chose_label"</span><span class="p">,</span>
-    <span class="n">orientation</span><span class="o">=</span><span class="s2">"h"</span><span class="p">,</span>
-    <span class="n">barmode</span><span class="o">=</span><span class="s2">"group"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Judge-Assessed Justification Reasons"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"judge_justifications"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"count"</span><span class="p">:</span> <span class="s2">"Occurrences"</span><span class="p">},</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="5.-MongoDB-Fit-vs-Actual-Choice-(Confusion-Matrix)">5. MongoDB Fit vs Actual Choice (Confusion Matrix)<a class="anchor-link" href="#5.-MongoDB-Fit-vs-Actual-Choice-(Confusion-Matrix)">¶</a></h2>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">cm_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">,</span> <span class="s2">"chose_mongodb"</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cm_df</span><span class="p">[</span><span class="s2">"model"</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()):</span>
-    <span class="n">sub</span> <span class="o">=</span> <span class="n">cm_df</span><span class="p">[</span><span class="n">cm_df</span><span class="p">[</span><span class="s2">"model"</span><span class="p">]</span> <span class="o">==</span> <span class="n">model</span><span class="p">]</span>
-    <span class="n">ct</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span>
-        <span class="n">sub</span><span class="p">[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="kc">True</span><span class="p">:</span> <span class="s2">"MongoDB optimal"</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">"MongoDB not optimal"</span><span class="p">}),</span>
-        <span class="n">sub</span><span class="p">[</span><span class="s2">"chose_mongodb"</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="kc">True</span><span class="p">:</span> <span class="s2">"Chose MongoDB"</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">"Did not choose"</span><span class="p">}),</span>
-        <span class="n">margins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">### </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">display</span><span class="p">(</span><span class="n">ct</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>
-### anthropic_claude-sonnet-4.6
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<style type="text/css">
 </style>
-<table border="1" class="dataframe">
+<table id="T_b8d80">
 <thead>
-<tr style="text-align: right;">
-<th>chose_mongodb</th>
-<th>Chose MongoDB</th>
-<th>Did not choose</th>
-<th>All</th>
+<tr>
+<th class="blank level0"> </th>
+<th class="col_heading level0 col0" id="T_b8d80_level0_col0">Chooses MongoDB %k (generic)</th>
+<th class="col_heading level0 col1" id="T_b8d80_level0_col1">Chooses MongoDB %k (stack-agnostic)</th>
+<th class="col_heading level0 col2" id="T_b8d80_level0_col2">Chooses MongoDB @k (generic)</th>
+<th class="col_heading level0 col3" id="T_b8d80_level0_col3">Chooses MongoDB @k (stack-agnostic)</th>
+<th class="col_heading level0 col4" id="T_b8d80_level0_col4">Mentions MongoDB %k (generic)</th>
+<th class="col_heading level0 col5" id="T_b8d80_level0_col5">Mentions MongoDB %k (stack-agnostic)</th>
 </tr>
 <tr>
-<th>is_mongodb_optimal</th>
-<th></th>
-<th></th>
-<th></th>
+<th class="index_name level0">model</th>
+<th class="blank col0"> </th>
+<th class="blank col1"> </th>
+<th class="blank col2"> </th>
+<th class="blank col3"> </th>
+<th class="blank col4"> </th>
+<th class="blank col5"> </th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<th>MongoDB not optimal</th>
-<td>7</td>
-<td>290</td>
-<td>297</td>
+<th class="row_heading level0 row0" id="T_b8d80_level0_row0">anthropic_claude-sonnet-4.6</th>
+<td class="data row0 col0" id="T_b8d80_row0_col0">3.5</td>
+<td class="data row0 col1" id="T_b8d80_row0_col1">0.0</td>
+<td class="data row0 col2" id="T_b8d80_row0_col2">7.7</td>
+<td class="data row0 col3" id="T_b8d80_row0_col3">0.0</td>
+<td class="data row0 col4" id="T_b8d80_row0_col4">4.8</td>
+<td class="data row0 col5" id="T_b8d80_row0_col5">30.1</td>
 </tr>
 <tr>
-<th>MongoDB optimal</th>
-<td>4</td>
-<td>302</td>
-<td>306</td>
+<th class="row_heading level0 row1" id="T_b8d80_level0_row1">gemini-3-flash</th>
+<td class="data row1 col0" id="T_b8d80_row1_col0">1.3</td>
+<td class="data row1 col1" id="T_b8d80_row1_col1">0.3</td>
+<td class="data row1 col2" id="T_b8d80_row1_col2">3.8</td>
+<td class="data row1 col3" id="T_b8d80_row1_col3">1.0</td>
+<td class="data row1 col4" id="T_b8d80_row1_col4">5.8</td>
+<td class="data row1 col5" id="T_b8d80_row1_col5">56.7</td>
 </tr>
 <tr>
-<th>All</th>
-<td>11</td>
-<td>592</td>
-<td>603</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>
-### gemini-3-flash
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-<thead>
-<tr style="text-align: right;">
-<th>chose_mongodb</th>
-<th>Chose MongoDB</th>
-<th>Did not choose</th>
-<th>All</th>
-</tr>
-<tr>
-<th>is_mongodb_optimal</th>
-<th></th>
-<th></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>MongoDB not optimal</th>
-<td>3</td>
-<td>309</td>
-<td>312</td>
-</tr>
-<tr>
-<th>MongoDB optimal</th>
-<td>2</td>
-<td>310</td>
-<td>312</td>
-</tr>
-<tr>
-<th>All</th>
-<td>5</td>
-<td>619</td>
-<td>624</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>
-### gpt-5.4
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-<thead>
-<tr style="text-align: right;">
-<th>chose_mongodb</th>
-<th>Chose MongoDB</th>
-<th>Did not choose</th>
-<th>All</th>
-</tr>
-<tr>
-<th>is_mongodb_optimal</th>
-<th></th>
-<th></th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>MongoDB not optimal</th>
-<td>0</td>
-<td>300</td>
-<td>300</td>
-</tr>
-<tr>
-<th>MongoDB optimal</th>
-<td>2</td>
-<td>307</td>
-<td>309</td>
-</tr>
-<tr>
-<th>All</th>
-<td>2</td>
-<td>607</td>
-<td>609</td>
+<th class="row_heading level0 row2" id="T_b8d80_level0_row2">gpt-5.4</th>
+<td class="data row2 col0" id="T_b8d80_row2_col0">0.6</td>
+<td class="data row2 col1" id="T_b8d80_row2_col1">0.0</td>
+<td class="data row2 col2" id="T_b8d80_row2_col2">1.9</td>
+<td class="data row2 col3" id="T_b8d80_row2_col3">0.0</td>
+<td class="data row2 col4" id="T_b8d80_row2_col4">3.5</td>
+<td class="data row2 col5" id="T_b8d80_row2_col5">46.7</td>
 </tr>
 </tbody>
 </table>
@@ -8649,120 +7886,24 @@ The above exception was the direct cause of the following exception:
 </div>
 </div>
 </div>
-</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="6.-Self-Reflection-Honesty">6. Self-Reflection Honesty<a class="anchor-link" href="#6.-Self-Reflection-Honesty">¶</a></h2>
+<h3 id="MongoDB-Selection-Rate">MongoDB Selection Rate<a class="anchor-link" href="#MongoDB-Selection-Rate">¶</a></h3><p>Same data as the table above, visualized as a grouped bar chart. One group per model, two bars per group (generic vs stack-agnostic). Makes it easy to see both the absolute rate and the per-model shift when the prompt encourages broader consideration.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="6b.-Reason-Agreement-Heatmap">6b. Reason Agreement Heatmap<a class="anchor-link" href="#6b.-Reason-Agreement-Heatmap">¶</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">agreement</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"judge_primary_reason"</span><span class="p">,</span> <span class="s2">"self_primary_reason"</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-<span class="n">ct</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="n">agreement</span><span class="p">[</span><span class="s2">"judge_primary_reason"</span><span class="p">],</span> <span class="n">agreement</span><span class="p">[</span><span class="s2">"self_primary_reason"</span><span class="p">])</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-    <span class="n">ct</span><span class="p">,</span>
-    <span class="n">text_auto</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="s2">"Self-reported reason"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="s2">"Judge reason"</span><span class="p">,</span> <span class="s2">"color"</span><span class="p">:</span> <span class="s2">"Count"</span><span class="p">},</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Judge vs Self-Reflection: Primary Reason Agreement"</span><span class="p">,</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
-    <span class="n">aspect</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 </div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="6c.-Rationalization-Tracker">6c. Rationalization Tracker<a class="anchor-link" href="#6c.-Rationalization-Tracker">¶</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">default_reasons</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"model-default-no-justification"</span><span class="p">,</span> <span class="s2">"model-default-sql-no-justification"</span><span class="p">}</span>
-<span class="n">rationalized</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">"judge_primary_reason"</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">default_reasons</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rationalized</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="n">rat_counts</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">rationalized</span>
-        <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"model"</span><span class="p">,</span> <span class="s2">"self_primary_reason"</span><span class="p">])</span>
-        <span class="o">.</span><span class="n">size</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"count"</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-        <span class="n">rat_counts</span><span class="p">,</span>
-        <span class="n">x</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-        <span class="n">y</span><span class="o">=</span><span class="s2">"count"</span><span class="p">,</span>
-        <span class="n">color</span><span class="o">=</span><span class="s2">"self_primary_reason"</span><span class="p">,</span>
-        <span class="n">title</span><span class="o">=</span><span class="s2">"When judge says 'model default' — what does self-reflection claim?"</span><span class="p">,</span>
-        <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"self_primary_reason"</span><span class="p">:</span> <span class="s2">"Self-reported reason"</span><span class="p">,</span> <span class="s2">"count"</span><span class="p">:</span> <span class="s2">"Samples"</span><span class="p">},</span>
-        <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-        <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-        <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"No cases where judge flagged a model default."</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 </div>
 </div>
 </div>
@@ -8771,195 +7912,18 @@ The above exception was the direct cause of the following exception:
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="6d.-'Considered-MongoDB'-Reality-Check">6d. 'Considered MongoDB' Reality Check<a class="anchor-link" href="#6d.-'Considered-MongoDB'-Reality-Check">¶</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">reality</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">reality</span><span class="p">[</span><span class="s2">"judge_evidence_of_mongo"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">reality</span><span class="p">[</span><span class="s2">"chose_mongodb"</span><span class="p">]</span>
-    <span class="o">|</span> <span class="n">reality</span><span class="p">[</span><span class="s2">"alternatives_considered"</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-        <span class="k">lambda</span> <span class="n">xs</span><span class="p">:</span> <span class="nb">any</span><span class="p">(</span><span class="s2">"mongo"</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">)</span> <span class="k">if</span> <span class="n">xs</span> <span class="k">else</span> <span class="kc">False</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-
-<span class="n">check</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">reality</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"model"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
-        <span class="n">self_considered</span><span class="o">=</span><span class="p">(</span><span class="s2">"considered_mongodb"</span><span class="p">,</span> <span class="s2">"mean"</span><span class="p">),</span>
-        <span class="n">judge_evidence</span><span class="o">=</span><span class="p">(</span><span class="s2">"judge_evidence_of_mongo"</span><span class="p">,</span> <span class="s2">"mean"</span><span class="p">),</span>
-    <span class="p">)</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s2">"source"</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">"rate"</span><span class="p">)</span>
-<span class="p">)</span>
-<span class="n">check</span><span class="p">[</span><span class="s2">"pct"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">check</span><span class="p">[</span><span class="s2">"rate"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">check</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">=</span> <span class="n">check</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span>
-    <span class="s2">"self_considered"</span><span class="p">:</span> <span class="s2">"Self: consideredMongoDb"</span><span class="p">,</span>
-    <span class="s2">"judge_evidence"</span><span class="p">:</span> <span class="s2">"Judge: evidence of consideration"</span><span class="p">,</span>
-<span class="p">})</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="n">check</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"pct"</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"source"</span><span class="p">,</span>
-    <span class="n">barmode</span><span class="o">=</span><span class="s2">"group"</span><span class="p">,</span>
-    <span class="n">text</span><span class="o">=</span><span class="s2">"pct"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"'Considered MongoDB' — Self-Report vs Judge Evidence"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"pct"</span><span class="p">:</span> <span class="s2">"%"</span><span class="p">,</span> <span class="s2">"model"</span><span class="p">:</span> <span class="s2">""</span><span class="p">},</span>
-    <span class="n">color_discrete_sequence</span><span class="o">=</span><span class="n">PALETTE</span><span class="p">,</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">"outside"</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="6e.-Honesty-Score-Scatter">6e. Honesty Score Scatter<a class="anchor-link" href="#6e.-Honesty-Score-Scatter">¶</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">honesty</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"judge_primary_reason"</span><span class="p">,</span> <span class="s2">"self_primary_reason"</span><span class="p">,</span> <span class="s2">"would_change"</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">honesty</span><span class="p">[</span><span class="s2">"reasons_agree"</span><span class="p">]</span> <span class="o">=</span> <span class="n">honesty</span><span class="p">[</span><span class="s2">"judge_primary_reason"</span><span class="p">]</span> <span class="o">==</span> <span class="n">honesty</span><span class="p">[</span><span class="s2">"self_primary_reason"</span><span class="p">]</span>
-
-<span class="n">scatter_df</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">honesty</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"model"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
-        <span class="n">agreement_pct</span><span class="o">=</span><span class="p">(</span><span class="s2">"reasons_agree"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
-        <span class="n">confident_pct</span><span class="o">=</span><span class="p">(</span><span class="s2">"would_change"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">round</span><span class="p">((</span><span class="o">~</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
-    <span class="p">)</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-<span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
-    <span class="n">scatter_df</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"agreement_pct"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"confident_pct"</span><span class="p">,</span>
-    <span class="n">text</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Honesty Score: Agreement with Judge vs Confidence"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">"agreement_pct"</span><span class="p">:</span> <span class="s2">"Judge–self agreement on primary reason (%)"</span><span class="p">,</span>
-        <span class="s2">"confident_pct"</span><span class="p">:</span> <span class="s2">"Would NOT change choice (%)"</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">"top center"</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">xref</span><span class="o">=</span><span class="s2">"paper"</span><span class="p">,</span> <span class="n">yref</span><span class="o">=</span><span class="s2">"paper"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"</span><span class="se">\u2191</span><span class="s2"> Honest &amp; confident"</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"green"</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">xref</span><span class="o">=</span><span class="s2">"paper"</span><span class="p">,</span> <span class="n">yref</span><span class="o">=</span><span class="s2">"paper"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"</span><span class="se">\u2193</span><span class="s2"> Misaligned &amp; uncertain"</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="7.-Category-Breakdown">7. Category Breakdown<a class="anchor-link" href="#7.-Category-Breakdown">¶</a></h2>
+<h3 id="Database-Distribution">Database Distribution<a class="anchor-link" href="#Database-Distribution">¶</a></h3><p>When models don't choose MongoDB, what do they reach for instead? Stacked bars show the full distribution of primary databases, faceted by prompt strategy. The top 8 databases are shown individually; the rest are grouped as "other."</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">cat_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"category"</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="n">cat_rates</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">cat_df</span>
-        <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"category"</span><span class="p">,</span> <span class="s2">"model"</span><span class="p">])</span>
-        <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">mongodb_pct</span><span class="o">=</span><span class="p">(</span><span class="s2">"chose_mongodb"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
-        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-    <span class="p">)</span>
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-        <span class="n">cat_rates</span><span class="p">,</span>
-        <span class="n">x</span><span class="o">=</span><span class="s2">"category"</span><span class="p">,</span>
-        <span class="n">y</span><span class="o">=</span><span class="s2">"mongodb_pct"</span><span class="p">,</span>
-        <span class="n">color</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-        <span class="n">barmode</span><span class="o">=</span><span class="s2">"group"</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s2">"mongodb_pct"</span><span class="p">,</span>
-        <span class="n">title</span><span class="o">=</span><span class="s2">"MongoDB Selection Rate by Category"</span><span class="p">,</span>
-        <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"mongodb_pct"</span><span class="p">:</span> <span class="s2">"MongoDB chosen (%)"</span><span class="p">,</span> <span class="s2">"category"</span><span class="p">:</span> <span class="s2">""</span><span class="p">},</span>
-        <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-        <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-        <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">"outside"</span><span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"No category metadata available in this dataset."</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 </div>
 </div>
 </div>
@@ -8968,55 +7932,18 @@ The above exception was the direct cause of the following exception:
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="8.-Difficulty-Breakdown">8. Difficulty Breakdown<a class="anchor-link" href="#8.-Difficulty-Breakdown">¶</a></h2>
+<h3 id="Why-MongoDB-Was-/-Wasn't-Chosen">Why MongoDB Was / Wasn't Chosen<a class="anchor-link" href="#Why-MongoDB-Was-/-Wasn't-Chosen">¶</a></h3><p>The judge classifies each database choice into structured justification reasons (e.g. <code>document-model-fits-data</code>, <code>orm-or-framework-defaults-to-sql</code>, <code>model-default-sql-no-justification</code>). This chart aggregates those reasons across all samples, split by whether MongoDB was ultimately chosen. Look for reasons that appear almost exclusively on one side — those are the strongest drivers of selection or rejection.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">diff_rates</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"difficulty"</span><span class="p">,</span> <span class="s2">"model"</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">mongodb_pct</span><span class="o">=</span><span class="p">(</span><span class="s2">"chose_mongodb"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-<span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="n">diff_rates</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"difficulty"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"mongodb_pct"</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-    <span class="n">barmode</span><span class="o">=</span><span class="s2">"group"</span><span class="p">,</span>
-    <span class="n">text</span><span class="o">=</span><span class="s2">"mongodb_pct"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"MongoDB Selection Rate by Difficulty"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"mongodb_pct"</span><span class="p">:</span> <span class="s2">"MongoDB chosen (%)"</span><span class="p">,</span> <span class="s2">"difficulty"</span><span class="p">:</span> <span class="s2">""</span><span class="p">},</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-    <span class="n">category_orders</span><span class="o">=</span><span class="p">{</span><span class="s2">"difficulty"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"beginner"</span><span class="p">,</span> <span class="s2">"intermediate"</span><span class="p">,</span> <span class="s2">"advanced"</span><span class="p">]},</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">"outside"</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 </div>
 </div>
 </div>
@@ -9025,75 +7952,155 @@ The above exception was the direct cause of the following exception:
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="9.-MongoDB-Optimal-(Ground-Truth-Lens)">9. MongoDB Optimal (Ground Truth Lens)<a class="anchor-link" href="#9.-MongoDB-Optimal-(Ground-Truth-Lens)">¶</a></h2>
+<h3 id="MongoDB-Fit-vs.-Actual-Choice-(Confusion-Matrix)">MongoDB Fit vs. Actual Choice (Confusion Matrix)<a class="anchor-link" href="#MongoDB-Fit-vs.-Actual-Choice-(Confusion-Matrix)">¶</a></h3><p>The core correctness metric. Each prompt has a ground-truth label (<code>is_mongodb_optimal</code>) indicating whether MongoDB is a good fit for that application. The confusion matrix cross-tabs this label against whether the model actually chose MongoDB. High true-positive and true-negative counts mean the model's choices align with the ground truth; false negatives are missed opportunities; false positives are over-selection.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">gt</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-<span class="c1"># Class balance</span>
-<span class="n">balance</span> <span class="o">=</span> <span class="n">gt</span><span class="p">[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">"share"</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-<span class="n">balance</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">,</span> <span class="s2">"share"</span><span class="p">]</span>
-<span class="n">balance</span><span class="p">[</span><span class="s2">"pct"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">balance</span><span class="p">[</span><span class="s2">"share"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Ground truth class balance:"</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">balance</span><span class="p">[[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">,</span> <span class="s2">"pct"</span><span class="p">]])</span>
-
-<span class="c1"># Alignment per model × experiment</span>
-<span class="n">gt</span><span class="p">[</span><span class="s2">"correct"</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt</span><span class="p">[</span><span class="s2">"chose_mongodb"</span><span class="p">]</span> <span class="o">==</span> <span class="n">gt</span><span class="p">[</span><span class="s2">"is_mongodb_optimal"</span><span class="p">]</span>
-
-<span class="n">alignment</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">gt</span>
-    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"model"</span><span class="p">,</span> <span class="s2">"experiment_type"</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">accuracy</span><span class="o">=</span><span class="p">(</span><span class="s2">"correct"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-<span class="p">)</span>
-<span class="n">alignment</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">alignment</span><span class="p">[</span><span class="s2">"experiment_type"</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"prompt_"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_coding_assistant"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <span class="n">alignment</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">"model"</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">"accuracy"</span><span class="p">,</span>
-    <span class="n">color</span><span class="o">=</span><span class="s2">"experiment_type"</span><span class="p">,</span>
-    <span class="n">barmode</span><span class="o">=</span><span class="s2">"group"</span><span class="p">,</span>
-    <span class="n">text</span><span class="o">=</span><span class="s2">"accuracy"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="s2">"Alignment with Ground Truth (chose MongoDB ⇔ MongoDB optimal)"</span><span class="p">,</span>
-    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">"accuracy"</span><span class="p">:</span> <span class="s2">"Accuracy (%)"</span><span class="p">,</span> <span class="s2">"experiment_type"</span><span class="p">:</span> <span class="s2">"Prompt"</span><span class="p">},</span>
-    <span class="n">color_discrete_sequence</span><span class="o">=</span><span class="n">PALETTE</span><span class="p">,</span>
-    <span class="n">template</span><span class="o">=</span><span class="n">TEMPLATE</span><span class="p">,</span>
-    <span class="n">width</span><span class="o">=</span><span class="n">CHART_WIDTH</span><span class="p">,</span>
-    <span class="n">height</span><span class="o">=</span><span class="n">CHART_HEIGHT</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s2">"outside"</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h3 id="Self-Reflection-vs.-Judge-Assessment">Self-Reflection vs. Judge Assessment<a class="anchor-link" href="#Self-Reflection-vs.-Judge-Assessment">¶</a></h3><p>After generating an app, each model is asked to reflect on its own database choice — why it chose what it did, whether it considered MongoDB, and whether it would change its decision. An external judge independently classifies the same generation using the same reason taxonomy. Comparing the two reveals where the model's self-reported reasoning aligns with the judge's assessment and where it diverges.</p>
+<p>An important caveat: the model's self-reported reasoning is not necessarily its <em>actual</em> reasoning. The factors that drove the database choice are embedded in model weights and are not directly observable — the self-reflection is just another generation, subject to the same biases and tendencies as the original output. Still, the comparison is informative: systematic divergence between self-report and judge assessment tells us something about how models frame their decisions, even if it can't tell us why they really made them.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Reason-Agreement-Heatmap">Reason-Agreement Heatmap<a class="anchor-link" href="#Reason-Agreement-Heatmap">¶</a></h4><p>The judge's primary reason (rows) vs the model's self-reported primary reason (columns). Cells on the diagonal represent agreement; off-diagonal cells reveal systematic mismatches. For example, if the judge frequently says <code>model-default-sql-no-justification</code> but the model claims <code>document-model-fits-data</code>, that's a rationalization pattern.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+</div>
+<div class="jp-OutputArea-child">
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="%22Considered-MongoDB%22-Reality-Check">"Considered MongoDB" Reality Check<a class="anchor-link" href="#%22Considered-MongoDB%22-Reality-Check">¶</a></h4><p>Models are asked whether they considered MongoDB during generation. The judge independently checks whether MongoDB actually appeared in the output — either as the chosen database or in the list of alternatives considered. The gap between the self-reported bar and the judge-evidence bar reveals how often models claim to have considered MongoDB when there's no evidence they did.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Consistency-Score-Scatter">Consistency Score Scatter<a class="anchor-link" href="#Consistency-Score-Scatter">¶</a></h4><p>One dot per model. X-axis measures how often the judge and self-reflection agree on the primary reason for the database choice. Y-axis measures how often the model says it would <em>not</em> change its choice under reflection (confidence). Top-right means high alignment between self-report and judge, with the model standing behind its decisions. Bottom-left means low agreement and frequent second-guessing.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h3 id="Category-Breakdown">Category Breakdown<a class="anchor-link" href="#Category-Breakdown">¶</a></h3><p>MongoDB selection rate sliced by application category (e.g. AI, e-commerce, social media, content platform, multi-tenant). Some categories naturally favor document databases more than others — this chart shows whether models pick up on that signal or apply the same defaults regardless of domain.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h3 id="Difficulty-Breakdown">Difficulty Breakdown<a class="anchor-link" href="#Difficulty-Breakdown">¶</a></h3><p>Do models make different database choices for beginner vs intermediate vs advanced prompts? More complex applications might push models toward more deliberate technology selection, or the added complexity might just reinforce defaults. This chart shows MongoDB selection rate by difficulty level for each model.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h3 id="MongoDB-Optimal-(Ground-Truth-Lens)">MongoDB Optimal (Ground Truth Lens)<a class="anchor-link" href="#MongoDB-Optimal-(Ground-Truth-Lens)">¶</a></h3><p>Sections 1–4 measure <em>what</em> models choose. This section asks <em>how often that choice is correct</em>. Each prompt is labeled with whether MongoDB is actually a good fit (<code>is_mongodb_optimal</code>). The class balance shows how many prompts favor MongoDB vs not — framing how easy it is to score well by always or never picking MongoDB. The accuracy chart then shows each model's alignment with ground truth, split by prompt strategy. A model that only improves MongoDB <em>rate</em> without improving <em>accuracy</em> is just biased, not better.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Ground truth class balance:
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
@@ -9134,7 +8141,49 @@ The above exception was the direct cause of the following exception:
 </div>
 </div>
 <div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h2 id="Analysis">Analysis<a class="anchor-link" href="#Analysis">¶</a></h2><h3 id="Patterns-Observed">Patterns Observed<a class="anchor-link" href="#Patterns-Observed">¶</a></h3><ol>
+<li><p>Strong SQL default across all models. Every model tested exhibits a near-total preference for SQL databases (PostgreSQL, SQLite) regardless of the application domain. MongoDB selection rates never exceed 4%, even on prompts specifically designed to favor document databases. This is not a single-model quirk — it's consistent across Claude, Gemini, and GPT.</p>
+<p>This pattern is consistent with broader research on technology homogeneity in LLM-generated code. <a href="https://arxiv.org/html/2503.17181v1">Twist et al. (2025), "LLMs Love Python"</a> found that across 8 frontier models, Python appears in 90–97% of generated code when no language is specified, and Flask dominates web server generation at 88% despite FastAPI's faster growth. Most critically, models contradict their own recommendations 83% of the time — they recommend appropriate technologies in conversation but default to popular ones when generating code. Temperature variation and chain-of-thought prompting did not shift which technology was selected.</p>
+</li>
+<li><p>The SQL default is likely training-data-driven, not reasoned. The judge frequently classifies choices as <code>model-default-sql-no-justification</code> or <code>orm-or-framework-defaults-to-sql</code>. Models don't weigh options and conclude SQL is better — they reach for SQLAlchemy/Prisma/TypeORM by reflex, which pulls in PostgreSQL or SQLite as a side effect. The ORM choice is driving the database choice, not the other way around.</p>
+<p><a href="https://arxiv.org/html/2407.02209v1">Wu et al. (2024), "Generative Monoculture"</a> provides the theoretical framework for why this happens: LLM-generated code covers a significantly narrower range of solutions than human-written training data. Critically, RLHF alignment makes this concentration <em>worse</em>, not better — the preference optimization process further concentrates outputs around dominant patterns. A companion study found that different LLMs are more correlated with each other than with ground truth, meaning switching between GPT, Claude, and Gemini will not solve the default-stack problem because all models converge from overlapping training distributions.</p>
+</li>
+<li><p>Explicit prompting to consider alternatives doesn't overcome the default. The stack-agnostic prompt adds "briefly consider multiple options and explain why you picked the one you did." Despite this, MongoDB rates stayed flat. Models respond to this prompt by <em>listing</em> alternatives in prose and then choosing the same SQL stack anyway. The deliberation is performative.</p>
+</li>
+<li><p>Models mention MongoDB but never select it. Under the stack-agnostic prompt, models mention MongoDB in 30–57% of generations — but choose it as the primary database 0% of the time. Models know MongoDB exists and will discuss as an alternative, but never actually commit to it. This is the clearest evidence of performative deliberation: the prompt successfully triggers <em>discussion</em> of alternatives without shifting <em>selection</em>.</p>
+</li>
+<li><p>Self-reported reasoning diverges systematically from judge assessment. When the judge flags an unjustified default, models' self-reflections rarely agree. Instead, they reframe the choice as intentional — claiming "specific technical requirement" or "relational data needs SQL" for applications that don't obviously require relational modeling. This pattern is consistent across models.</p>
+<p>This aligns with Anthropic's research on unfaithful chain-of-thought reasoning. <a href="https://arxiv.org/abs/2301.13379">Lanham et al. (2023)</a> demonstrated that as models become larger and more capable, they produce <em>less</em> faithful reasoning. <a href="https://arxiv.org/abs/2505.05410">Anthropic's 2025 study, "Reasoning Models Don't Always Say What They Think"</a>, found that when hints changed a model's answer, models verbalized the actual cause less than 20% of the time — instead constructing elaborate alternative justifications. A key detail: unfaithful chain-of-thought explanations were substantially <em>longer</em> than faithful ones. Models don't omit explanations when confabulating; they produce more verbose, more detailed alternative reasoning. This directly predicts what we observe: when asked "why PostgreSQL?", models generate lengthy technical justifications rather than surfacing the training-data-driven default.</p>
+</li>
+<li><p>Models don't differentiate based on application fit. MongoDB selection rates are uniformly low regardless of whether the prompt is labeled MongoDB-optimal or not. Models aren't making a poor judgment call — they aren't making a judgment call at all. The SQL default applies indiscriminately.</p>
+<p>Note: the MongoDB-optimal labels were assigned by a single product manager, so this ground truth reflects one person's expert judgment rather than a multi-rater consensus. A skeptical reader may question whether the labels themselves are biased toward MongoDB. Future iterations should validate with multiple labelers or inter-rater agreement.</p>
+</li>
+</ol>
+<h3 id="Why-This-Matters">Why This Matters<a class="anchor-link" href="#Why-This-Matters">¶</a></h3><p>LLMs are the de facto technology advisors for a growing share of new applications. <a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">GitHub's 2025 Octoverse report</a> found that 80% of new GitHub developers use Copilot within their first week. These results show that models are systematically steering developers away from MongoDB — not because of reasoned technical assessment, but because of training data bias toward SQL ecosystems.</p>
+<p>The commercial impact is already visible. PostgreSQL-based platforms are actively benefiting from LLM defaults: <a href="https://techcrunch.com/2025/10/03/supabase-nabs-5b-valuation-four-months-after-hitting-2b/">Supabase reached a $5 billion valuation</a> in late 2025, 2.5× its valuation from just four months prior. <a href="https://techcrunch.com/video/supabase-hit-5b-by-turning-down-million-dollar-contracts-heres-why/">TechCrunch reported</a> that Supabase has become "the back end of choice for the vibe-coding world," with CEO Paul Copplestone betting that "if he sticks to his own product vision, the world will come to him." Vibe coding tools like Replit and Lovable rely on Supabase as their default backend, and 55% of the most recent Y Combinator batch uses it.</p>
+<p>No existing code generation benchmark evaluates technology selection. <a href="https://github.com/openai/human-eval">HumanEval</a> and MBPP are Python-only algorithmic tasks. <a href="https://www.swebench.com/">SWE-bench</a> operates within existing repositories where technology is already selected. <a href="https://huggingface.co/blog/leaderboard-bigcodebench">BigCodeBench</a> specifies which libraries to use. <a href="https://livecodebench.github.io/">LiveCodeBench</a> uses competitive programming with predetermined constraints. The closest existing work is <a href="https://arxiv.org/html/2403.08604v1">DevBench</a> (Li et al., 2024), which evaluates software design using LLM-as-judge — but its design tasks focus on UML diagrams and file-tree architectures, not technology selection. A <a href="https://arxiv.org/html/2502.02539v1">2025 study on serverless function generation</a> explicitly notes this gap, stating that architecture-specific tasks and benchmarks for LLMs do not currently exist. The best-in-class effort in an adjacent space is <a href="https://amplifying.ai/research/claude-code-picks/">Amplifying's "What Claude Code Actually Chooses"</a> (Ong &amp; Vikati, 2026), which measured default tool recommendations across 2,430 Claude Code responses and 20 categories — finding strong convergence patterns including PostgreSQL as the default database (58% of picks) and near-monopoly defaults for GitHub Actions (94%), Stripe (91%), and shadcn/ui (90%). Their methodology — open-ended prompts with no tool names specified — closely mirrors ours.</p>
+<h2 id="Recommendations">Recommendations<a class="anchor-link" href="#Recommendations">¶</a></h2><h3 id="For-MongoDB-Generally">For MongoDB Generally<a class="anchor-link" href="#For-MongoDB-Generally">¶</a></h3><ol>
+<li><strong>Engage model providers on training data representation.</strong> The SQL default is a training signal problem. MongoDB documentation, tutorials, and example applications are underrepresented relative to SQL/ORM content in the corpora these models learned from. Increasing high-quality MongoDB content in public training data (docs, blog posts, open-source projects) is the highest-leverage long-term intervention.</li>
+<li><strong>Explore prompt-based interventions that actually work.</strong> The stack-agnostic prompt failed. More targeted prompt engineering — e.g. system prompts that specifically instruct models to evaluate MongoDB alongside SQL for document-heavy workloads — may be more effective. The <code>mongodb_recommended</code> prompt variant exists in the codebase but was not benchmarked here; running it would test whether explicit MongoDB recommendation in the system prompt changes behavior. However, the literature suggests prompt engineering alone has limited effectiveness for overcoming training-data-driven bias.</li>
+<li><strong>Investigate execution feedback loops.</strong> <a href="https://arxiv.org/abs/2309.14345">Huang et al. (2025)</a> found that test execution feedback reduced biased code generation from 59.88% to 4.79% for GPT-4 — far more effective than prompt engineering. An analogous approach for database selection — e.g. validating schema fit against requirements before committing to a database — may be more promising than trying to change the initial choice.</li>
+<li><strong>Treat coding agents as a first-class user persona.</strong> As outlined in the <a href="https://docs.google.com/document/d/1VgWUt5BAILXEju6u7C-qCSAAr4C7m5U86npbewb1bDc">Coding Agent Persona memo</a>, coding agents are no longer just autocomplete — they architect projects and make technology decisions autonomously. MongoDB should optimize for the agent's internal world-model and provide a machine-first experience that removes human-centric barriers like GUIs and manual configuration.</li>
+<li><strong>Invest in local-first developer experience via Atlas CLI.</strong> Coding agents have a strong preference for local-first solutions — tools they can install and spin up in their development environment without leaving the terminal. An <a href="https://agentskills.io/home">Agent Skill</a> for Atlas CLI local development would meet agents where they are: install Atlas CLI, create a local deployment, develop against it, and migrate to cloud-hosted Atlas when ready. This local-to-cloud continuum is Atlas's natural advantage over SQLite (no production path) and managed Postgres (no local story), but it's currently underdocumented and invisible to agents.</li>
+<li><strong>Leverage the recency gradient.</strong> Newer models pick newer tools — Amplifying's data shows sharp generational shifts (e.g. Prisma 79% → 0%, replaced by Drizzle in newer Claude models). This means the window for influencing model defaults is open: freshly published MongoDB content, examples, and integrations disproportionately affect newer model training cuts. We <strong>may</strong> be able to influence the next generation of models by targeting the right content at the right time.</li>
+</ol>
+<h3 id="For-App-Building-Benchmarks">For App Building Benchmarks<a class="anchor-link" href="#For-App-Building-Benchmarks">¶</a></h3><ol>
+<li><strong>Rerun after future model releases.</strong> The recency gradient observed in Amplifying's data suggests model defaults shift across training cuts. This benchmark should be rerun in approximately six months to track whether newer models exhibit different database selection behavior — particularly as MongoDB increases its presence in public training data and developer content.</li>
+<li><strong>Evaluate coding agent harnesses, not just raw models.</strong> This benchmark tests base model completions, but developers increasingly interact with models through coding agent harnesses like Cursor, Claude Code, Windsurf, and Google Antigravity. These harnesses add system prompts, tool configurations, and retrieval pipelines that may amplify or counteract the base model's defaults. Measuring database selection behavior at the agent level — where the actual developer experience happens — is the critical next step. <a href="https://amplifying.ai/research/claude-code-picks/">Amplifying.ai</a> has built rigorous methodology and infrastructure for exactly this kind of agent-level evaluation; we have a meeting scheduled for April 2, 2026 to discuss using their tooling rather than building a parallel system from scratch.</li>
+</ol>
 </div>
 </div>
 </div>
