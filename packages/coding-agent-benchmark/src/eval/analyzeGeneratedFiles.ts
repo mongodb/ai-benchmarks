@@ -2,8 +2,8 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import {
   AppStackClassification,
   classifyAppStack,
-} from "../classifyAppStack";
-import type { GeneratedFile } from "../../sandbox/SandboxResult";
+} from "benchmarks";
+import type { GeneratedFile } from "../sandbox/SandboxResult";
 
 const MAX_SOURCE_FILES = 3;
 const PER_FILE_CHAR_LIMIT = 8_000;

@@ -54,7 +54,7 @@ export function makeRunClaudeCodeSandbox(
     try {
       await initializeWorkspace(sandbox);
 
-      const result = await sandbox.runCommand({
+      const command = await sandbox.runCommand({
         cmd: "claude",
         args: [
           "--dangerously-skip-permissions",
@@ -64,12 +64,15 @@ export function makeRunClaudeCodeSandbox(
           prompt,
         ],
         cwd: PROJECT_DIR,
+        detached: true,
       });
 
+      const finished = await command.wait();
+
       return {
-        stdout: await result.stdout(),
-        stderr: await result.stderr(),
-        exitCode: result.exitCode,
+        stdout: await finished.stdout(),
+        stderr: await finished.stderr(),
+        exitCode: finished.exitCode,
         files: await collectGeneratedFiles(sandbox, PROJECT_DIR),
         durationMs: Date.now() - startTime,
       };

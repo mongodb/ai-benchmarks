@@ -2,7 +2,7 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import {
   AppStackClassification,
   classifyAppStack,
-} from "../classifyAppStack";
+} from "benchmarks";
 
 const STDOUT_CHAR_LIMIT = 60_000;
 

@@ -32,11 +32,6 @@ function packageJsonReferencesMongoDb(file: GeneratedFile): {
   }
 }
 
-export function mongoDbInPackageJson(files: GeneratedFile[]): boolean {
-  const pkg = files.find((f) => f.path === "package.json");
-  return pkg ? packageJsonReferencesMongoDb(pkg).matched : false;
-}
-
 /**
  * Headline metric: checks whether `package.json` declares a MongoDB dep.
  * Most faithful signal of database choice — captures the actual install

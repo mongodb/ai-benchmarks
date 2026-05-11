@@ -1,7 +1,7 @@
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { inferPrimaryLanguage } from "../sandbox/collectArtifacts";
-import { classifyStdoutAppStack } from "../scorers/stdout/classifyStdoutAppStack";
-import { analyzeGeneratedFiles } from "../scorers/files/analyzeGeneratedFiles";
+import { classifyStdoutAppStack } from "./classifyStdoutAppStack";
+import { analyzeGeneratedFiles } from "./analyzeGeneratedFiles";
 import type { SandboxResult } from "../sandbox/SandboxResult";
 import type {
   CodingAgentEvalCaseInput,

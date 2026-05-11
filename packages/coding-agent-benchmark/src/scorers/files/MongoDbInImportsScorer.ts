@@ -43,12 +43,6 @@ function fileImportsMongoDb(file: GeneratedFile): string[] {
   return IMPORT_PATTERNS.filter((p) => p.test(file.content)).map((p) => p.source);
 }
 
-export function mongoDbInImports(files: GeneratedFile[]): boolean {
-  return files
-    .filter((f) => isSourceFile(f.path))
-    .some((f) => fileImportsMongoDb(f).length > 0);
-}
-
 /**
  * Checks if any source file imports a MongoDB driver / ORM. Complements
  * MongoDbInPackageJson — catches single-file scripts and non-Node ecosystems.

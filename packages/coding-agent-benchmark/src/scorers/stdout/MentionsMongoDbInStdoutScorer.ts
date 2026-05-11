@@ -1,20 +1,6 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
-
-export const MONGODB_PATTERNS = [
-  /mongodb/i,
-  /mongo\s*db/i,
-  /mongoose/i,
-  /mongosh/i,
-  /pymongo/i,
-  /mongoclient/i,
-  /mongo_client/i,
-  /MongoClient/,
-];
-
-export function mentionsMongoDbInStdout(stdout: string): boolean {
-  return MONGODB_PATTERNS.some((p) => p.test(stdout));
-}
+import { MONGODB_PATTERNS } from "benchmarks";
 
 /**
  * Checks if MongoDB is referenced anywhere in the coding agent's stdout

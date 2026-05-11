@@ -5,7 +5,7 @@ import {
   EvalTask,
 } from "mongodb-rag-core/braintrust";
 import { ConversationEvalCase } from "mongodb-rag-core/eval";
-import type { AppStackClassification } from "../scorers/classifyAppStack";
+import type { AppStackClassification } from "benchmarks";
 import type { GeneratedFile } from "../sandbox/SandboxResult";
 
 export type CodingAgentEvalCaseInput = {

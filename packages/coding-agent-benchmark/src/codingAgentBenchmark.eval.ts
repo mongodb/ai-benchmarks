@@ -1,7 +1,6 @@
 import "dotenv/config";
 import { Eval } from "mongodb-rag-core/braintrust";
 import { assertEnvVars } from "mongodb-rag-core";
-
 import { makeRunClaudeCodeSandbox } from "./sandbox/runClaudeCodeSandbox";
 import {
   ANTHROPIC_FOUNDRY_ENV_VARS,
@@ -14,6 +13,8 @@ import {
   scorers,
 } from "./eval/benchmarkConfig";
 import { makeRunCodingAgentTask } from "./eval/runCodingAgentTask";
+
+const EXPERIMENT_NAME = "coding-agent-benchmark";
 
 const SUBJECT_MODEL = "claude-opus-4-7";
 const SAMPLE_SIZE = 1;
@@ -48,7 +49,7 @@ async function main(): Promise<void> {
     `Running ${data.length} case(s) (dataset=${DATASET}${LIMIT ? `, LIMIT=${LIMIT}` : ""}) x ${SAMPLE_SIZE} sample(s)`
   );
 
-  await Eval("coding-agent-benchmark", {
+  await Eval(EXPERIMENT_NAME, {
     data,
     experimentName: `claude-code/${SUBJECT_MODEL}/baseline/${DATASET}${LIMIT ? `-limit${LIMIT}` : ""}`,
     metadata: {
@@ -61,8 +62,8 @@ async function main(): Promise<void> {
       snapshotId,
       judgeModel: judgeModelConfig?.label,
     },
-    maxConcurrency: 4,
-    timeout: 30 * 60 * 1000,
+    maxConcurrency: 20,
+    timeout: 30 * 60 * 1000, // 30 minutes
     task,
     scores: Object.values(scorers),
   });

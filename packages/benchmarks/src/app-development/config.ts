@@ -1,13 +1,14 @@
-import fs from "fs";
-import path from "path";
-import yaml from "yaml";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
-import { ModelConfig, models } from "mongodb-rag-core/models";
-import assert from "assert";
+import { ModelConfig } from "mongodb-rag-core/models";
 
 import { BenchmarkConfig, ModelProvider } from "../cli/BenchmarkConfig";
+import {
+  judgeModelLabel,
+  judgeModelConfig,
+  loadAppDevelopmentDataset,
+} from "./appDevelopmentDataset";
 import {
   AppDevelopmentEvalCase,
   AppDevelopmentEvalCaseInput,
@@ -29,45 +30,18 @@ const braintrustOpenAI = createOpenAI({
   baseURL: BRAINTRUST_ENDPOINT,
 });
 
-export const judgeModelLabel: (typeof models)[number]["label"] =
-  "gpt-5.3-codex";
-export const judgeModelConfig = models.find(
-  (m) => m.label === judgeModelLabel
-)!;
-assert(judgeModelConfig, `Model ${judgeModelLabel} not found`);
+export { judgeModelLabel, judgeModelConfig };
 
 export const judgeModel = wrapLanguageModel({
   model: braintrustOpenAI.responses(judgeModelLabel),
   middleware: [BraintrustMiddleware({ debug: true })],
 });
 
-const DATASET_PATH = path.resolve(
-  __dirname,
-  "../../datasets/app-development.yml"
-);
-
-interface RawDatasetEntry {
-  name: string;
-  messages: Array<{ role: "user" | "system" | "assistant"; content: string }>;
-  tags?: string[];
-  metadata?: Record<string, unknown>;
-}
+const SAMPLES_PER_CASE = 3;
 
 function loadDataset(): AppDevelopmentEvalCase[] {
-  const raw = yaml.parse(
-    fs.readFileSync(DATASET_PATH, "utf8")
-  ) as RawDatasetEntry[];
-  return raw.map((entry) => ({
-    input: {
-      name: entry.name,
-      messages: entry.messages,
-    },
-    tags: entry.tags ?? [],
-    metadata: entry.metadata as unknown as AppDevelopmentMetadata,
-  }));
+  return loadAppDevelopmentDataset() as unknown as AppDevelopmentEvalCase[];
 }
-
-const SAMPLES_PER_CASE = 3;
 
 export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
   AppDevelopmentEvalCaseInput,

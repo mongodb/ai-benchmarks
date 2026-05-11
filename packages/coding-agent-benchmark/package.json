@@ -21,9 +21,9 @@
   },
   "dependencies": {
     "@vercel/sandbox": "^1.0.0",
+    "benchmarks": "*",
     "dotenv": "^16",
     "mongodb-rag-core": "*",
-    "yaml": "^2.7.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

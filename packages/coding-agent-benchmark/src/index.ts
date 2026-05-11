@@ -38,9 +38,8 @@ export {
   judgeModel,
   judgeModelConfig,
   judgeModelLabel,
-  loadAppDevelopmentDataset,
   scorers,
 } from "./eval/benchmarkConfig.js";
 
-export type { AppStackClassification } from "./scorers/classifyAppStack.js";
-export { AnyMongoDbMention } from "./scorers/AnyMongoDbMention.js";
+export type { AppStackClassification } from "benchmarks";
+export { MongoDbMentioned } from "./scorers/MongoDbMentionedScorer.js";
