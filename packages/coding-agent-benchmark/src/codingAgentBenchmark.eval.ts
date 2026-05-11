@@ -17,9 +17,9 @@ import { makeRunCodingAgentTask } from "./eval/runCodingAgentTask";
 const EXPERIMENT_NAME = "coding-agent-benchmark";
 
 const SUBJECT_MODEL = "claude-opus-4-7";
-const SAMPLE_SIZE = 1;
+const SAMPLE_SIZE = 3;
 const DATASET: keyof typeof datasets = "all";
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : 3; // For now, default 3 cases for testing the eval driver.
+const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : undefined;
 
 async function main(): Promise<void> {
   const { CLAUDE_CODE_BASE_SNAPSHOT_ID: snapshotId } = assertEnvVars(
