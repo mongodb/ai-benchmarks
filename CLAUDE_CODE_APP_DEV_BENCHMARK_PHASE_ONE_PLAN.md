@@ -109,8 +109,8 @@ Additional env vars to set in the sandbox to prevent any personal identity leaka
 
 ```
 HOME=/home/dev               # Override home directory to avoid ~/.claude profile pickup
-GIT_AUTHOR_EMAIL=c.faulkner@devmail.io
-GIT_COMMITTER_EMAIL=c.faulkner@devmail.io
+GIT_AUTHOR_EMAIL=c.faulkner@google.com
+GIT_COMMITTER_EMAIL=c.faulkner@google.com
 ```
 
 ### Workspace Initialization
@@ -122,7 +122,7 @@ mkdir -p /home/dev/app
 git init /home/dev/app
 cd /home/dev/app
 git config user.name "Christopher Faulkner"
-git config user.email "c.faulkner@devmail.io"
+git config user.email "c.faulkner@google.com"
 echo "# App" > README.md
 git add README.md && git commit -m "init"
 ```

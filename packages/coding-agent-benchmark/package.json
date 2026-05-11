@@ -1,0 +1,30 @@
+{
+  "name": "coding-agent-benchmark",
+  "version": "0.0.0",
+  "description": "Benchmarks for evaluating coding agent behavior.",
+  "author": "",
+  "license": "Apache-2.0",
+  "keywords": [],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
+  "exports": "./build/index.js",
+  "scripts": {
+    "clean": "rm -rf build",
+    "build": "tsc -b",
+    "test": "echo 'Not implemented yet'",
+    "benchmark": "echo 'Not implemented yet'",
+    "create-snapshot": "npm run build && node ./build/sandbox/createBaseSnapshot.js",
+    "smoke-test": "npm run build && node ./build/sandbox/runClaudeCode.smoke.test.js"
+  },
+  "dependencies": {
+    "@vercel/sandbox": "^1.0.0",
+    "dotenv": "^16",
+    "mongodb-rag-core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}
