@@ -35,9 +35,8 @@ export type {
 } from "./eval/CodingAgentEval.js";
 export {
   datasets,
-  judgeModel,
-  judgeModelConfig,
-  judgeModelLabel,
+  codeJudgeModel,
+  lightJudgeModel,
   scorers,
 } from "./eval/benchmarkConfig.js";
 

@@ -8,8 +8,8 @@ import {
 } from "./envVars";
 import {
   datasets,
-  judgeModel,
-  judgeModelConfig,
+  codeJudgeModel,
+  lightJudgeModel,
   scorers,
 } from "./eval/benchmarkConfig";
 import { makeRunCodingAgentTask } from "./eval/runCodingAgentTask";
@@ -38,7 +38,8 @@ async function main(): Promise<void> {
   });
 
   const task = makeRunCodingAgentTask({
-    judgeModel,
+    codeJudgeModel,
+    lightJudgeModel,
     runSandbox,
     sampleSize: SAMPLE_SIZE,
   });
@@ -60,7 +61,6 @@ async function main(): Promise<void> {
       caseCount: data.length,
       sampleSize: SAMPLE_SIZE,
       snapshotId,
-      judgeModel: judgeModelConfig?.label,
     },
     maxConcurrency: 20,
     timeout: 30 * 60 * 1000, // 30 minutes

@@ -2,6 +2,7 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { inferPrimaryLanguage } from "../sandbox/collectArtifacts";
 import { classifyStdoutAppStack } from "./classifyStdoutAppStack";
 import { analyzeGeneratedFiles } from "./analyzeGeneratedFiles";
+import { classifyAskedQuestion } from "./classifyAskedClarifyingQuestion";
 import type { SandboxResult } from "../sandbox/SandboxResult";
 import type {
   CodingAgentEvalCaseInput,
@@ -14,21 +15,33 @@ export type RunCodingAgentSandbox = (input: {
   prompt: string;
 }) => Promise<SandboxResult>;
 
+const RETRY_PROMPT_SUFFIX =
+  "\n\nJust build it. Don't ask me questions, you're allowed to make assumptions.";
+
+/**
+ * Only runs that finish quickly are plausibly cases where the agent asked
+ * a clarifying question instead of building. Skip the LLM classification
+ * for longer runs to save cost and judge-model RPM.
+ */
+const CLARIFYING_QUESTION_DURATION_THRESHOLD_MS = 2 * 60 * 1000;
+
 export interface MakeRunCodingAgentTaskParams {
   /** The judge model used by classifyStdoutAppStack + analyzeGeneratedFiles. */
-  judgeModel: LanguageModel;
+  codeJudgeModel: LanguageModel;
+
+  /** The judge model used by classifyAskedQuestion. */
+  lightJudgeModel: LanguageModel;
+
   /** Sandbox runner bound to a specific agent (e.g. makeRunClaudeCodeSandbox(...)). */
   runSandbox: RunCodingAgentSandbox;
+  
   /** Samples per case. Defaults to 1. */
   sampleSize?: number;
 }
 
-/**
- * Build a Braintrust task that runs a coding agent in its sandbox once per
- * sample, then classifies stdout and generated files in parallel.
- */
 export function makeRunCodingAgentTask({
-  judgeModel,
+  codeJudgeModel,
+  lightJudgeModel,
   runSandbox,
   sampleSize = 1,
 }: MakeRunCodingAgentTaskParams): CodingAgentEvalTask {
@@ -38,7 +51,14 @@ export function makeRunCodingAgentTask({
     const prompt = promptFromMessages(input.messages);
     const samples: CodingAgentSample[] = [];
     for (let i = 0; i < sampleSize; i++) {
-      samples.push(await generateSample({ prompt, judgeModel, runSandbox }));
+      samples.push(
+        await generateSample({
+          prompt,
+          codeJudgeModel,
+          lightJudgeModel,
+          runSandbox,
+        })
+      );
     }
     return { samples };
   };
@@ -53,30 +73,107 @@ function promptFromMessages(
 
 async function generateSample({
   prompt,
-  judgeModel,
+  codeJudgeModel,
+  lightJudgeModel,
   runSandbox,
 }: {
   prompt: string;
-  judgeModel: LanguageModel;
+  codeJudgeModel: LanguageModel;
+  lightJudgeModel: LanguageModel;
   runSandbox: RunCodingAgentSandbox;
 }): Promise<CodingAgentSample> {
-  const sandboxResult = await runSandbox({ prompt });
+  const {
+    finalRun,
+    askedQuestionOnFirstAttempt,
+    askedQuestionOnRetry,
+    retried,
+  } = await runWithRetryOnAskedQuestion({
+    prompt,
+    runSandbox,
+    lightJudgeModel,
+  });
 
-  const primaryLanguage = inferPrimaryLanguage(sandboxResult.files);
+  const primaryLanguage = inferPrimaryLanguage(finalRun.files);
 
   const [stdoutClassification, fileClassification] = await Promise.all([
-    classifyStdoutAppStack({ model: judgeModel, stdout: sandboxResult.stdout }),
-    analyzeGeneratedFiles({ model: judgeModel, files: sandboxResult.files }),
+    classifyStdoutAppStack({ model: codeJudgeModel, stdout: finalRun.stdout }),
+    analyzeGeneratedFiles({ model: codeJudgeModel, files: finalRun.files }),
   ]);
 
   return {
-    stdout: sandboxResult.stdout,
-    stderr: sandboxResult.stderr,
-    exitCode: sandboxResult.exitCode,
-    files: sandboxResult.files,
-    durationMs: sandboxResult.durationMs,
+    stdout: finalRun.stdout,
+    stderr: finalRun.stderr,
+    exitCode: finalRun.exitCode,
+    files: finalRun.files,
+    durationMs: finalRun.durationMs,
     primaryLanguage,
     stdoutClassification,
     fileClassification,
+    askedQuestionOnFirstAttempt,
+    askedQuestionOnRetry,
+    retried,
   };
+}
+
+/**
+ * Run the coding agent eval case once.
+ * If the agent asked a question instead of building, run it a second time 
+ * with addition prompting to make assumptions and proceed. 
+ */
+async function runWithRetryOnAskedQuestion({
+  prompt,
+  runSandbox,
+  lightJudgeModel,
+}: {
+  prompt: string;
+  runSandbox: RunCodingAgentSandbox;
+  lightJudgeModel: LanguageModel;
+}): Promise<{
+  finalRun: SandboxResult;
+  askedQuestionOnFirstAttempt: boolean;
+  askedQuestionOnRetry: boolean | null;
+  retried: boolean;
+}> {
+  const firstRun = await runSandbox({ prompt });
+  const askedQuestionOnFirstAttempt = await classifyAskedIfShort({
+    run: firstRun,
+    lightJudgeModel,
+  });
+
+  if (!askedQuestionOnFirstAttempt) {
+    return {
+      finalRun: firstRun,
+      askedQuestionOnFirstAttempt: false,
+      askedQuestionOnRetry: null,
+      retried: false,
+    };
+  }
+
+  const retryRun = await runSandbox({ prompt: prompt + RETRY_PROMPT_SUFFIX });
+  return {
+    finalRun: retryRun,
+    askedQuestionOnFirstAttempt: true,
+    askedQuestionOnRetry: await classifyAskedIfShort({
+      run: retryRun,
+      lightJudgeModel,
+    }),
+    retried: true,
+  };
+}
+
+async function classifyAskedIfShort({
+  run,
+  lightJudgeModel,
+}: {
+  run: SandboxResult;
+  lightJudgeModel: LanguageModel;
+}): Promise<boolean> {
+  if (run.durationMs >= CLARIFYING_QUESTION_DURATION_THRESHOLD_MS) {
+    return false;
+  }
+  const { askedClarifyingQuestion } = await classifyAskedQuestion({
+    model: lightJudgeModel,
+    stdout: run.stdout,
+  });
+  return askedClarifyingQuestion;
 }

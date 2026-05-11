@@ -28,6 +28,9 @@ export type CodingAgentSample = {
   primaryLanguage: string | null;
   stdoutClassification: AppStackClassification;
   fileClassification: AppStackClassification;
+  askedQuestionOnFirstAttempt: boolean;
+  askedQuestionOnRetry: boolean | null;
+  retried: boolean;
 };
 
 export type CodingAgentTaskOutput = {
