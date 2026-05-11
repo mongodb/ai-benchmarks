@@ -8,6 +8,18 @@ const PROJECT_DIR = "/home/dev/app";
 
 const SANDBOX_TIMEOUT_MS = 15 * 60 * 1000;
 
+const activeSandboxes = new Set<Sandbox>();
+
+/**
+ * Stop every sandbox currently in flight. Intended for shutdown handlers
+ * (e.g. SIGINT) so orphaned sandboxes don't keep consuming tokens.
+ */
+export async function stopAllActiveSandboxes(): Promise<void> {
+  const sandboxes = [...activeSandboxes];
+  activeSandboxes.clear();
+  await Promise.allSettled(sandboxes.map((s) => s.stop()));
+}
+
 export type MakeRunClaudeCodeSandboxParams = {
   snapshotId: string;
   claudeCodeEnv: Record<string, string>;
@@ -50,6 +62,7 @@ export function makeRunClaudeCodeSandbox(
         GIT_COMMITTER_EMAIL: "c.faulkner@google.com",
       },
     });
+    activeSandboxes.add(sandbox);
 
     try {
       await initializeWorkspace(sandbox);
@@ -77,6 +90,7 @@ export function makeRunClaudeCodeSandbox(
         durationMs: Date.now() - startTime,
       };
     } finally {
+      activeSandboxes.delete(sandbox);
       await sandbox.stop();
     }
   };
