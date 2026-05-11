@@ -1,4 +1,5 @@
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 import {
   AppStackClassification,
   classifyAppStack,
@@ -54,7 +55,7 @@ function selectRepresentativeFiles(files: GeneratedFile[]): GeneratedFile[] {
   return [...manifests, ...sources];
 }
 
-function renderForJudge(files: GeneratedFile[]): string {
+function renderRepresentativeFiles(files: GeneratedFile[]): string {
   return files
     .map((f) => {
       const body =
@@ -66,30 +67,69 @@ function renderForJudge(files: GeneratedFile[]): string {
     .join("\n\n");
 }
 
+type TreeNode = { name: string; children: Map<string, TreeNode> };
+
+function renderFileTree(files: GeneratedFile[]): string {
+  const root: TreeNode = { name: "", children: new Map() };
+  for (const f of files) {
+    let node = root;
+    for (const part of f.path.split("/")) {
+      let child = node.children.get(part);
+      if (!child) {
+        child = { name: part, children: new Map() };
+        node.children.set(part, child);
+      }
+      node = child;
+    }
+  }
+
+  const lines: string[] = [];
+  const walk = (node: TreeNode, depth: number) => {
+    const entries = [...node.children.values()].sort((a, b) => {
+      const aIsDir = a.children.size > 0;
+      const bIsDir = b.children.size > 0;
+      if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    for (const child of entries) {
+      const isDir = child.children.size > 0;
+      lines.push(`${"  ".repeat(depth)}${child.name}${isDir ? "/" : ""}`);
+      if (isDir) walk(child, depth + 1);
+    }
+  };
+  walk(root, 0);
+  return lines.join("\n");
+}
+
 /**
  * LLM-judge classification of the technology stack from the generated file
  * tree. Reads manifest files plus up to 3 large source files, renders them
  * for the judge, then reuses the shared classifyAppStack schema.
  */
-export async function analyzeGeneratedFiles({
-  model,
-  files,
-}: {
-  model: LanguageModel;
-  files: GeneratedFile[];
-}): Promise<AppStackClassification> {
-  const selected = selectRepresentativeFiles(files);
-  if (selected.length === 0) {
-    return {
-      programmingLanguage: null,
-      primaryDatabase: null,
-      appFramework: null,
-      ormOrDatabaseClient: null,
-      frontendFramework: null,
-      deploymentInfrastructure: null,
-      authenticationApproach: null,
-    };
+export const analyzeGeneratedFiles = wrapTraced(
+  async function analyzeGeneratedFiles({
+    model,
+    files,
+  }: {
+    model: LanguageModel;
+    files: GeneratedFile[];
+  }): Promise<AppStackClassification> {
+    const selected = selectRepresentativeFiles(files);
+    if (selected.length === 0) {
+      return {
+        programmingLanguage: null,
+        primaryDatabase: null,
+        appFramework: null,
+        ormOrDatabaseClient: null,
+        frontendFramework: null,
+        deploymentInfrastructure: null,
+        authenticationApproach: null,
+      };
+    }
+    const generation = [
+      `<file-tree>\n${renderFileTree(files)}\n</file-tree>`,
+      `<representative-files>\n${renderRepresentativeFiles(selected)}\n</representative-files>`,
+    ].join("\n\n");
+    return classifyAppStack({ model, generation });
   }
-  const generation = renderForJudge(selected);
-  return classifyAppStack({ model, generation });
-}
+);

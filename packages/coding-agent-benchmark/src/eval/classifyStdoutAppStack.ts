@@ -1,4 +1,5 @@
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
+import { wrapTraced } from "mongodb-rag-core/braintrust";
 import {
   AppStackClassification,
   classifyAppStack,
@@ -11,16 +12,18 @@ const STDOUT_CHAR_LIMIT = 60_000;
  * conversation text. Truncates very long stdout to stay within judge model
  * context. Some agents can generate very long narrations.
  */
-export async function classifyStdoutAppStack({
-  model,
-  stdout,
-}: {
-  model: LanguageModel;
-  stdout: string;
-}): Promise<AppStackClassification> {
-  const trimmed =
-    stdout.length > STDOUT_CHAR_LIMIT
-      ? stdout.slice(0, STDOUT_CHAR_LIMIT) + "\n\n[truncated]"
-      : stdout;
-  return classifyAppStack({ model, generation: trimmed });
-}
+export const classifyStdoutAppStack = wrapTraced(
+  async function classifyStdoutAppStack({
+    model,
+    stdout,
+  }: {
+    model: LanguageModel;
+    stdout: string;
+  }): Promise<AppStackClassification> {
+    const trimmed =
+      stdout.length > STDOUT_CHAR_LIMIT
+        ? stdout.slice(0, STDOUT_CHAR_LIMIT) + "\n\n[truncated]"
+        : stdout;
+    return classifyAppStack({ model, generation: trimmed });
+  }
+);

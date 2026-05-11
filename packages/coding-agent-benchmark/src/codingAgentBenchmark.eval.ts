@@ -66,7 +66,6 @@ async function main(): Promise<void> {
       snapshotId,
     },
     maxConcurrency: 20,
-    timeout: 30 * 60 * 1000, // 30 minutes
     task,
     scores: Object.values(scorers),
   });
