@@ -16,7 +16,7 @@
     "test": "echo 'Not implemented yet'",
     "benchmark": "echo 'Not implemented yet'",
     "create-snapshot": "npm run build && node ./build/sandbox/createBaseSnapshot.js",
-    "smoke-test": "npm run build && node ./build/sandbox/runClaudeCode.smoke.test.js"
+    "smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js"
   },
   "dependencies": {
     "@vercel/sandbox": "^1.0.0",

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { runClaudeCode } from "./runClaudeCode";
+import { makeRunClaudeCodeSandbox } from "./runClaudeCodeSandbox";
 import { ANTHROPIC_FOUNDRY_ENV_VARS, CLAUDE_CODE_SNAPSHOT_IDS } from "../envVars";
 import { assertEnvVars } from "mongodb-rag-core";
 
@@ -19,12 +19,14 @@ async function main(): Promise<void> {
   const { CLAUDE_CODE_BASE_SNAPSHOT_ID: snapshotId } = assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
 
   console.log(`Running smoke test against snapshot ${snapshotId}...`);
-  const result = await runClaudeCode({
-    prompt:
-      "Create a file called hello.txt in the current directory containing exactly the text 'hello world'. Do not create any other files.",
+  const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
     snapshotId,
     claudeCodeEnv: getClaudeCodeSandboxEnv(),
     model: "claude-opus-4-7",
+  });
+  const result = await runClaudeCodeSandbox({
+    prompt:
+      "Create a file called hello.txt in the current directory containing exactly the text 'hello world'. Do not create any other files.",
   });
 
   console.log(`\nexitCode:   ${result.exitCode}`);

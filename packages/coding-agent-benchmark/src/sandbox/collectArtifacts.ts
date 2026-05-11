@@ -1,5 +1,5 @@
 import type { Sandbox } from "@vercel/sandbox";
-import type { GeneratedFile } from "./types";
+import type { GeneratedFile } from "./SandboxResult";
 
 const IGNORED_DIRS = new Set([
   ".git",

@@ -3,7 +3,7 @@ export type GeneratedFile = {
   content: string;
 };
 
-export type ClaudeCodeRunResult = {
+export type SandboxResult = {
   stdout: string;
   stderr: string;
   exitCode: number;
