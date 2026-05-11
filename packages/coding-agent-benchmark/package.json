@@ -16,12 +16,15 @@
     "test": "echo 'Not implemented yet'",
     "benchmark": "echo 'Not implemented yet'",
     "create-snapshot": "npm run build && node ./build/sandbox/createBaseSnapshot.js",
-    "smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js"
+    "smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js",
+    "eval": "npm run build && node ./build/codingAgentBenchmark.eval.js"
   },
   "dependencies": {
     "@vercel/sandbox": "^1.0.0",
     "dotenv": "^16",
-    "mongodb-rag-core": "*"
+    "mongodb-rag-core": "*",
+    "yaml": "^2.7.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20",
