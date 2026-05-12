@@ -15,7 +15,7 @@
     "build": "tsc -b",
     "test": "echo 'Not implemented yet'",
     "benchmark": "echo 'Not implemented yet'",
-    "create-snapshot": "npm run build && node ./build/sandbox/createBaseSnapshot.js",
+    "create-snapshot": "npm run build && node ./build/sandbox/createClaudeCodeSnapshot.js",
     "smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js",
     "eval": "npm run build && node ./build/codingAgentBenchmark.eval.js"
   },
