@@ -1,6 +1,7 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
 import type { GeneratedFile } from "../../sandbox/SandboxResult";
+import { nullifyScore } from "../nullifyScore";
 
 const MONGODB_DEP_PATTERNS = [
   /^mongodb$/,
@@ -41,31 +42,34 @@ export const MongoDbInPackageJson: CodingAgentEvalScorer = ({ output }) => {
   const name = "MongoDbInPackageJson";
   const { samples } = output;
 
-  const perSample = samples.map((s) => {
+  // Short-circuit if no samples (likely sandbox timeout).
+  if (samples.length === 0) return nullifyScore(name);
+
+  const sampleResults = samples.map((s) => {
     const pkg = s.files.find((f) => f.path === "package.json");
     if (!pkg) return { pass: false, reason: "no package.json", matches: [] };
     const { matched, matches } = packageJsonReferencesMongoDb(pkg);
     return { pass: matched, matches };
   });
 
-  const correct = perSample.filter((s) => s.pass).length;
+  const correct = sampleResults.filter((s) => s.pass).length;
   const metrics = computeSampleMetrics({ total: samples.length, correct });
 
   return [
     {
       name: `${name}@k`,
       score: metrics["pass@k"],
-      metadata: { ...metrics, perSample },
+      metadata: { ...metrics, sampleResults },
     },
     {
       name: `${name}%k`,
       score: metrics["pass%k"],
-      metadata: { ...metrics, perSample },
+      metadata: { ...metrics, sampleResults },
     },
     {
       name: `${name}^k`,
       score: metrics["pass^k"],
-      metadata: { ...metrics, perSample },
+      metadata: { ...metrics, sampleResults },
     },
   ];
 };

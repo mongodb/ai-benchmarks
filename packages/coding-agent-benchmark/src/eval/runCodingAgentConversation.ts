@@ -140,6 +140,7 @@ async function generateConversationSample(params: {
     turnCount: convoOutcome.turnCount,
     fellBackToForcePrompt: convoOutcome.fellBackToForcePrompt,
     conversationHistory: convoOutcome.history,
+    sandboxStopped: convoOutcome.sandboxStopped,
   };
 }
 
@@ -152,6 +153,7 @@ type ConversationOutcome = {
   turnCount: number;
   askedQuestionOnFirstAttempt: boolean;
   fellBackToForcePrompt: boolean;
+  sandboxStopped: boolean;
 };
 
 function emptyOutcome(): ConversationOutcome {
@@ -164,7 +166,19 @@ function emptyOutcome(): ConversationOutcome {
     turnCount: 0,
     askedQuestionOnFirstAttempt: false,
     fellBackToForcePrompt: false,
+    sandboxStopped: false,
   };
+}
+
+function isSandboxStoppedError(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  const e = err as {
+    response?: { status?: number };
+    json?: { error?: { code?: string } };
+  };
+  return (
+    e.response?.status === 410 && e.json?.error?.code === "sandbox_stopped"
+  );
 }
 
 async function runConversationLoop(params: {
@@ -183,6 +197,7 @@ async function runConversationLoop(params: {
   let turnCount = 0;
   let askedQuestionOnFirstAttempt = false;
   let fellBackToForcePrompt = false;
+  let sandboxStopped = false;
 
   let nextInput = prompt;
   let useContinue = false;
@@ -190,11 +205,22 @@ async function runConversationLoop(params: {
   for (let turn = 1; turn <= maxTurns; turn++) {
     history.push({ role: "human", content: nextInput });
 
-    const run = await sandbox.runClaude({
-      input: nextInput,
-      continueSession: useContinue,
-      outputFormat: "json",
-    });
+    let run: ClaudeCommandResult;
+    try {
+      run = await sandbox.runClaude({
+        input: nextInput,
+        continueSession: useContinue,
+        outputFormat: "json",
+      });
+    } catch (err) {
+      // Vercel sandbox 410 stop error. Likely a timeout.
+      // We avoid throwing & do partial scoring on the standard output.
+      if (isSandboxStoppedError(err)) {
+        sandboxStopped = true;
+        break;
+      }
+      throw err;
+    }
     lastRun = run;
     totalDurationMs += run.durationMs;
     turnCount = turn;
@@ -243,6 +269,7 @@ async function runConversationLoop(params: {
     turnCount,
     askedQuestionOnFirstAttempt,
     fellBackToForcePrompt,
+    sandboxStopped,
   };
 }
 

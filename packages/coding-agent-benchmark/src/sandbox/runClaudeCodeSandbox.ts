@@ -6,7 +6,7 @@ import { assertEnvVars } from "mongodb-rag-core";
 
 const PROJECT_DIR = "/home/dev/app";
 
-const SANDBOX_TIMEOUT_MS = 25 * 60 * 1000;
+const SANDBOX_TIMEOUT_MS = 1 * 60 * 1000;
 
 const activeSandboxes = new Set<Sandbox>();
 

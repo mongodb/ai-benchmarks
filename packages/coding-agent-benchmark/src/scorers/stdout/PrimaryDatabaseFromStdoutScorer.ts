@@ -7,16 +7,16 @@ export const PrimaryDatabaseFromStdoutIsMongoDb: CodingAgentEvalScorer = ({
   const name = "PrimaryDatabaseFromStdoutIsMongoDb";
   const { samples } = output;
 
-  const perSample = samples.map((s) => ({
+  const sampleResults = samples.map((s) => ({
     pass: s.stdoutClassification.primaryDatabase === "mongodb",
     classified: s.stdoutClassification.primaryDatabase,
   }));
-  const correct = perSample.filter((s) => s.pass).length;
+  const correct = sampleResults.filter((s) => s.pass).length;
   const metrics = computeSampleMetrics({ total: samples.length, correct });
 
   return [
-    { name: `${name}@k`, score: metrics["pass@k"], metadata: { ...metrics, perSample } },
-    { name: `${name}%k`, score: metrics["pass%k"], metadata: { ...metrics, perSample } },
-    { name: `${name}^k`, score: metrics["pass^k"], metadata: { ...metrics, perSample } },
+    { name: `${name}@k`, score: metrics["pass@k"], metadata: { ...metrics, sampleResults } },
+    { name: `${name}%k`, score: metrics["pass%k"], metadata: { ...metrics, sampleResults } },
+    { name: `${name}^k`, score: metrics["pass^k"], metadata: { ...metrics, sampleResults } },
   ];
 };

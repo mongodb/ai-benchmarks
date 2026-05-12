@@ -60,19 +60,6 @@ export const humanAgentModel = wrapLanguageModel({
   middleware: [BraintrustMiddleware({ debug: true })],
 });
 
-// run test case
-(async () => {
-  const res = await generateText({
-    model: humanAgentModel,
-    prompt: [
-      { role: "user", content: [
-        { type: "text", text: "Hello, how are you?" }
-      ] }
-    ],
-  });
-  console.log(JSON.stringify(res.content, null, 2));
-})();
-
 export function loadDataset(): CodingAgentEvalCase[] {
   return loadAppDevelopmentDataset() satisfies CodingAgentEvalCase[];
 }

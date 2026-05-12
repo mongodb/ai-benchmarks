@@ -40,6 +40,8 @@ export type CodingAgentSample = {
   turnCount?: number;
   fellBackToForcePrompt?: boolean;
   conversationHistory?: ConversationTurn[];
+  /** True when the Vercel sandbox died mid-conversation (e.g. lifetime cap hit). */
+  sandboxStopped?: boolean;
 };
 
 export type CodingAgentTaskOutput = {
