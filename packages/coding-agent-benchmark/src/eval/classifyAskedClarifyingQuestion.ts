@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateText, LanguageModel, Output } from "mongodb-rag-core/aiSdk";
-import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { wrapTraced } from "braintrust";
 
 const STDOUT_CHAR_LIMIT = 60_000;
 

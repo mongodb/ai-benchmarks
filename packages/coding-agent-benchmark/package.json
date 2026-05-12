@@ -15,19 +15,30 @@
     "build": "tsc -b",
     "test": "echo 'Not implemented yet'",
     "benchmark": "echo 'Not implemented yet'",
-    "create-snapshot": "npm run build && node ./build/sandbox/createClaudeCodeSnapshot.js",
-    "smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js",
-    "eval": "npm run build && node ./build/codingAgentBenchmark.eval.js"
+    "snapshot:claude-base": "npm run build && node ./build/bin/createBaseSnapshot.js",
+    "snapshot:claude-superpowers": "npm run build && node ./build/bin/createSuperpowersSnapshot.js",
+    "snapshot:claude-superpowers-fork": "npm run build && node ./build/bin/createSuperpowersForkSnapshot.js",
+    "snapshot:smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js",
+    "eval:smoke-test": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent --sample-size 1 --model claude-code-baseline --dataset app-development",
+    "eval:claude-code-base": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent  --model claude-code-baseline --dataset app-development",
+    "eval:claude-code-superpowers": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent  --model claude-code-superpowers --dataset app-development",
+    "eval:claude-code-superpowers-fork": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent  --model claude-code-superpowers-fork --dataset app-development"
   },
   "dependencies": {
     "@vercel/sandbox": "^1.0.0",
     "benchmarks": "*",
+    "braintrust": "^2.0.0",
     "dotenv": "^16",
+    "mongodb-assistant-eval": "^0.0.8",
     "mongodb-rag-core": "*",
-    "zod": "^3.23.8"
+    "openai": "^6.37.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@slack/web-api": "^7.15.2",
     "@types/node": "^20",
+    "slack-block-builder": "^2.8.0",
+    "slackify-markdown": "^4.5.0",
     "typescript": "^5"
   }
 }

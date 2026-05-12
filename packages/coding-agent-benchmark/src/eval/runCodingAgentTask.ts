@@ -44,7 +44,7 @@ export function makeRunCodingAgentTask({
   lightJudgeModel,
   runSandbox,
   sampleSize = 1,
-}: MakeRunCodingAgentTaskParams): CodingAgentEvalTask {
+}: MakeRunCodingAgentTaskParams) {
   return async function runCodingAgentTask(
     input: CodingAgentEvalCaseInput
   ): Promise<CodingAgentTaskOutput> {

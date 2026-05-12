@@ -60,15 +60,20 @@ export async function createSnapshot(
   console.log(`Sandbox ID: ${sandbox.sandboxId}`);
 
   try {
+    // Create /home/dev before calling setupCodingAgent so setup fns can write
+    // config there (e.g. with HOME=/home/dev). chown runs after setup so all
+    // files written during setup are covered.
+    await run("mkdir -p /home/dev", sandbox, "Creating /home/dev");
+
     await setupCodingAgent(sandbox);
 
     const whoResult = await sandbox.runCommand({ cmd: "whoami" });
     const sandboxUser = (await whoResult.stdout()).trim();
     console.log(`  Sandbox user: ${sandboxUser}`);
     await run(
-      `mkdir -p /home/dev && chown -R ${sandboxUser}: /home/dev`,
+      `chown -R ${sandboxUser}: /home/dev`,
       sandbox,
-      "Creating /home/dev"
+      "Setting /home/dev ownership"
     );
 
     console.log("  Creating snapshot (this stops the sandbox)...");

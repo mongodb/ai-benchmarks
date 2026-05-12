@@ -1,5 +1,5 @@
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
-import { wrapTraced } from "mongodb-rag-core/braintrust";
+import { wrapTraced } from "braintrust";
 import {
   AppStackClassification,
   classifyAppStack,

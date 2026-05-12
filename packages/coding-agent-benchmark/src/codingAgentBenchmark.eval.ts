@@ -15,61 +15,18 @@ import {
   lightJudgeModel,
   scorers,
 } from "./eval/benchmarkConfig";
+import { CLAUDE_CODE_MODEL, codingAgentBenchmarkModels } from "./eval/benchmarkModels";
 import { makeRunCodingAgentTask } from "./eval/runCodingAgentTask";
+import { createMongoDbAssistantEvalCli, EvalCliConfig } from "mongodb-assistant-eval";
+import { CodingAgentEvalCaseInput, CodingAgentEvalCaseMetadata, CodingAgentTaskExpected, CodingAgentTaskOutput } from "./eval/CodingAgentEval";
 
-const EXPERIMENT_NAME = "coding-agent-benchmark";
-
-const SUBJECT_MODEL = "claude-opus-4-7";
-const SAMPLE_SIZE = 3;
-const DATASET: keyof typeof datasets = "all";
+const BRAINTRUST_PROJECT_NAME = "coding-agent-benchmark";
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : undefined;
 
-async function main(): Promise<void> {
-  const { CLAUDE_CODE_BASE_SNAPSHOT_ID: snapshotId } = assertEnvVars(
-    CLAUDE_CODE_SNAPSHOT_IDS
-  );
-
-  const claudeCodeEnv = {
-    CLAUDE_CODE_USE_FOUNDRY: "1",
-    ...assertEnvVars(ANTHROPIC_FOUNDRY_ENV_VARS),
-  };
-
-  const runSandbox = makeRunClaudeCodeSandbox({
-    snapshotId,
-    claudeCodeEnv,
-    model: SUBJECT_MODEL,
-  });
-
-  const task = makeRunCodingAgentTask({
-    codeJudgeModel,
-    lightJudgeModel,
-    runSandbox,
-    sampleSize: SAMPLE_SIZE,
-  });
-
-  const fullData = await datasets[DATASET].getDataset();
-  const data = LIMIT ? fullData.slice(0, LIMIT) : fullData;
-  console.log(
-    `Running ${data.length} case(s) (dataset=${DATASET}${LIMIT ? `, LIMIT=${LIMIT}` : ""}) x ${SAMPLE_SIZE} sample(s)`
-  );
-
-  await Eval(EXPERIMENT_NAME, {
-    data,
-    experimentName: `claude-code/${SUBJECT_MODEL}/baseline/${DATASET}${LIMIT ? `-limit${LIMIT}` : ""}`,
-    metadata: {
-      agent: "claude-code",
-      subjectModel: SUBJECT_MODEL,
-      pluginVariant: "baseline",
-      dataset: DATASET,
-      caseCount: data.length,
-      sampleSize: SAMPLE_SIZE,
-      snapshotId,
-    },
-    maxConcurrency: 20,
-    task,
-    scores: Object.values(scorers),
-  });
-}
+const claudeCodeEnv = {
+  CLAUDE_CODE_USE_FOUNDRY: "1",
+  ...assertEnvVars(ANTHROPIC_FOUNDRY_ENV_VARS),
+};
 
 const SHUTDOWN_TIMEOUT_MS = 30_000;
 
@@ -104,10 +61,60 @@ async function handleShutdownSignal(signal: "SIGINT" | "SIGTERM") {
   process.exit(130);
 }
 
+type AgentConfig = {
+  snapshotId: string;
+  model: string;
+  /** Number of independent runs per eval case (for statistical sampling). */
+  runsPerCase: number;
+};
+
+/** Main CLI setup */
+async function mainCli() {
+  const config: EvalCliConfig<
+    CodingAgentEvalCaseInput,
+    CodingAgentTaskExpected,
+    CodingAgentTaskOutput,
+    AgentConfig,
+    CodingAgentEvalCaseMetadata
+  > = {
+    projectName: BRAINTRUST_PROJECT_NAME,
+    datasets,
+    models: codingAgentBenchmarkModels,
+    tasks: {
+      codingAgent: {
+        description: "Runs the coding agent in a Vercel sandbox",
+        run: ({ input, modelConfig }) =>
+          makeRunCodingAgentTask({
+            codeJudgeModel,
+            lightJudgeModel,
+            // Claude Code only for now
+            runSandbox: makeRunClaudeCodeSandbox({
+              snapshotId: modelConfig.snapshotId,
+              claudeCodeEnv,
+              model: modelConfig.model,
+            }),
+            sampleSize: modelConfig.runsPerCase,
+          })(input),
+      },
+    },
+    scorers: Object.fromEntries(
+      Object.entries(scorers).map(([key, scorer]) => [key, { scorer }])
+    ),
+  };
+
+  const cli = createMongoDbAssistantEvalCli(config);
+  await cli.parseAsync();
+}
+
+
 process.on("SIGINT", () => handleShutdownSignal("SIGINT"));
 process.on("SIGTERM", () => handleShutdownSignal("SIGTERM"));
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+void mainCli()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

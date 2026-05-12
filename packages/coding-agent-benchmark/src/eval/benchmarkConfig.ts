@@ -53,19 +53,19 @@ export function loadDataset(): CodingAgentEvalCase[] {
 }
 
 export const datasets = {
-  all: {
+  "app-development": {
     description: "All 104 app-development eval cases",
-    getDataset: async () => loadDataset(),
+    getCases: async () => loadDataset(),
   },
   mongodb_optimal: {
     description: "Cases where MongoDB is the optimal database choice",
-    getDataset: async () =>
+    getCases: async () =>
       loadDataset().filter((d) => d.tags.includes("mongodb-optimal")),
   },
   db_agnostic: {
     description:
       "Cases where the prompt doesn't favor MongoDB — a different DB may be a better fit",
-    getDataset: async () =>
+      getCases: async () =>
       loadDataset().filter((d) => !d.tags.includes("mongodb-optimal")),
   },
 };
