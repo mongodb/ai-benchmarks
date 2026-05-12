@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Eval } from "mongodb-rag-core/braintrust";
 import { assertEnvVars } from "mongodb-rag-core";
 import {
+  createClaudeCodeSandbox,
   makeRunClaudeCodeSandbox,
   stopAllActiveSandboxes,
 } from "./sandbox/runClaudeCodeSandbox";
@@ -13,10 +14,12 @@ import {
   datasets,
   codeJudgeModel,
   lightJudgeModel,
+  humanAgentModel,
   scorers,
 } from "./eval/benchmarkConfig";
 import { CLAUDE_CODE_MODEL, codingAgentBenchmarkModels } from "./eval/benchmarkModels";
 import { makeRunCodingAgentTask } from "./eval/runCodingAgentTask";
+import { makeRunCodingAgentConversation } from "./eval/runCodingAgentConversation";
 import { createMongoDbAssistantEvalCli, EvalCliConfig } from "mongodb-assistant-eval";
 import { CodingAgentEvalCaseInput, CodingAgentEvalCaseMetadata, CodingAgentTaskExpected, CodingAgentTaskOutput } from "./eval/CodingAgentEval";
 
@@ -66,6 +69,12 @@ type AgentConfig = {
   model: string;
   /** Number of independent runs per eval case (for statistical sampling). */
   runsPerCase: number;
+  /**
+   * When true, route this model through the multi-turn conversation runner
+   * (human-user AI agent responds to clarifying questions). Used for
+   * superpowers-style snapshots where forcing implementation skews results.
+   */
+  conversationMode?: boolean;
 };
 
 /** Main CLI setup */
@@ -84,17 +93,29 @@ async function mainCli() {
       codingAgent: {
         description: "Runs the coding agent in a Vercel sandbox",
         run: ({ input, modelConfig }) =>
-          makeRunCodingAgentTask({
-            codeJudgeModel,
-            lightJudgeModel,
-            // Claude Code only for now
-            runSandbox: makeRunClaudeCodeSandbox({
-              snapshotId: modelConfig.snapshotId,
-              claudeCodeEnv,
-              model: modelConfig.model,
-            }),
-            sampleSize: modelConfig.runsPerCase,
-          })(input),
+          modelConfig.conversationMode
+            ? makeRunCodingAgentConversation({
+                codeJudgeModel,
+                lightJudgeModel,
+                humanAgentModel,
+                createSandbox: () =>
+                  createClaudeCodeSandbox({
+                    snapshotId: modelConfig.snapshotId,
+                    claudeCodeEnv,
+                    model: modelConfig.model,
+                  }),
+                sampleSize: modelConfig.runsPerCase,
+              })(input)
+            : makeRunCodingAgentTask({
+                codeJudgeModel,
+                lightJudgeModel,
+                runSandbox: makeRunClaudeCodeSandbox({
+                  snapshotId: modelConfig.snapshotId,
+                  claudeCodeEnv,
+                  model: modelConfig.model,
+                }),
+                sampleSize: modelConfig.runsPerCase,
+              })(input),
       },
     },
     scorers: Object.fromEntries(

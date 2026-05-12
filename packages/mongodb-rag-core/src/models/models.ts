@@ -350,6 +350,16 @@ const allModels = [
     host: "AWS Bedrock",
   },
   {
+    label: "us.anthropic.claude-sonnet-4-6",
+    deployment: "us.anthropic.claude-sonnet-4-6",
+    provider: "braintrust",
+    developer: "Anthropic",
+    maxConcurrency: 5,
+    authorized: true,
+    generation: "claude-4",
+    host: "AWS Bedrock",
+  },
+  {
     label: "anthropic/claude-opus-4.1",
     deployment: "claude-opus-4-1-20250805",
     provider: "braintrust",

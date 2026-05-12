@@ -19,6 +19,11 @@ export type CodingAgentEvalCaseMetadata = {
   category?: string;
 };
 
+export type ConversationTurn = {
+  role: "human" | "claude";
+  content: string;
+};
+
 export type CodingAgentSample = {
   stdout: string;
   stderr: string;
@@ -31,6 +36,10 @@ export type CodingAgentSample = {
   askedQuestionOnFirstAttempt: boolean;
   askedQuestionOnRetry: boolean | null;
   retried: boolean;
+  /** Only populated by the conversation runner. */
+  turnCount?: number;
+  fellBackToForcePrompt?: boolean;
+  conversationHistory?: ConversationTurn[];
 };
 
 export type CodingAgentTaskOutput = {
