@@ -110,6 +110,7 @@ export async function createClaudeCodeSandbox(
   let cachedSnapshot: GeneratedFile[] | null = null;
 
   const deadlineTimer = setTimeout(async () => {
+    if (closed) return;
     const start = Date.now();
     try {
       cachedSnapshot = await collectGeneratedFiles(sandbox, PROJECT_DIR);
@@ -154,7 +155,8 @@ export async function createClaudeCodeSandbox(
     async collectFiles() {
       try {
         return await collectGeneratedFiles(sandbox, PROJECT_DIR);
-      } catch {
+      } catch (err) {
+        console.warn("[sandbox] collectFiles failed, returning cached snapshot or empty array", err);
         return cachedSnapshot ?? [];
       }
     },
