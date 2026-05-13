@@ -5,10 +5,11 @@ export const CLAUDE_CODE_MODEL = "claude-opus-4-7";
 const DEFAULT_SAMPLE_SIZE = 3;
 
 // load environment details.
-const { 
-  CLAUDE_CODE_BASE_SNAPSHOT_ID, 
-  CLAUDE_CODE_SUPERPOWERS_SNAPSHOT_ID, 
-  CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID 
+const {
+  CLAUDE_CODE_BASE_SNAPSHOT_ID,
+  CLAUDE_CODE_SUPERPOWERS_SNAPSHOT_ID,
+  CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID,
+  CLAUDE_CODE_CLAUDE_MD_SNAPSHOT_ID
 } = assertEnvVars(
   CLAUDE_CODE_SNAPSHOT_IDS
 );
@@ -31,7 +32,11 @@ export const codingAgentBenchmarkModels = {
     config: { snapshotId: CLAUDE_CODE_SUPERPOWERS_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: DEFAULT_SAMPLE_SIZE, conversationMode: true },
   },
   "claude-code-superpowers-fork": {
-    description: "Claude Code custom superpowers fork snapshot, 3 runs/case (multi-turn conversation runner)",
-    config: { snapshotId: CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: DEFAULT_SAMPLE_SIZE, conversationMode: true },
+    description: "Claude Code superpowers fork with structured elicitation, 3 runs/case",
+    config: { snapshotId: CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: DEFAULT_SAMPLE_SIZE, conversationMode: true, pluginDir: "/home/dev/superpowers/" },
+  },
+  "claude-code-claude-md": {
+    description: "Claude Code with custom CLAUDE.md structured elicitation, 3 runs/case",
+    config: { snapshotId: CLAUDE_CODE_CLAUDE_MD_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: DEFAULT_SAMPLE_SIZE, conversationMode: true },
   },
 };
