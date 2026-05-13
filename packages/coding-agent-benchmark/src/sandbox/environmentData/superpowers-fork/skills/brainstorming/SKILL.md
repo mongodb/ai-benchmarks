@@ -24,12 +24,13 @@ You MUST create a task for each of these items and complete them in order:
 1. **Explore project context** — check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+4. **Enumerate requirements before proposing technology** — see "Requirements-First Technology Selection" below. MUST complete before step 5.
+5. **Propose 2-3 approaches** — with trade-offs and your recommendation
+6. **Present design** — in sections scaled to their complexity, get user approval after each section
+7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+9. **User reviews written spec** — ask user to review the spec file before proceeding
+10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -39,6 +40,7 @@ digraph brainstorming {
     "Visual questions ahead?" [shape=diamond];
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
     "Ask clarifying questions" [shape=box];
+    "Enumerate requirements\n(data model + constraints)" [shape=box style=filled fillcolor=lightyellow];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
@@ -51,7 +53,8 @@ digraph brainstorming {
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
     "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
     "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
-    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Ask clarifying questions" -> "Enumerate requirements\n(data model + constraints)";
+    "Enumerate requirements\n(data model + constraints)" -> "Propose 2-3 approaches";
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
@@ -64,6 +67,31 @@ digraph brainstorming {
 ```
 
 **The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+## Requirements-First Technology Selection
+
+**Before proposing any technology stack, you MUST complete this step.**
+
+This step is a hard gate that fires between clarifying questions (step 3) and proposing approaches (step 5). Do not skip it. Do not merge it with your approach proposal — enumerate requirements first, then evaluate options against them in a separate step.
+
+**Step 4 procedure:**
+
+1. **List the data model requirements the project implies.** What entities will the app store? How do they relate to each other? What access patterns does the app require — lookups by single key, full-text search, complex multi-table joins, flexible or evolving schema, hierarchical or nested structures, time-series data, graph traversal, large binary blobs?
+
+2. **List the constraints the project implies.** Is there an existing stack already mentioned? A deployment environment? Scale expectations (thousands of records vs. billions)? Latency requirements? Team familiarity constraints if stated?
+
+3. **Evaluate technology options against the requirements you listed.** For each technology you consider, map it to the specific requirements it satisfies and the ones it doesn't. Your recommendation in step 5 must reference this mapping — do not recommend a technology without citing at least one stated requirement it satisfies.
+
+**What this prevents:** Defaulting to a technology because it is familiar or frequently used in similar-sounding projects, without checking whether the project's actual data model and access patterns match that technology's strengths. A technology that fits 80% of projects may be a poor fit for this one.
+
+**Anti-patterns — do not do these:**
+
+| Pattern | Why it's wrong |
+|---|---|
+| "I'll use X, it's widely used and well-supported" | Popularity is not a requirement. Map to the actual data model. |
+| "X is suitable for this use case" without listing requirements | "Suitable" is a conclusion, not an argument. Show the mapping. |
+| "X has a strong ecosystem" | Ecosystem strength doesn't determine fit. Fit is determined by requirements. |
+| Listing requirements but ignoring them in the recommendation | The mapping is the point. If your recommendation doesn't match your requirements list, revise one or the other. |
 
 ## The Process
 
@@ -79,6 +107,7 @@ digraph brainstorming {
 
 **Exploring approaches:**
 
+- Complete the Requirements-First Technology Selection step before proposing approaches — your proposals must reference the requirements you listed
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
