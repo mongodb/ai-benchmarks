@@ -8,6 +8,9 @@ import { createSnapshot, run } from "./createSnapshot";
 // Navigate back to the source environment data directory.
 const ENV_DATA_DIR = join(__dirname, "../../src/sandbox/environmentData");
 
+const SUPERPOWERS_REPO = "https://github.com/obra/superpowers.git";
+const SUPERPOWERS_PINNED_COMMIT = "f2cbfbefebbfef77321e4c9abc9e949826bea9d7";
+
 /**
  * Installs Claude Code into the sandbox and verifies it.
  */
@@ -95,17 +98,16 @@ export async function createSuperpowersForkSnapshot(): Promise<string> {
   const setupFork = async (sandbox: Sandbox): Promise<void> => {
     await installClaudeCode(sandbox);
 
-    const forkDir = join(ENV_DATA_DIR, "superpowers-fork");
-    process.stdout.write("  Uploading superpowers fork files...");
-    await sandbox.fs.mkdir("/home/dev/superpowers", { recursive: true });
-    await uploadDirectory(sandbox, forkDir, "/home/dev/superpowers");
-    console.log(" done");
-
     await run(
-      "chmod +x /home/dev/superpowers/hooks/session-start /home/dev/superpowers/hooks/run-hook.cmd",
+      `git clone ${SUPERPOWERS_REPO} /home/dev/superpowers && git -C /home/dev/superpowers checkout ${SUPERPOWERS_PINNED_COMMIT}`,
       sandbox,
-      "Setting hook permissions"
+      "Cloning superpowers at pinned commit"
     );
+
+    const overridesDir = join(ENV_DATA_DIR, "superpowers-overrides");
+    process.stdout.write("  Applying overrides...");
+    await uploadDirectory(sandbox, overridesDir, "/home/dev/superpowers");
+    console.log(" done");
   };
 
   return createSnapshot({ setupCodingAgent: setupFork });
