@@ -75,6 +75,7 @@ type AgentConfig = {
    * superpowers-style snapshots where forcing implementation skews results.
    */
   conversationMode?: boolean;
+  pluginDir?: string;
 };
 
 /** Main CLI setup */
@@ -103,6 +104,7 @@ async function mainCli() {
                     snapshotId: modelConfig.snapshotId,
                     claudeCodeEnv,
                     model: modelConfig.model,
+                    pluginDir: modelConfig.pluginDir,
                   }),
                 sampleSize: modelConfig.runsPerCase,
               })(input)
@@ -113,6 +115,7 @@ async function mainCli() {
                   snapshotId: modelConfig.snapshotId,
                   claudeCodeEnv,
                   model: modelConfig.model,
+                  pluginDir: modelConfig.pluginDir,
                 }),
                 sampleSize: modelConfig.runsPerCase,
               })(input),
