@@ -1,3 +1,4 @@
+import { traced, wrapTraced } from "braintrust";
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { inferPrimaryLanguage } from "../sandbox/collectArtifacts";
 import { classifyStdoutAppStack } from "./classifyStdoutAppStack";
@@ -202,62 +203,78 @@ async function runConversationLoop(params: {
   let nextInput = prompt;
   let useContinue = false;
 
+  const runClaudeTurn = makeRunClaudeTurnTraced(sandbox);
+  const runHumanAgentTurn = makeRunHumanAgentTurnTraced(humanAgentModel);
+
+  const END_CONVERSATION = "stop" as const;
+  const CONTINUE_CONVERSATION = "continue" as const;
+  const ERR_SANDBOX_STOPPED = "sandbox_stopped" as const;
+  type LoopStepResult =
+    | { status: typeof ERR_SANDBOX_STOPPED; runResult: null }
+    | { status: typeof END_CONVERSATION; runResult: ClaudeCommandResult }
+    | { status: typeof CONTINUE_CONVERSATION; runResult: ClaudeCommandResult };
+
   for (let turn = 1; turn <= maxTurns; turn++) {
-    history.push({ role: "human", content: nextInput });
-
-    let run: ClaudeCommandResult;
-    try {
-      run = await sandbox.runClaude({
-        input: nextInput,
-        continueSession: useContinue,
-        outputFormat: "json",
-      });
-    } catch (err) {
-      // Vercel sandbox 410 stop error. Likely a timeout.
-      // We avoid throwing & do partial scoring on the standard output.
-      if (isSandboxStoppedError(err)) {
-        sandboxStopped = true;
-        break;
+    const { status, runResult } = await traced( 
+      async (): Promise<LoopStepResult> => {
+        history.push({ role: "human", content: nextInput });
+        const turnResult = await runClaudeTurn({
+          turn,
+          input: nextInput,
+          useContinue,
+        });
+  
+        // Return null here to avoid overwriting a real result with a failure.
+        if (turnResult.type === "sandbox_stopped") {
+          sandboxStopped = true;
+          return { status: ERR_SANDBOX_STOPPED, runResult: null };
+        }
+  
+        const { run, claudeText } = turnResult;
+        totalDurationMs += run.durationMs;
+        turnCount = turn;
+        history.push({ role: "claude", content: claudeText });
+  
+        if (run.exitCode !== 0) return { status: END_CONVERSATION, runResult: run };
+  
+        const asked = await classifyAskedSafely({
+          model: lightJudgeModel,
+          stdout: claudeText,
+        });
+        if (turn === 1) askedQuestionOnFirstAttempt = asked;
+        if (!asked) return { status: END_CONVERSATION, runResult: run };
+  
+        // Claude is still asking. Decide what to send on the next turn.
+        if (turn >= maxTurns) return { status: END_CONVERSATION, runResult: run };
+  
+        if (turn === maxTurns - 1) {
+          // One turn left after this — use it on the fallback prompt.
+          nextInput = FALLBACK_PROMPT;
+          fellBackToForcePrompt = true;
+        } else {
+          const reply = await runHumanAgentTurn({
+            turn,
+            taskPrompt: prompt,
+            claudeText,
+          });
+          if (reply === null) {
+            nextInput = FALLBACK_PROMPT;
+            fellBackToForcePrompt = true;
+          } else {
+            nextInput = reply;
+          }
+        }
+        useContinue = true;
+        return { status: CONTINUE_CONVERSATION, runResult: run };
+      },
+      {
+        name: "Conversate",
       }
-      throw err;
-    }
-    lastRun = run;
-    totalDurationMs += run.durationMs;
-    turnCount = turn;
+    )
+    if (status === ERR_SANDBOX_STOPPED) break;
 
-    const claudeText = extractResultFromJson(run.stdout);
-    history.push({ role: "claude", content: claudeText });
-
-    if (run.exitCode !== 0) break;
-
-    const asked = await classifyAskedSafely({
-      model: lightJudgeModel,
-      stdout: claudeText,
-    });
-    if (turn === 1) askedQuestionOnFirstAttempt = asked;
-    if (!asked) break;
-
-    // Claude is still asking. Decide what to send on the next turn.
-    if (turn >= maxTurns) break;
-
-    if (turn === maxTurns - 1) {
-      // One turn left after this — use it on the fallback prompt.
-      nextInput = FALLBACK_PROMPT;
-      fellBackToForcePrompt = true;
-    } else {
-      const reply = await generateHumanAgentReplyWithRetry({
-        model: humanAgentModel,
-        taskPrompt: prompt,
-        claudeText,
-      });
-      if (reply === null) {
-        nextInput = FALLBACK_PROMPT;
-        fellBackToForcePrompt = true;
-      } else {
-        nextInput = reply;
-      }
-    }
-    useContinue = true;
+    lastRun = runResult;
+    if (status === END_CONVERSATION) break;
   }
 
   return {
@@ -271,6 +288,56 @@ async function runConversationLoop(params: {
     fellBackToForcePrompt,
     sandboxStopped,
   };
+}
+
+type ClaudeTurnResult =
+  | { type: "ok"; run: ClaudeCommandResult; claudeText: string }
+  | { type: "sandbox_stopped" };
+
+function makeRunClaudeTurnTraced(sandbox: ClaudeCodeSandboxHandle) {
+  return wrapTraced(
+    async function runClaudeCodeAgent(turnInput: {
+      turn: number;
+      input: string;
+      useContinue: boolean;
+    }): Promise<ClaudeTurnResult> {
+      const { input, useContinue } = turnInput;
+      let run: ClaudeCommandResult;
+      try {
+        run = await sandbox.runClaude({
+          input,
+          continueSession: useContinue,
+          outputFormat: "json",
+        });
+      } catch (err) {
+        // Vercel sandbox 410 stop error. Likely a timeout.
+        // We avoid throwing & do partial scoring on the standard output.
+        if (isSandboxStoppedError(err)) {
+          return { type: "sandbox_stopped" };
+        }
+        throw err;
+      }
+      const claudeText = extractResultFromJson(run.stdout);
+      return { type: "ok", run, claudeText };
+    },
+  );
+}
+
+function makeRunHumanAgentTurnTraced(model: LanguageModel) {
+  return wrapTraced(
+    async function replyWithHumanAgent(turnInput: {
+      turn: number;
+      taskPrompt: string;
+      claudeText: string;
+    }): Promise<string | null> {
+      const { taskPrompt, claudeText } = turnInput;
+      return generateHumanAgentReplyWithRetry({
+        model,
+        taskPrompt,
+        claudeText,
+      });
+    },
+  );
 }
 
 async function classifyAskedSafely(params: {

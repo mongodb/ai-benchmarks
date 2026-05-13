@@ -20,7 +20,7 @@ export const codingAgentBenchmarkModels = {
   },
   "claude-code-nonconversational": {
     description: "Claude Code non-conversational snapshot - just build it. Human agent does not answer questions. 3 runs/case",
-    config: { snapshotId: CLAUDE_CODE_BASE_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: SAMPLE_SIZE, conversationMode: true },
+    config: { snapshotId: CLAUDE_CODE_BASE_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: SAMPLE_SIZE, conversationMode: false },
   },
   "claude-code-superpowers": {
     description: "Claude Code superpowers snapshot, 3 runs/case (multi-turn conversation runner)",

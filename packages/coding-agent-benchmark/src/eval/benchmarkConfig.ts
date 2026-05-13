@@ -3,7 +3,7 @@ import {
   assertEnvVars,
   BRAINTRUST_ENV_VARS,
 } from "mongodb-rag-core";
-import { createOpenAI, generateText, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
+import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { models } from "mongodb-rag-core/models";
 import {

@@ -1,4 +1,5 @@
 import { Sandbox } from "@vercel/sandbox";
+import { Agent, fetch as undiciFetch } from "undici";
 import { collectGeneratedFiles } from "./collectArtifacts";
 import type { GeneratedFile, SandboxResult } from "./SandboxResult";
 import { VERCEL_ENV_VARS } from "../envVars";
@@ -6,7 +7,17 @@ import { assertEnvVars } from "mongodb-rag-core";
 
 const PROJECT_DIR = "/home/dev/app";
 
-const SANDBOX_TIMEOUT_MS = 1 * 60 * 1000;
+const SANDBOX_TIMEOUT_MS = 45 * 60 * 1000;
+
+// @vercel/sandbox's command.wait() long-polls the API and the SDK only zeroes
+// out undici's bodyTimeout, leaving headersTimeout at the 5-minute default.
+// Any claude turn longer than that aborts with UND_ERR_HEADERS_TIMEOUT.
+const longPollDispatcher = new Agent({ headersTimeout: 0, bodyTimeout: 0 });
+const longPollFetch = ((url, opts) =>
+  undiciFetch(url as Parameters<typeof undiciFetch>[0], {
+    ...(opts as Parameters<typeof undiciFetch>[1]),
+    dispatcher: longPollDispatcher,
+  })) as typeof globalThis.fetch;
 
 const activeSandboxes = new Set<Sandbox>();
 
@@ -71,6 +82,7 @@ export async function createClaudeCodeSandbox(
     token: VERCEL_TOKEN,
     teamId: VERCEL_TEAM_ID,
     projectId: VERCEL_PROJECT_ID,
+    fetch: longPollFetch,
     env: {
       ...claudeCodeEnv,
       HOME: "/home/dev",
