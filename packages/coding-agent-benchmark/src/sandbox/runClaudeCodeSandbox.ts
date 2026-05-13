@@ -8,6 +8,11 @@ import { assertEnvVars } from "mongodb-rag-core";
 const PROJECT_DIR = "/home/dev/app";
 
 const SANDBOX_TIMEOUT_MS = 45 * 60 * 1000;
+// Vercel kills the sandbox at SANDBOX_TIMEOUT_MS. Snapshot the workspace
+// 90s before that so partial scoring still has files to look at when the
+// agent runs long. collectGeneratedFiles is serial RPC, ~5-20s typical,
+// can spike higher for large repos — 90s is a conservative cushion.
+const DEADLINE_SNAPSHOT_MARGIN_MS = 90 * 1000;
 
 // @vercel/sandbox's command.wait() long-polls the API and the SDK only zeroes
 // out undici's bodyTimeout, leaving headersTimeout at the 5-minute default.
@@ -35,6 +40,7 @@ export type CreateClaudeCodeSandboxParams = {
   snapshotId: string;
   claudeCodeEnv: Record<string, string>;
   model: string;
+  pluginDir?: string;
 };
 
 export type ClaudeCommandResult = {
@@ -72,7 +78,7 @@ export type ClaudeCodeSandboxHandle = {
 export async function createClaudeCodeSandbox(
   params: CreateClaudeCodeSandboxParams
 ): Promise<ClaudeCodeSandboxHandle> {
-  const { snapshotId, claudeCodeEnv, model } = params;
+  const { snapshotId, claudeCodeEnv, model, pluginDir } = params;
   const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } =
     assertEnvVars(VERCEL_ENV_VARS);
 
@@ -101,6 +107,20 @@ export async function createClaudeCodeSandbox(
   }
 
   let closed = false;
+  let cachedSnapshot: GeneratedFile[] | null = null;
+
+  const deadlineTimer = setTimeout(async () => {
+    const start = Date.now();
+    try {
+      cachedSnapshot = await collectGeneratedFiles(sandbox, PROJECT_DIR);
+      console.log(
+        `[sandbox] deadline snapshot captured ${cachedSnapshot.length} files in ${Date.now() - start}ms`
+      );
+    } catch (err) {
+      console.warn(`[sandbox] deadline snapshot failed:`, err);
+    }
+  }, SANDBOX_TIMEOUT_MS - DEADLINE_SNAPSHOT_MARGIN_MS);
+  deadlineTimer.unref?.();
 
   return {
     async runClaude({ input, continueSession, outputFormat }) {
@@ -109,8 +129,9 @@ export async function createClaudeCodeSandbox(
         "--dangerously-skip-permissions",
         "--model",
         model,
-        "--print",
       ];
+      if (pluginDir) args.push("--plugin-dir", pluginDir);
+      args.push("--print");
       if (continueSession) args.push("--continue");
       if (outputFormat === "json") args.push("--output-format", "json");
       args.push(input);
@@ -131,11 +152,16 @@ export async function createClaudeCodeSandbox(
       };
     },
     async collectFiles() {
-      return collectGeneratedFiles(sandbox, PROJECT_DIR);
+      try {
+        return await collectGeneratedFiles(sandbox, PROJECT_DIR);
+      } catch {
+        return cachedSnapshot ?? [];
+      }
     },
     async close() {
       if (closed) return;
       closed = true;
+      clearTimeout(deadlineTimer);
       activeSandboxes.delete(sandbox);
       await sandbox.stop();
     },
