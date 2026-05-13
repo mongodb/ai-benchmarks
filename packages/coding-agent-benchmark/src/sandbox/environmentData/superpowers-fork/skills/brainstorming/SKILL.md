@@ -24,7 +24,7 @@ You MUST create a task for each of these items and complete them in order:
 1. **Explore project context** — check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Enumerate requirements before proposing technology** — see "Requirements-First Technology Selection" below. MUST complete before step 5.
+4. **Enumerate data persistence requirements** — for any project involving data storage, APIs, or technology stack choices: write out (a) data model requirements, (b) constraints, (c) technology options mapped to requirements. Show this output to the user before step 5. If the project has no data persistence or external service component, mark N/A and proceed. See "Requirements-First Technology Selection" below.
 5. **Propose 2-3 approaches** — with trade-offs and your recommendation
 6. **Present design** — in sections scaled to their complexity, get user approval after each section
 7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
@@ -70,9 +70,9 @@ digraph brainstorming {
 
 ## Requirements-First Technology Selection
 
-**Before proposing any technology stack, you MUST complete this step.**
+**Before proposing any data persistence or external service technology, you MUST complete this step. Skip (mark N/A) only if the project has no data storage, API integration, or technology stack choices.**
 
-This step is a hard gate that fires between clarifying questions (step 3) and proposing approaches (step 5). Do not skip it. Do not merge it with your approach proposal — enumerate requirements first, then evaluate options against them in a separate step.
+This step is a hard gate that fires between clarifying questions (step 3) and proposing approaches (step 5). Do not skip it. Do not merge it with your approach proposal — enumerate requirements first, then evaluate options against them in a separate step. Show the output of this step to the user before proceeding.
 
 **Step 4 procedure:**
 
