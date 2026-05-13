@@ -1,5 +1,12 @@
 import { Sandbox } from "@vercel/sandbox";
+import { readdir, readFile } from "fs/promises";
+import { join } from "path";
+import type { Dirent } from "fs";
 import { createSnapshot, run } from "./createSnapshot";
+
+// __dirname is the directory of the compiled output (build/sandbox/).
+// Navigate back to the source environment data directory.
+const ENV_DATA_DIR = join(__dirname, "../../src/sandbox/environmentData");
 
 /**
  * Installs Claude Code into the sandbox and verifies it.
@@ -10,6 +17,25 @@ async function installClaudeCode(sandbox: Sandbox): Promise<void> {
   const versionResult = await sandbox.runCommand("claude", ["--version"]);
   const version = (await versionResult.stdout()).trim();
   console.log(`  Claude Code version: ${version}`);
+}
+
+async function uploadDirectory(
+  sandbox: Sandbox,
+  localDir: string,
+  remoteDir: string
+): Promise<void> {
+  const entries: Dirent[] = await readdir(localDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const localPath = join(localDir, entry.name);
+    const remotePath = `${remoteDir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      await sandbox.fs.mkdir(remotePath, { recursive: true });
+      await uploadDirectory(sandbox, localPath, remotePath);
+    } else {
+      const content = await readFile(localPath);
+      await sandbox.fs.writeFile(remotePath, content);
+    }
+  }
 }
 
 /**
@@ -65,4 +91,38 @@ export async function createSuperpowersSnapshot(): Promise<string> {
   return createSnapshot({ setupCodingAgent: installClaudeCodeAndSuperpowers });
 }
 
-// export async function createCustomSuperpowersSnapshot(): Promise<string>;
+export async function createSuperpowersForkSnapshot(): Promise<string> {
+  const setupFork = async (sandbox: Sandbox): Promise<void> => {
+    await installClaudeCode(sandbox);
+
+    const forkDir = join(ENV_DATA_DIR, "superpowers-fork");
+    process.stdout.write("  Uploading superpowers fork files...");
+    await sandbox.fs.mkdir("/home/dev/superpowers", { recursive: true });
+    await uploadDirectory(sandbox, forkDir, "/home/dev/superpowers");
+    console.log(" done");
+
+    await run(
+      "chmod +x /home/dev/superpowers/hooks/session-start /home/dev/superpowers/hooks/run-hook.cmd",
+      sandbox,
+      "Setting hook permissions"
+    );
+  };
+
+  return createSnapshot({ setupCodingAgent: setupFork });
+}
+
+export async function createClaudeMdSnapshot(): Promise<string> {
+  const setupClaudeMd = async (sandbox: Sandbox): Promise<void> => {
+    await installClaudeCode(sandbox);
+
+    const claudeMdContent = await readFile(
+      join(ENV_DATA_DIR, "EXPERIMENT_CLAUDE.md"),
+      "utf-8"
+    );
+    await sandbox.fs.mkdir("/home/dev/.claude", { recursive: true });
+    await sandbox.fs.writeFile("/home/dev/.claude/CLAUDE.md", claudeMdContent);
+    console.log("  CLAUDE.md written");
+  };
+
+  return createSnapshot({ setupCodingAgent: setupClaudeMd });
+}
