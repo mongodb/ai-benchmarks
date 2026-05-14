@@ -31,11 +31,15 @@ async function main(): Promise<void> {
 
   try {
     console.log("\nTurn 1: asking Claude to remember a fact...");
-    const turn1 = await handle.runClaude({
+    const turn1Result = await handle.runClaude({
       input:
         "Remember this for later: my favorite color is chartreuse. Just acknowledge briefly.",
       outputFormat: "json",
     });
+    if (turn1Result.type === "sandbox_stopped") {
+      throw new Error("Turn 1 failed: Sandbox stopped");
+    }
+    const { run: turn1 } = turn1Result;
     console.log(`  exitCode:   ${turn1.exitCode}`);
     console.log(`  durationMs: ${turn1.durationMs}`);
     console.log(`  raw stdout (first 500 chars):\n${turn1.stdout.slice(0, 500)}`);
@@ -49,11 +53,15 @@ async function main(): Promise<void> {
     console.log(`  .session_id: ${parsed1.session_id ?? "<missing>"}`);
 
     console.log("\nTurn 2: using --continue, asking what color was mentioned...");
-    const turn2 = await handle.runClaude({
+    const turn2Result = await handle.runClaude({
       input: "What color did I just mention? Reply with just the color name.",
       continueSession: true,
       outputFormat: "json",
     });
+    if (turn2Result.type === "sandbox_stopped") {
+      throw new Error("Turn 2 failed: Sandbox stopped");
+    }
+    const { run: turn2 } = turn2Result;
     console.log(`  exitCode:   ${turn2.exitCode}`);
     console.log(`  durationMs: ${turn2.durationMs}`);
     console.log(`  raw stdout (first 500 chars):\n${turn2.stdout.slice(0, 500)}`);

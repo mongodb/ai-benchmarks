@@ -1,17 +1,16 @@
-import { Sandbox } from "@vercel/sandbox";
+import { Command, CommandFinished, Sandbox } from "@vercel/sandbox";
 import { Agent, fetch as undiciFetch } from "undici";
 import { collectGeneratedFiles } from "./collectArtifacts";
 import type { GeneratedFile, SandboxResult } from "./SandboxResult";
 import { VERCEL_ENV_VARS } from "../envVars";
 import { assertEnvVars } from "mongodb-rag-core";
+import { traced } from "braintrust";
 
 const PROJECT_DIR = "/home/dev/app";
 
 const SANDBOX_TIMEOUT_MS = 45 * 60 * 1000;
-// Vercel kills the sandbox at SANDBOX_TIMEOUT_MS. Snapshot the workspace
-// 90s before that so partial scoring still has files to look at when the
-// agent runs long. collectGeneratedFiles is serial RPC, ~5-20s typical,
-// can spike higher for large repos — 90s is a conservative cushion.
+// Snapshot the workspace 90s before Vercel's deadline. collectGeneratedFiles
+// is serial RPC (~5-20s typical, spikes higher for large repos).
 const DEADLINE_SNAPSHOT_MARGIN_MS = 90 * 1000;
 
 // @vercel/sandbox's command.wait() long-polls the API and the SDK only zeroes
@@ -65,7 +64,10 @@ export type RunClaudeOptions = {
  * must persist on disk between invocations.
  */
 export type ClaudeCodeSandboxHandle = {
-  runClaude(options: RunClaudeOptions): Promise<ClaudeCommandResult>;
+  runClaude(options: RunClaudeOptions): Promise<
+    { type: "ok"; run: ClaudeCommandResult, claudeText: string } |
+    { type: "sandbox_stopped" }
+  >;
   collectFiles(): Promise<GeneratedFile[]>;
   close(): Promise<void>;
 };
@@ -98,14 +100,8 @@ export async function createClaudeCodeSandbox(
   });
   activeSandboxes.add(sandbox);
 
-  try {
-    await initializeWorkspace(sandbox);
-  } catch (err) {
-    activeSandboxes.delete(sandbox);
-    await sandbox.stop().catch(() => {});
-    throw err;
-  }
-
+  // Start the deadline timer immediately after Sandbox.create() resolves so
+  // Vercel's timeout clock and our timer are aligned. 
   let closed = false;
   let cachedSnapshot: GeneratedFile[] | null = null;
 
@@ -123,38 +119,80 @@ export async function createClaudeCodeSandbox(
   }, SANDBOX_TIMEOUT_MS - DEADLINE_SNAPSHOT_MARGIN_MS);
   deadlineTimer.unref?.();
 
+  try {
+    await initializeWorkspace(sandbox);
+  } catch (err) {
+    closed = true;
+    clearTimeout(deadlineTimer);
+    activeSandboxes.delete(sandbox);
+    await sandbox.stop().catch(() => {});
+    throw err;
+  }
+
   return {
-    async runClaude({ input, continueSession, outputFormat }) {
-      const startTime = Date.now();
-      const args = [
-        "--dangerously-skip-permissions",
-        "--model",
-        model,
-      ];
-      if (pluginDir) args.push("--plugin-dir", pluginDir);
-      args.push("--print");
-      if (continueSession) args.push("--continue");
-      if (outputFormat === "json") args.push("--output-format", "json");
-      args.push(input);
+    async runClaude(options: RunClaudeOptions) {
+      return traced(async () => {
+        const { input, continueSession, outputFormat } = options;
+        const startTime = Date.now();
 
-      const command = await sandbox.runCommand({
-        cmd: "claude",
-        args,
-        cwd: PROJECT_DIR,
-        detached: true,
-      });
-      const finished = await command.wait();
+        // build command args
+        const args = [
+          "--dangerously-skip-permissions",
+          "--model",
+          model,
+        ];
+        if (pluginDir) args.push("--plugin-dir", pluginDir);
+        args.push("--print");
+        if (continueSession) args.push("--continue");
+        if (outputFormat === "json") args.push("--output-format", "json");
+        args.push(input);
 
-      return {
-        stdout: await finished.stdout(),
-        stderr: await finished.stderr(),
-        exitCode: finished.exitCode,
-        durationMs: Date.now() - startTime,
-      };
-    },
+        // run command
+        let commandOutput: CommandFinished | null = null;
+        try {
+          const command = await sandbox.runCommand({
+            cmd: "claude",
+            args,
+            cwd: PROJECT_DIR,
+            detached: true,
+          });
+          commandOutput = await waitForCommandWithRecovery(command);
+        } catch (err) {
+          // handle errors. most resolvable errors are due to sandbox timeouts
+          if (isSandboxStoppedError(err)) {
+            return { type: "sandbox_stopped" };
+          } 
+          if (err instanceof Error && err.message === SANDBOX_UNAVAILABLE_ERR_MSG) {
+            return { type: "sandbox_stopped" };
+          }
+          throw err;
+        }
+
+        const stdout = await commandOutput.stdout();
+        return {
+          type: "ok",
+          run: {
+            stdout,
+            stderr: await commandOutput.stderr(),
+            exitCode: commandOutput.exitCode,
+            durationMs: Date.now() - startTime,
+          },
+          claudeText: extractResultFromJson(stdout),
+        };
+      },
+      {
+        name: "runClaudeCodeAgent",
+      }
+    )},
+    /**
+     * Collects the generated files from the sandbox.
+     * @returns The collected files, or the cached snapshot if the collection failed or returned no files.
+     */
     async collectFiles() {
       try {
-        return await collectGeneratedFiles(sandbox, PROJECT_DIR);
+        const maybeCollectedFiles = await collectGeneratedFiles(sandbox, PROJECT_DIR);
+        if (maybeCollectedFiles && maybeCollectedFiles.length > 0) return maybeCollectedFiles;
+        throw new Error("[sandbox] collectFiles returned no files");
       } catch (err) {
         console.warn("[sandbox] collectFiles failed, returning cached snapshot or empty array", err);
         return cachedSnapshot ?? [];
@@ -194,7 +232,13 @@ export function makeRunClaudeCodeSandbox(
   return async ({ prompt }) => {
     const handle = await createClaudeCodeSandbox(params);
     try {
-      const run = await handle.runClaude({ input: prompt });
+      const claudeResult = await handle.runClaude({ input: prompt });
+
+      if (claudeResult.type === "sandbox_stopped") {
+        throw new Error(SANDBOX_UNAVAILABLE_ERR_MSG);
+      }
+
+      const { run } = claudeResult;
       const files = await handle.collectFiles();
       return { ...run, files };
     } finally {
@@ -221,4 +265,81 @@ async function initializeWorkspace(sandbox: Sandbox): Promise<void> {
       throw new Error(`Workspace init failed at: ${cmd}\n${stderr}`);
     }
   }
+}
+
+const SANDBOX_UNAVAILABLE_ERR_MSG = "SandboxUnavailableError";
+
+async function waitForCommandWithRecovery(command: Command): Promise<CommandFinished> {
+  const maxAttempts = 3;
+  const backoffsMs = [1_000, 5_000];
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await command.wait();
+    } catch (err) {
+      if (!isRecoverableSandboxWaitError(err)) throw err;
+      if (attempt === maxAttempts) throw new Error(SANDBOX_UNAVAILABLE_ERR_MSG);
+      console.warn(
+        `[sandbox] command.wait() failed with recoverable error; retrying (${attempt}/${maxAttempts})`,
+        err
+      );
+      await new Promise((r) => setTimeout(r, backoffsMs[attempt - 1] ?? 5_000));
+    }
+  }
+  // Unreachable at runtime — the last iteration always throws — but TypeScript
+  // can't prove that, so this satisfies the Promise<CommandFinished> return type.
+  throw new Error(SANDBOX_UNAVAILABLE_ERR_MSG);
+}
+
+function isSandboxStoppedError(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  const e = err as {
+    response?: { status?: number };
+    json?: { error?: { code?: string } };
+  };
+  return (
+    e.response?.status === 410 && e.json?.error?.code === "sandbox_stopped"
+  );
+}
+
+function isRecoverableSandboxWaitError(err: unknown): boolean {
+  const code = findErrorCode(err);
+  return (
+    code === "UND_ERR_SOCKET" ||
+    code === "UND_ERR_HEADERS_TIMEOUT" ||
+    code === "ECONNRESET" ||
+    code === "ETIMEDOUT"
+  );
+}
+
+function findErrorCode(err: unknown): string | undefined {
+  if (typeof err !== "object" || err === null) return undefined;
+  const e = err as {
+    code?: unknown;
+    name?: unknown;
+    cause?: unknown;
+  };
+  if (typeof e.code === "string") return e.code;
+  if (typeof e.name === "string" && e.name.startsWith("UND_ERR_")) {
+    return e.name;
+  }
+  return findErrorCode(e.cause);
+}
+
+/**
+ * Extract the `.result` field from `claude --output-format json` stdout.
+ * Falls back to the raw stdout if JSON parsing fails so the loop can keep
+ * making progress on classification.
+ */
+export function extractResultFromJson(stdout: string): string {
+  const trimmed = stdout.trim();
+  if (trimmed.length === 0) return "";
+  try {
+    const parsed = JSON.parse(trimmed) as { result?: unknown };
+    if (typeof parsed.result === "string") {
+      return parsed.result;
+    }
+  } catch {
+    // Not JSON — return raw so classifier still has something to work with.
+  }
+  return stdout;
 }

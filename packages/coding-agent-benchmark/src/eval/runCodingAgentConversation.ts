@@ -170,17 +170,6 @@ function emptyOutcome(): ConversationOutcome {
   };
 }
 
-function isSandboxStoppedError(err: unknown): boolean {
-  if (typeof err !== "object" || err === null) return false;
-  const e = err as {
-    response?: { status?: number };
-    json?: { error?: { code?: string } };
-  };
-  return (
-    e.response?.status === 410 && e.json?.error?.code === "sandbox_stopped"
-  );
-}
-
 async function runConversationLoop(params: {
   prompt: string;
   sandbox: ClaudeCodeSandboxHandle;
@@ -202,7 +191,7 @@ async function runConversationLoop(params: {
   let nextInput = prompt;
   let useContinue = false;
 
-  const runClaudeTurn = makeRunClaudeTurnTraced(sandbox);
+  const runClaudeTurn = sandbox.runClaude;
   const runHumanAgentTurn = makeRunHumanAgentTurnTraced(humanAgentModel);
 
   const END_CONVERSATION = "stop" as const;
@@ -217,10 +206,11 @@ async function runConversationLoop(params: {
     const { status, runResult } = await traced( 
       async (): Promise<LoopStepResult> => {
         history.push({ role: "human", content: nextInput });
+
         const turnResult = await runClaudeTurn({
-          turn,
           input: nextInput,
-          useContinue,
+          continueSession: useContinue,
+          outputFormat: "json",
         });
   
         // Return null here to avoid overwriting a real result with a failure.
@@ -289,39 +279,6 @@ async function runConversationLoop(params: {
   };
 }
 
-type ClaudeTurnResult =
-  | { type: "ok"; run: ClaudeCommandResult; claudeText: string }
-  | { type: "sandbox_stopped" };
-
-function makeRunClaudeTurnTraced(sandbox: ClaudeCodeSandboxHandle) {
-  return wrapTraced(
-    async function runClaudeCodeAgent(turnInput: {
-      turn: number;
-      input: string;
-      useContinue: boolean;
-    }): Promise<ClaudeTurnResult> {
-      const { input, useContinue } = turnInput;
-      let run: ClaudeCommandResult;
-      try {
-        run = await sandbox.runClaude({
-          input,
-          continueSession: useContinue,
-          outputFormat: "json",
-        });
-      } catch (err) {
-        // Vercel sandbox 410 stop error. Likely a timeout.
-        // We avoid throwing & do partial scoring on the standard output.
-        if (isSandboxStoppedError(err)) {
-          return { type: "sandbox_stopped" };
-        }
-        throw err;
-      }
-      const claudeText = extractResultFromJson(run.stdout);
-      return { type: "ok", run, claudeText };
-    },
-  );
-}
-
 function makeRunHumanAgentTurnTraced(model: LanguageModel) {
   return wrapTraced(
     async function replyWithHumanAgent(turnInput: {
@@ -364,23 +321,4 @@ async function generateHumanAgentReplyWithRetry(
       return null;
     }
   }
-}
-
-/**
- * Extract the `.result` field from `claude --output-format json` stdout.
- * Falls back to the raw stdout if JSON parsing fails so the loop can keep
- * making progress on classification.
- */
-export function extractResultFromJson(stdout: string): string {
-  const trimmed = stdout.trim();
-  if (trimmed.length === 0) return "";
-  try {
-    const parsed = JSON.parse(trimmed) as { result?: unknown };
-    if (typeof parsed.result === "string") {
-      return parsed.result;
-    }
-  } catch {
-    // Not JSON — return raw so classifier still has something to work with.
-  }
-  return stdout;
 }
