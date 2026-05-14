@@ -17,12 +17,6 @@ export {
   VERCEL_ENV_VARS,
   CLAUDE_CODE_SNAPSHOT_IDS,
 } from "./envVars.js";
-
-export { makeRunCodingAgentTask } from "./eval/runCodingAgentTask.js";
-export type {
-  RunCodingAgentSandbox,
-  MakeRunCodingAgentTaskParams,
-} from "./eval/runCodingAgentTask.js";
 export type {
   CodingAgentEvalCase,
   CodingAgentEvalCaseInput,

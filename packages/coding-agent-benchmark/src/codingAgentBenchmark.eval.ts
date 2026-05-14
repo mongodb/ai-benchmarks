@@ -1,14 +1,11 @@
 import "dotenv/config";
-import { Eval } from "mongodb-rag-core/braintrust";
 import { assertEnvVars } from "mongodb-rag-core";
 import {
   createClaudeCodeSandbox,
-  makeRunClaudeCodeSandbox,
   stopAllActiveSandboxes,
 } from "./sandbox/runClaudeCodeSandbox";
 import {
   ANTHROPIC_FOUNDRY_ENV_VARS,
-  CLAUDE_CODE_SNAPSHOT_IDS,
 } from "./envVars";
 import {
   datasets,
@@ -17,8 +14,7 @@ import {
   humanAgentModel,
   scorers,
 } from "./eval/benchmarkConfig";
-import { CLAUDE_CODE_MODEL, codingAgentBenchmarkModels } from "./eval/benchmarkModels";
-import { makeRunCodingAgentTask } from "./eval/runCodingAgentTask";
+import { codingAgentBenchmarkModels } from "./eval/benchmarkModels";
 import { makeRunCodingAgentConversation } from "./eval/runCodingAgentConversation";
 import { createMongoDbAssistantEvalCli, EvalCliConfig } from "mongodb-assistant-eval";
 import { CodingAgentEvalCaseInput, CodingAgentEvalCaseMetadata, CodingAgentTaskExpected, CodingAgentTaskOutput } from "./eval/CodingAgentEval";
@@ -69,12 +65,6 @@ type AgentConfig = {
   model: string;
   /** Number of independent runs per eval case (for statistical sampling). */
   runsPerCase: number;
-  /**
-   * When true, route this model through the multi-turn conversation runner
-   * (human-user AI agent responds to clarifying questions). Used for
-   * superpowers-style snapshots where forcing implementation skews results.
-   */
-  conversationMode?: boolean;
   pluginDir?: string;
 };
 
@@ -94,31 +84,19 @@ async function mainCli() {
       codingAgent: {
         description: "Runs the coding agent in a Vercel sandbox",
         run: ({ input, modelConfig }) =>
-          modelConfig.conversationMode
-            ? makeRunCodingAgentConversation({
-                codeJudgeModel,
-                lightJudgeModel,
-                humanAgentModel,
-                createSandbox: () =>
-                  createClaudeCodeSandbox({
-                    snapshotId: modelConfig.snapshotId,
-                    claudeCodeEnv,
-                    model: modelConfig.model,
-                    pluginDir: modelConfig.pluginDir,
-                  }),
-                sampleSize: modelConfig.runsPerCase,
-              })(input)
-            : makeRunCodingAgentTask({
-                codeJudgeModel,
-                lightJudgeModel,
-                runSandbox: makeRunClaudeCodeSandbox({
-                  snapshotId: modelConfig.snapshotId,
-                  claudeCodeEnv,
-                  model: modelConfig.model,
-                  pluginDir: modelConfig.pluginDir,
-                }),
-                sampleSize: modelConfig.runsPerCase,
-              })(input),
+          makeRunCodingAgentConversation({
+            codeJudgeModel,
+            lightJudgeModel,
+            humanAgentModel,
+            createSandbox: () =>
+              createClaudeCodeSandbox({
+                snapshotId: modelConfig.snapshotId,
+                claudeCodeEnv,
+                model: modelConfig.model,
+                pluginDir: modelConfig.pluginDir,
+              }),
+            sampleSize: modelConfig.runsPerCase,
+          })(input),
       },
     },
     scorers: Object.fromEntries(
