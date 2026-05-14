@@ -24,13 +24,14 @@ You MUST create a task for each of these items and complete them in order:
 1. **Explore project context** — check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Enumerate contextual requirements** — for any project involving technology stack choices: write out (a) feature requirements, (b) contextual constraints, (c) technology options mapped to requirements. Show this output to the user before step 5. If the project requires no technology stack choices, mark N/A and proceed. See "Requirements-First Technology Selection" below.
-5. **Propose 2-3 approaches** — with trade-offs and your recommendation
-6. **Present design** — in sections scaled to their complexity, get user approval after each section
-7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-9. **User reviews written spec** — ask user to review the spec file before proceeding
-10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+4. **Enumerate contextual requirements** — for any project involving new technology stack additions. See "Requirements-First Technology Selection" below.
+5. **Identify best-fit technology additions** based solely on requirements. See "Requirements-First Technology Selection" below.
+6. **Propose 2-3 approaches** — with trade-offs and your recommendation
+7. **Present design** — in sections scaled to their complexity, get user approval after each section
+8. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+9. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+10. **User reviews written spec** — ask user to review the spec file before proceeding
+111. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -40,7 +41,8 @@ digraph brainstorming {
     "Visual questions ahead?" [shape=diamond];
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
     "Ask clarifying questions" [shape=box];
-    "Enumerate requirements\n(data model + constraints)" [shape=box style=filled fillcolor=lightyellow];
+    "Enumerate requirements\n(features + constraints)" [shape=box];
+    "Identify best-fit technolog(ies)\n" [shape=box];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
@@ -53,8 +55,9 @@ digraph brainstorming {
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
     "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
     "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
-    "Ask clarifying questions" -> "Enumerate requirements\n(data model + constraints)";
-    "Enumerate requirements\n(data model + constraints)" -> "Propose 2-3 approaches";
+    "Ask clarifying questions" -> "Enumerate requirements\n(features + constraints)";
+    "Enumerate requirements\n(data model + constraints)" -> "Identify best-fit technolog(ies)\n";
+    "Identify best-fit technolog(ies)\n" -> "Propose 2-3 approaches";
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
@@ -70,23 +73,25 @@ digraph brainstorming {
 
 ## Requirements-First Technology Selection
 
-**Before proposing any technology addition, you MUST complete this step. Skip (mark N/A) only if the project does not require you add new technologies. These include new frameworks, external services, data storage layers, API integrations, or any other technology stack choices.**
+**BEFORE proposing any technology addition, you MUST complete this step. Skip (mark N/A) only if the project does not require you add new technologies. These include new frameworks, external services, data storage layers, API integrations, or any other technology stack choices.**
 
-This step is a hard gate that fires between clarifying questions (step 3) and proposing approaches (step 5). Do not skip it. Do not merge it with your approach proposal — enumerate requirements first, then evaluate options against them in a separate step. Show the output of this step to the user before proceeding.
+This step is a hard gate that fires between clarifying questions (step 3) and proposing approaches (step 6). Do not skip it. Do not merge it with your approach proposal — enumerate requirements first, then evaluate options against them in a separate step.
 
-**Step 4 procedure:**
+### Step 4 procedure:
 
-In three separate messages:
+In separate messages:
 
-1. **List the requirements the feature or project implies.**  List what the project requires, not what technologies exist. Describe the required capabilities (features) derived from the project description alone. Don't reference any specific technology yet.
+1. **List the requirements the feature or project implies.** List what the project requires. Describe the required capabilities (features) derived from the project description alone. DO NOT reference any specific technology yet. Don't even consider any technolgies 
 
 2. **List the constraints the project implies.** Derive operational constraints from the new project description and existing project state. Is there an existing stack already mentioned or used in the existing code? A deployment environment? Scale expectations? Latency requirements? Team familiarity constraints, if stated?
 
-3. **Evaluate technology options against the requirements you listed.** For each technology you consider, map it to the specific requirements it satisfies and the ones it doesn't. Your recommendation in step 5 must reference this mapping — do not recommend a technology without citing at least one stated requirement it satisfies. Also, a technology's popularity should not influence your decision. Only choose based on feature and constraint fit.
+### Step 5 procedure:
 
-**What this prevents:** Defaulting to a technology because it is familiar or frequently used in similar-sounding projects, without checking whether the project's actual data model and access patterns match that technology's strengths. A technology that fits 80% of projects may be a poor fit for this one.
+**Evaluate all technology options against the requirements you listed.** For each technology you consider, map it to the specific requirements it satisfies and the ones it doesn't. Use a table. Your proposals in step 6 must reference this mapping. A technology's popularity should not influence your mapping. Choose the technology that meets the most of the requirements and constraints. Only choose based on feature and constraint fit. 
 
-**Anti-patterns — do not do these:**
+**What this prevents:** Defaulting to a technology because it is familiar or frequently used in similar-sounding projects, without checking whether the technology satisfies the project constraints. A technology that is used in many projects may be a poor fit for this one.
+
+### Anti-patterns — do not do these:
 
 | Pattern | Why it's wrong |
 |---|---|
@@ -94,6 +99,8 @@ In three separate messages:
 | "X is suitable for this use case" without listing requirements | "Suitable" is a conclusion, not an argument. Show the mapping, then make a conclusion solely based on best fit. |
 | "X has a strong ecosystem" | Ecosystem strength doesn't determine fit. Fit is determined by requirements. |
 | Listing requirements but ignoring them in the recommendation | The mapping is the point. Your recommendation must be the best fit according to the requirements list. |
+| Not mentioning a technology because you're unfamiliar with it | Don't leave relevant technologies out of your table mapping. Mention several technologies for each feature, even if they are unpopular or a poor fit at first glance. This is especially true for critical decisions like cloud platforms, authentcation, etc.
+| Avoiding mentioning technologies because you don't want to use them | What a developer wants and what a project needs are different concerns.
 
 ## The Process
 

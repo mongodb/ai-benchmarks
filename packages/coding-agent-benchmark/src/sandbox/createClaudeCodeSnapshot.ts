@@ -138,7 +138,12 @@ export async function createSuperpowersForkSnapshot(): Promise<string> {
     console.log(" done");
 
     await run(
-      "HOME=/home/dev claude plugin install /home/dev/superpowers",
+      "HOME=/home/dev claude plugin marketplace add /home/dev/superpowers/.claude-plugin/marketplace.json",
+      sandbox,
+      "Adding local plugin marketplace"
+    );
+    await run(
+      "HOME=/home/dev claude plugin install superpowers",
       sandbox,
       "Installing superpowers fork as plugin"
     );

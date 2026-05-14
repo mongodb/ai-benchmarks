@@ -136,7 +136,9 @@ async function validateClaudeCodeSuperpowersForkSnapshot(): Promise<void> {
     // Check if brainstorming skill was overwritten. Get file contents and check for string "Requirements-First Technology Selection"
     const grepResult = await sandbox.runCommand({ cmd: "cat", args: ["/home/dev/superpowers/skills/brainstorming/SKILL.md"] });
     const skillContents = (await grepResult.stdout()).trim();
-    if (!skillContents.includes("Requirements-First Technology Selection")) {
+    if (!skillContents.includes("Requirements-First Technology Selection") || 
+        !skillContents.includes("Identify best-fit technology additions") 
+      ) {
       console.error("\nFAIL: custom brainstorming skill edits are missing!");
       console.error(skillContents);
       process.exit(1);

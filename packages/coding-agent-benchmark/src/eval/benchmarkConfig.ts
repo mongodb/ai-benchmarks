@@ -69,12 +69,12 @@ export const datasets = {
     description: "All 104 app-development eval cases",
     getCases: async () => loadDataset(),
   },
-  mongodb_optimal: {
+  "mongodb-optimal": {
     description: "Cases where MongoDB is the optimal database choice",
     getCases: async () =>
       loadDataset().filter((d) => d.tags.includes("mongodb-optimal")),
   },
-  db_agnostic: {
+  "not-mongodb-optimal": {
     description:
       "Cases where the prompt doesn't favor MongoDB — a different DB may be a better fit",
       getCases: async () =>
