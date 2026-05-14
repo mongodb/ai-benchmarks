@@ -21,6 +21,7 @@
     "snapshot:claude-md": "npm run build && node ./build/bin/createClaudeMdSnapshot.js",
     "snapshot:smoke-test": "npm run build && node ./build/sandbox/runClaudeCodeSandbox.smoke.test.js",
     "eval:smoke-test": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent --sample-size 1 --model smoke-test --dataset app-development",
+    "eval:smoke-test-superpowers-fork": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent --sample-size 1 --model smoke-test-superpowers-fork --dataset app-development",
     "eval:claude-code-base": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent  --model claude-code-baseline --dataset app-development",
     "eval:claude-code-superpowers": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent  --model claude-code-superpowers --dataset app-development",
     "eval:claude-code-superpowers-fork": "npx tsx src/codingAgentBenchmark.eval.ts evaluation run --task codingAgent  --model claude-code-superpowers-fork --dataset app-development",

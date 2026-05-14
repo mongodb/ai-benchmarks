@@ -41,6 +41,34 @@ async function uploadDirectory(
   }
 }
 
+// sandbox.fs.writeFile uses a tarball that can't overwrite root-owned files from git clone.
+// Write each file directly via sudo shell command instead.
+async function uploadDirectoryOverwriting(
+  sandbox: Sandbox,
+  localDir: string,
+  remoteDir: string
+): Promise<void> {
+  const entries: Dirent[] = await readdir(localDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const localPath = join(localDir, entry.name);
+    const remotePath = `${remoteDir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      await uploadDirectoryOverwriting(sandbox, localPath, remotePath);
+    } else {
+      const content = await readFile(localPath);
+      const b64 = content.toString("base64");
+      const result = await sandbox.runCommand({
+        cmd: "sh",
+        args: ["-c", `printf '%s' '${b64}' | base64 -d > '${remotePath}'`],
+        sudo: true,
+      });
+      if (result.exitCode !== 0) {
+        throw new Error(`Failed to write ${remotePath}: ${await result.stderr()}`);
+      }
+    }
+  }
+}
+
 /**
  * Creates a base snapshot of the Claude Code environment.
  */
@@ -106,8 +134,34 @@ export async function createSuperpowersForkSnapshot(): Promise<string> {
 
     const overridesDir = join(ENV_DATA_DIR, "superpowers-overrides");
     process.stdout.write("  Applying overrides...");
-    await uploadDirectory(sandbox, overridesDir, "/home/dev/superpowers");
+    await uploadDirectoryOverwriting(sandbox, overridesDir, "/home/dev/superpowers");
     console.log(" done");
+
+    await run(
+      "HOME=/home/dev claude plugin install /home/dev/superpowers",
+      sandbox,
+      "Installing superpowers fork as plugin"
+    );
+
+    const listResult = await sandbox.runCommand({
+      cmd: "sh",
+      args: ["-c", "HOME=/home/dev claude plugin list 2>&1"],
+    });
+    const listOutput = (await listResult.stdout()).trim();
+    const grepResult = await sandbox.runCommand({
+      cmd: "sh",
+      args: ["-c", "grep -rl superpowers /home/dev/.claude 2>/dev/null | head -1"],
+    });
+    const grepFound = (await grepResult.stdout()).trim().length > 0;
+
+    if (!listOutput.toLowerCase().includes("superpowers") && !grepFound) {
+      throw new Error(
+        `Superpowers fork did not register after install.\n` +
+        `claude plugin list output: ${listOutput || "(empty)"}\n` +
+        `config grep: ${grepFound ? "found" : "not found"}`
+      );
+    }
+    console.log("  Plugin verified");
   };
 
   return createSnapshot({ setupCodingAgent: setupFork });

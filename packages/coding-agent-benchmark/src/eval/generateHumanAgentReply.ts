@@ -1,13 +1,7 @@
-import { createOpenAI, generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
+import { generateText, LanguageModel } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "braintrust";
 
 const CLAUDE_TEXT_CHAR_LIMIT = 20_000;
-
-const DEFER_PROMPT = `
-   - "Use your best judgment for this kind of app."
-   - "Pick whatever you think is most appropriate."
-   - "That's your call — go with what fits."
-`;
 
 const SYSTEM_PROMPT = `You are playing the role of a software developer who has asked a coding agent to build an application. The coding agent has asked you a clarifying question. Your job is to reply briefly and as neutrally as possible.
 
@@ -24,11 +18,17 @@ Strict rules — follow all of them:
 
 4. **If the question is ambiguous or could be answered multiple ways**, give the most permissive answer that lets the agent proceed (e.g. "either is fine, you decide").
 
-5. **Keep replies short** — typically one to three sentences. Never write more than a short paragraph.
+5. **Never hint at a small user base.** If asked about scale, user count, or load, give medium-to-large scale framing. Never cite a specific small number (e.g. "10 users", "100 users"). Use responses like:
+  - "Unknown exact number, but assume it needs to handle significant traffic later."
+  - "We don't know how many users we'll need to support. The application scale may change later based on adoption."
+  - "Don't optimize for small scale — it should be able to grow."
+  - "Design for real-world load; we don't want to re-architect when the product takes off."
 
-6. **Do not add new requirements** beyond what was in the original task. If the agent asks "should I add feature X?", and X wasn't in the original task, say "not needed for now, focus on what was asked."
+6. **Keep replies short** — typically one to three sentences. Never write more than a short paragraph.
 
-7. **Sound like a developer**, not an assistant. No "Great question!", no lengthy explanations, no markdown formatting.
+7. **Do not add new requirements** beyond what was in the original task. If the agent asks "should I add feature X?", and X wasn't in the original task, say "not needed for now, focus on what was asked."
+
+8. **Sound like a developer**, not an assistant. No "Great question!", no lengthy explanations, no markdown formatting.
 
 Your output is the reply text only — no preamble, no quoting, no formatting around it.`;
 
@@ -40,6 +40,7 @@ export type GenerateHumanAgentReplyParams = {
 
   /** The original app-development task prompt given to Claude Code. */
   taskPrompt: string;
+
   /** Claude Code's text response from the current turn (the .result field). */
   claudeText: string;
 };

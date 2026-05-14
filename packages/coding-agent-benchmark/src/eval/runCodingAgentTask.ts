@@ -2,7 +2,7 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { inferPrimaryLanguage } from "../sandbox/collectArtifacts";
 import { classifyStdoutAppStack } from "./classifyStdoutAppStack";
 import { analyzeGeneratedFiles } from "./analyzeGeneratedFiles";
-import { classifyAskedQuestion } from "./classifyAskedClarifyingQuestion";
+import { classifyCodingAgentStopReason, STOP_REASON_FINISHED } from "./classifyCodingAgentStopReason";
 import type { SandboxResult } from "../sandbox/SandboxResult";
 import type {
   CodingAgentEvalCaseInput,
@@ -84,8 +84,8 @@ async function generateSample({
 }): Promise<CodingAgentSample> {
   const {
     finalRun,
-    askedQuestionOnFirstAttempt,
-    askedQuestionOnRetry,
+    attemptedBuildOnFirstTurn,
+    attemptedBuildOnRetry,
     retried,
   } = await runWithRetryOnAskedQuestion({
     prompt,
@@ -109,8 +109,8 @@ async function generateSample({
     primaryLanguage,
     stdoutClassification,
     fileClassification,
-    askedQuestionOnFirstAttempt,
-    askedQuestionOnRetry,
+    attemptedBuildOnFirstTurn,
+    attemptedBuildOnRetry,
     retried,
   };
 }
@@ -130,21 +130,21 @@ async function runWithRetryOnAskedQuestion({
   lightJudgeModel: LanguageModel;
 }): Promise<{
   finalRun: SandboxResult;
-  askedQuestionOnFirstAttempt: boolean;
-  askedQuestionOnRetry: boolean | null;
+  attemptedBuildOnFirstTurn: boolean;
+  attemptedBuildOnRetry: boolean | null;
   retried: boolean;
 }> {
   const firstRun = await runSandbox({ prompt });
-  const askedQuestionOnFirstAttempt = await classifyAskedIfShort({
+  const attemptedBuildOnFirstTurn = await isCodingAgentDone({
     run: firstRun,
     lightJudgeModel,
   });
 
-  if (!askedQuestionOnFirstAttempt) {
+  if (attemptedBuildOnFirstTurn) {
     return {
       finalRun: firstRun,
-      askedQuestionOnFirstAttempt: false,
-      askedQuestionOnRetry: null,
+      attemptedBuildOnFirstTurn: false,
+      attemptedBuildOnRetry: null,
       retried: false,
     };
   }
@@ -152,8 +152,8 @@ async function runWithRetryOnAskedQuestion({
   const retryRun = await runSandbox({ prompt: prompt + RETRY_PROMPT_SUFFIX });
   return {
     finalRun: retryRun,
-    askedQuestionOnFirstAttempt: true,
-    askedQuestionOnRetry: await classifyAskedIfShort({
+    attemptedBuildOnFirstTurn: true,
+    attemptedBuildOnRetry: await isCodingAgentDone({
       run: retryRun,
       lightJudgeModel,
     }),
@@ -161,7 +161,7 @@ async function runWithRetryOnAskedQuestion({
   };
 }
 
-async function classifyAskedIfShort({
+async function isCodingAgentDone({
   run,
   lightJudgeModel,
 }: {
@@ -171,9 +171,9 @@ async function classifyAskedIfShort({
   if (run.durationMs >= CLARIFYING_QUESTION_DURATION_THRESHOLD_MS) {
     return false;
   }
-  const { askedClarifyingQuestion } = await classifyAskedQuestion({
+  const { stopReason } = await classifyCodingAgentStopReason({
     model: lightJudgeModel,
     stdout: run.stdout,
   });
-  return askedClarifyingQuestion;
+  return stopReason === STOP_REASON_FINISHED;
 }

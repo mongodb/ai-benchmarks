@@ -3,7 +3,7 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { inferPrimaryLanguage } from "../sandbox/collectArtifacts";
 import { classifyStdoutAppStack } from "./classifyStdoutAppStack";
 import { analyzeGeneratedFiles } from "./analyzeGeneratedFiles";
-import { classifyAskedQuestion } from "./classifyAskedClarifyingQuestion";
+import { classifyCodingAgentStopReason, STOP_REASON_FINISHED } from "./classifyCodingAgentStopReason";
 import {
   generateHumanAgentReply,
   type GenerateHumanAgentReplyParams,
@@ -135,8 +135,7 @@ async function generateConversationSample(params: {
     primaryLanguage,
     stdoutClassification,
     fileClassification,
-    askedQuestionOnFirstAttempt: convoOutcome.askedQuestionOnFirstAttempt,
-    askedQuestionOnRetry: null,
+    attemptedBuildOnFirstTurn: convoOutcome.attemptedBuildOnFirstTurn,
     retried: convoOutcome.fellBackToForcePrompt,
     turnCount: convoOutcome.turnCount,
     fellBackToForcePrompt: convoOutcome.fellBackToForcePrompt,
@@ -152,7 +151,7 @@ type ConversationOutcome = {
   lastExitCode: number;
   totalDurationMs: number;
   turnCount: number;
-  askedQuestionOnFirstAttempt: boolean;
+  attemptedBuildOnFirstTurn: boolean;
   fellBackToForcePrompt: boolean;
   sandboxStopped: boolean;
 };
@@ -165,7 +164,7 @@ function emptyOutcome(): ConversationOutcome {
     lastExitCode: -1,
     totalDurationMs: 0,
     turnCount: 0,
-    askedQuestionOnFirstAttempt: false,
+    attemptedBuildOnFirstTurn: false,
     fellBackToForcePrompt: false,
     sandboxStopped: false,
   };
@@ -196,7 +195,7 @@ async function runConversationLoop(params: {
   let lastRun: ClaudeCommandResult | null = null;
   let totalDurationMs = 0;
   let turnCount = 0;
-  let askedQuestionOnFirstAttempt = false;
+  let attemptedBuildOnFirstTurn = false;
   let fellBackToForcePrompt = false;
   let sandboxStopped = false;
 
@@ -237,12 +236,12 @@ async function runConversationLoop(params: {
   
         if (run.exitCode !== 0) return { status: END_CONVERSATION, runResult: run };
   
-        const asked = await classifyAskedSafely({
+        const agentDone = await isCodingAgentDone({
           model: lightJudgeModel,
           stdout: claudeText,
         });
-        if (turn === 1) askedQuestionOnFirstAttempt = asked;
-        if (!asked) return { status: END_CONVERSATION, runResult: run };
+        if (turn === 1) attemptedBuildOnFirstTurn = agentDone;
+        if (agentDone) return { status: END_CONVERSATION, runResult: run };
   
         // Claude is still asking. Decide what to send on the next turn.
         if (turn >= maxTurns) return { status: END_CONVERSATION, runResult: run };
@@ -284,7 +283,7 @@ async function runConversationLoop(params: {
     lastExitCode: lastRun?.exitCode ?? -1,
     totalDurationMs,
     turnCount,
-    askedQuestionOnFirstAttempt,
+    attemptedBuildOnFirstTurn,
     fellBackToForcePrompt,
     sandboxStopped,
   };
@@ -340,13 +339,13 @@ function makeRunHumanAgentTurnTraced(model: LanguageModel) {
   );
 }
 
-async function classifyAskedSafely(params: {
+async function isCodingAgentDone(params: {
   model: LanguageModel;
   stdout: string;
 }): Promise<boolean> {
   try {
-    const { askedClarifyingQuestion } = await classifyAskedQuestion(params);
-    return askedClarifyingQuestion;
+    const { stopReason } = await classifyCodingAgentStopReason(params);
+    return stopReason === STOP_REASON_FINISHED;
   } catch {
     return false;
   }

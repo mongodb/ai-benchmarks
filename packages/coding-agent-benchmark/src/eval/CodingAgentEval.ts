@@ -33,8 +33,8 @@ export type CodingAgentSample = {
   primaryLanguage: string | null;
   stdoutClassification: AppStackClassification;
   fileClassification: AppStackClassification;
-  askedQuestionOnFirstAttempt: boolean;
-  askedQuestionOnRetry: boolean | null;
+  attemptedBuildOnFirstTurn: boolean;
+  attemptedBuildOnRetry?: boolean | null;
   retried: boolean;
   /** Only populated by the conversation runner. */
   turnCount?: number;
