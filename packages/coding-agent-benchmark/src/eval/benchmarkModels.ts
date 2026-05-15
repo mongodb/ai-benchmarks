@@ -19,10 +19,7 @@ export const codingAgentBenchmarkModels = {
     description: "Claude Code smoke test to make sure the eval driver, sandbox, etc. work",
     config: { snapshotId: CLAUDE_CODE_BASE_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: 1, },
   },
-  "smoke-test-superpowers-fork": {
-    description: "Claude Code smoke test to make sure the eval driver, sandbox, etc. work",
-    config: { snapshotId: CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: 1, pluginDir: "/home/dev/superpowers/"},
-  },
+
   "claude-code-baseline": {
     description: "Claude Code baseline snapshot",
     config: { snapshotId: CLAUDE_CODE_BASE_SNAPSHOT_ID, model: CLAUDE_CODE_MODEL, runsPerCase: DEFAULT_SAMPLE_SIZE },
