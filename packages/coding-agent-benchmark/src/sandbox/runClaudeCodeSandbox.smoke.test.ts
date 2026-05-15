@@ -149,10 +149,56 @@ async function validateClaudeCodeSuperpowersForkSnapshot(): Promise<void> {
   console.log("\nSmoke test PASSED");
 }
 
+
+async function validateClaudeCodeCustomPromptMdSnapshot(): Promise<void> {
+  const { CLAUDE_CODE_CLAUDE_MD_SNAPSHOT_ID: snapshotId } = assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
+  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } = assertEnvVars(VERCEL_ENV_VARS);
+  const sandbox = await Sandbox.create({
+    source: { type: "snapshot", snapshotId },
+    timeout: 60_000,
+    token: VERCEL_TOKEN,
+    teamId: VERCEL_TEAM_ID,
+    projectId: VERCEL_PROJECT_ID,
+  });
+  try {
+      console.log(`Running smoke test against snapshot ${snapshotId}...`);
+      const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
+        snapshotId,
+        claudeCodeEnv: getClaudeCodeSandboxEnv(),
+        model: "claude-opus-4-7",
+      });
+      const result = await runClaudeCodeSandbox({
+        prompt:
+          "I need to confirm you understand your system prompt (CLAUDE.md). Can you summarize the instructions written there?",
+      });
+
+      console.log(`\nexitCode:   ${result.exitCode}`);
+      console.log(`durationMs: ${result.durationMs}`);
+      console.log(`files (${result.files.length}):`);
+      for (const file of result.files) {
+        console.log(`  - ${file.path} (${file.content.length} bytes)`);
+      }
+      console.log(`\n----- stdout -----\n${result.stdout}`);
+
+      if (!result.stdout.includes("framework") || !result.stdout.includes("devil's advocate")) {
+        console.error("Missing instructions!")
+        process.exit(1)
+      }
+
+      if (result.stderr) {
+        console.log(`\n----- stderr -----\n${result.stderr}`);
+      }
+  } finally {
+    await sandbox.stop();
+  }
+  console.log("\nSmoke test PASSED");
+}
+
 async function main(): Promise<void> {
   // await validateBaseClaudeCodeSnapshot();
   // await validateClaudeCodeSuperpowersSnapshot();
-  await validateClaudeCodeSuperpowersForkSnapshot();
+  // await validateClaudeCodeSuperpowersForkSnapshot();
+  await validateClaudeCodeCustomPromptMdSnapshot();
 }
 
 main().catch((err) => {

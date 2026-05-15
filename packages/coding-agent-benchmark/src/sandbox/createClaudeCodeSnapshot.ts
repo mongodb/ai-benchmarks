@@ -6,7 +6,7 @@ import { createSnapshot, run } from "./createSnapshot";
 
 // __dirname is the directory of the compiled output (build/sandbox/).
 // Navigate back to the source environment data directory.
-const ENV_DATA_DIR = join(__dirname, "../../src/sandbox/environmentData");
+const ENV_DATA_DIR = join(__dirname, "../../src/sandbox/environmentData/claude-system-prompts");
 
 const SUPERPOWERS_REPO = "https://github.com/obra/superpowers.git";
 const SUPERPOWERS_PINNED_COMMIT = "f2cbfbefebbfef77321e4c9abc9e949826bea9d7";
@@ -180,8 +180,16 @@ export async function createClaudeMdSnapshot(): Promise<string> {
       join(ENV_DATA_DIR, "EXPERIMENT_CLAUDE.md"),
       "utf-8"
     );
-    await sandbox.fs.mkdir("/home/dev/.claude", { recursive: true });
-    await sandbox.fs.writeFile("/home/dev/.claude/CLAUDE.md", claudeMdContent);
+    await run("mkdir -p /home/dev/.claude", sandbox, "Creating /home/dev/.claude");
+    const b64 = Buffer.from(claudeMdContent).toString("base64");
+    const writeResult = await sandbox.runCommand({
+      cmd: "sh",
+      args: ["-c", `printf '%s' '${b64}' | base64 -d > '/home/dev/.claude/CLAUDE.md'`],
+      sudo: true,
+    });
+    if (writeResult.exitCode !== 0) {
+      throw new Error(`Failed to write CLAUDE.md: ${await writeResult.stderr()}`);
+    }
     console.log("  CLAUDE.md written");
   };
 
