@@ -25,7 +25,7 @@ async function main(): Promise<void> {
     CLAUDE_CODE_SNAPSHOT_IDS
   );
 
-  console.log(`Creating sandbox from snapshot ${snapshotId}...`);
+  console.log("Creating sandbox from configured snapshot...");
   const handle = await createClaudeCodeSandbox({
     snapshotId,
     claudeCodeEnv: getClaudeCodeSandboxEnv(),

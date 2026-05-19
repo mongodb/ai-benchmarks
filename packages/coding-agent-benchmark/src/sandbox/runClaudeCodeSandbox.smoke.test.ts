@@ -58,7 +58,7 @@ async function validateBaseClaudeCodeSnapshot(): Promise<void> {
     CLAUDE_CODE_SNAPSHOT_IDS
   );
 
-  console.log(`Running smoke test against snapshot ${snapshotId}...`);
+  console.log("Running smoke test against configured snapshot...");
   const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
     snapshotId,
     claudeCodeEnv: getClaudeCodeSandboxEnv(),
@@ -183,7 +183,7 @@ async function validateClaudeCodeCustomPromptMdSnapshot(): Promise<void> {
     projectId: VERCEL_PROJECT_ID,
   });
   try {
-    console.log(`Running smoke test against snapshot ${snapshotId}...`);
+    console.log("Running smoke test against configured snapshot...");
     const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
       snapshotId,
       claudeCodeEnv: getClaudeCodeSandboxEnv(),
