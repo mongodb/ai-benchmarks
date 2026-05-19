@@ -24,5 +24,3 @@ export {
   judgeModelConfig,
 } from "./app-development/appDevelopmentDataset";
 export type { AppDevelopmentDatasetEntry } from "./app-development/appDevelopmentDataset";
-
-export { MONGODB_PATTERNS } from "./app-development/metrics/MentionsMongoDbInGeneration";

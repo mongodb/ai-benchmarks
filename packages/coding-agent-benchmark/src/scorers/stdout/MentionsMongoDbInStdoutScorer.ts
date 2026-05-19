@@ -1,6 +1,6 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
-import { MONGODB_PATTERNS } from "benchmarks";
+import { MONGODB_PATTERNS } from "../MongoDbPatterns";
 import { nullifySampledScore } from "../nullifySampledScore";
 
 /**
