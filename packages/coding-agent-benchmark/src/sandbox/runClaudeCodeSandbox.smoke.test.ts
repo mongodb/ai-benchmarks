@@ -1,13 +1,17 @@
 import "dotenv/config";
 import { Sandbox } from "@vercel/sandbox";
 import { makeRunClaudeCodeSandbox } from "./runClaudeCodeSandbox";
-import { ANTHROPIC_FOUNDRY_ENV_VARS, CLAUDE_CODE_SNAPSHOT_IDS, VERCEL_ENV_VARS } from "../envVars";
+import {
+  ANTHROPIC_FOUNDRY_ENV_VARS,
+  CLAUDE_CODE_SNAPSHOT_IDS,
+  VERCEL_ENV_VARS,
+} from "../envVars";
 import { assertEnvVars } from "mongodb-rag-core";
 
 const IDENTITY_LEAK_PATTERNS = ["helen.schawe", "@mongodb.com"];
 
 /**
- * Environment variables for the Claude Code sandbox.
+ Environment variables for the Claude Code sandbox.
  */
 export function getClaudeCodeSandboxEnv(): Record<string, string> {
   return {
@@ -17,10 +21,10 @@ export function getClaudeCodeSandboxEnv(): Record<string, string> {
 }
 
 /**
- * Checks whether a Claude Code plugin is installed in the snapshot using two
- * independent signals: a config-file grep (no LLM needed) and `claude plugin list`.
- *
- * Returns an object so the caller can log individual results.
+ Checks whether a Claude Code plugin is installed in the snapshot using two
+ independent signals: a config-file grep (no LLM needed) and `claude plugin list`.
+ 
+ Returns an object so the caller can log individual results.
  */
 async function checkPlugin(
   sandbox: Sandbox,
@@ -30,7 +34,10 @@ async function checkPlugin(
   // depending on what HOME was set during snapshot creation.
   const grepResult = await sandbox.runCommand({
     cmd: "sh",
-    args: ["-c", `grep -rl '${pluginName}' /root/.claude /home 2>/dev/null | head -1`],
+    args: [
+      "-c",
+      `grep -rl '${pluginName}' /root/.claude /home 2>/dev/null | head -1`,
+    ],
   });
   const configFound = (await grepResult.stdout()).trim().length > 0;
 
@@ -47,7 +54,9 @@ async function checkPlugin(
 }
 
 async function validateBaseClaudeCodeSnapshot(): Promise<void> {
-  const { CLAUDE_CODE_BASE_SNAPSHOT_ID: snapshotId } = assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
+  const { CLAUDE_CODE_BASE_SNAPSHOT_ID: snapshotId } = assertEnvVars(
+    CLAUDE_CODE_SNAPSHOT_IDS
+  );
 
   console.log(`Running smoke test against snapshot ${snapshotId}...`);
   const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
@@ -81,7 +90,9 @@ async function validateBaseClaudeCodeSnapshot(): Promise<void> {
   }
 
   if (result.exitCode !== 0) {
-    console.error(`\nFAIL: claude exited with non-zero code ${result.exitCode}`);
+    console.error(
+      `\nFAIL: claude exited with non-zero code ${result.exitCode}`
+    );
     process.exit(1);
   }
 
@@ -92,7 +103,9 @@ async function validateBaseClaudeCodeSnapshot(): Promise<void> {
   }
   if (!hello.content.toLowerCase().includes("hello world")) {
     console.error(
-      `\nFAIL: hello.txt did not contain 'hello world'. Got: ${JSON.stringify(hello.content)}`
+      `\nFAIL: hello.txt did not contain 'hello world'. Got: ${JSON.stringify(
+        hello.content
+      )}`
     );
     process.exit(1);
   }
@@ -100,10 +113,12 @@ async function validateBaseClaudeCodeSnapshot(): Promise<void> {
   console.log("\nSmoke test PASSED");
 }
 
-
 async function validateClaudeCodeSuperpowersSnapshot(): Promise<void> {
-  const { CLAUDE_CODE_SUPERPOWERS_SNAPSHOT_ID: snapshotId } = assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
-  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } = assertEnvVars(VERCEL_ENV_VARS);
+  const { CLAUDE_CODE_SUPERPOWERS_SNAPSHOT_ID: snapshotId } = assertEnvVars(
+    CLAUDE_CODE_SNAPSHOT_IDS
+  );
+  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } =
+    assertEnvVars(VERCEL_ENV_VARS);
   const sandbox = await Sandbox.create({
     source: { type: "snapshot", snapshotId },
     timeout: 60_000,
@@ -120,8 +135,10 @@ async function validateClaudeCodeSuperpowersSnapshot(): Promise<void> {
 }
 
 async function validateClaudeCodeSuperpowersForkSnapshot(): Promise<void> {
-  const { CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID: snapshotId } = assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
-  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } = assertEnvVars(VERCEL_ENV_VARS);
+  const { CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID: snapshotId } =
+    assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
+  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } =
+    assertEnvVars(VERCEL_ENV_VARS);
   const sandbox = await Sandbox.create({
     source: { type: "snapshot", snapshotId },
     timeout: 60_000,
@@ -132,13 +149,16 @@ async function validateClaudeCodeSuperpowersForkSnapshot(): Promise<void> {
   try {
     await checkPlugin(sandbox, "superpowers");
 
-
     // Check if brainstorming skill was overwritten. Get file contents and check for string "Requirements-First Technology Selection"
-    const grepResult = await sandbox.runCommand({ cmd: "cat", args: ["/home/dev/superpowers/skills/brainstorming/SKILL.md"] });
+    const grepResult = await sandbox.runCommand({
+      cmd: "cat",
+      args: ["/home/dev/superpowers/skills/brainstorming/SKILL.md"],
+    });
     const skillContents = (await grepResult.stdout()).trim();
-    if (!skillContents.includes("Requirements-First Technology Selection") || 
-        !skillContents.includes("Identify best-fit technology additions") 
-      ) {
+    if (
+      !skillContents.includes("Requirements-First Technology Selection") ||
+      !skillContents.includes("Identify best-fit technology additions")
+    ) {
       console.error("\nFAIL: custom brainstorming skill edits are missing!");
       console.error(skillContents);
       process.exit(1);
@@ -149,10 +169,12 @@ async function validateClaudeCodeSuperpowersForkSnapshot(): Promise<void> {
   console.log("\nSmoke test PASSED");
 }
 
-
 async function validateClaudeCodeCustomPromptMdSnapshot(): Promise<void> {
-  const { CLAUDE_CODE_CLAUDE_MD_SNAPSHOT_ID: snapshotId } = assertEnvVars(CLAUDE_CODE_SNAPSHOT_IDS);
-  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } = assertEnvVars(VERCEL_ENV_VARS);
+  const { CLAUDE_CODE_CLAUDE_MD_SNAPSHOT_ID: snapshotId } = assertEnvVars(
+    CLAUDE_CODE_SNAPSHOT_IDS
+  );
+  const { VERCEL_TOKEN, VERCEL_TEAM_ID, VERCEL_PROJECT_ID } =
+    assertEnvVars(VERCEL_ENV_VARS);
   const sandbox = await Sandbox.create({
     source: { type: "snapshot", snapshotId },
     timeout: 60_000,
@@ -161,33 +183,36 @@ async function validateClaudeCodeCustomPromptMdSnapshot(): Promise<void> {
     projectId: VERCEL_PROJECT_ID,
   });
   try {
-      console.log(`Running smoke test against snapshot ${snapshotId}...`);
-      const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
-        snapshotId,
-        claudeCodeEnv: getClaudeCodeSandboxEnv(),
-        model: "claude-opus-4-7",
-      });
-      const result = await runClaudeCodeSandbox({
-        prompt:
-          "I need to confirm you understand your system prompt (CLAUDE.md). Can you summarize the instructions written there?",
-      });
+    console.log(`Running smoke test against snapshot ${snapshotId}...`);
+    const runClaudeCodeSandbox = makeRunClaudeCodeSandbox({
+      snapshotId,
+      claudeCodeEnv: getClaudeCodeSandboxEnv(),
+      model: "claude-opus-4-7",
+    });
+    const result = await runClaudeCodeSandbox({
+      prompt:
+        "I need to confirm you understand your system prompt (CLAUDE.md). Can you summarize the instructions written there?",
+    });
 
-      console.log(`\nexitCode:   ${result.exitCode}`);
-      console.log(`durationMs: ${result.durationMs}`);
-      console.log(`files (${result.files.length}):`);
-      for (const file of result.files) {
-        console.log(`  - ${file.path} (${file.content.length} bytes)`);
-      }
-      console.log(`\n----- stdout -----\n${result.stdout}`);
+    console.log(`\nexitCode:   ${result.exitCode}`);
+    console.log(`durationMs: ${result.durationMs}`);
+    console.log(`files (${result.files.length}):`);
+    for (const file of result.files) {
+      console.log(`  - ${file.path} (${file.content.length} bytes)`);
+    }
+    console.log(`\n----- stdout -----\n${result.stdout}`);
 
-      if (!result.stdout.includes("framework") || !result.stdout.includes("devil's advocate")) {
-        console.error("Missing instructions!")
-        process.exit(1)
-      }
+    if (
+      !result.stdout.includes("framework") ||
+      !result.stdout.includes("devil's advocate")
+    ) {
+      console.error("Missing instructions!");
+      process.exit(1);
+    }
 
-      if (result.stderr) {
-        console.log(`\n----- stderr -----\n${result.stderr}`);
-      }
+    if (result.stderr) {
+      console.log(`\n----- stderr -----\n${result.stderr}`);
+    }
   } finally {
     await sandbox.stop();
   }

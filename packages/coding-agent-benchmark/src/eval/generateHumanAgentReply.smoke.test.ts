@@ -8,16 +8,16 @@ import { generateHumanAgentReply } from "./generateHumanAgentReply";
 import { humanAgentModel } from "./benchmarkConfig";
 
 /**
- * Integration smoke test for generateHumanAgentReply.
- *
- * Each case is a real LLM call. The function is asserted to:
- *   - Defer on technology-choice questions (no specific tech mentioned)
- *   - Answer functional questions that the original task already covers
- *   - Decline scope expansions
- *   - Keep replies short
- *   - Never mention MongoDB (benchmark integrity)
- *
- * Set HUMAN_AGENT_MODEL in .env before running.
+ Integration smoke test for generateHumanAgentReply.
+ 
+ Each case is a real LLM call. The function is asserted to:
+ - Defer on technology-choice questions (no specific tech mentioned)
+ - Answer functional questions that the original task already covers
+ - Decline scope expansions
+ - Keep replies short
+ - Never mention MongoDB (benchmark integrity)
+ 
+ Set HUMAN_AGENT_MODEL in .env before running.
  */
 
 const TECH_NAMES_TO_AVOID = [
@@ -71,7 +71,18 @@ const TEST_CASES: TestCase[] = [
     expectations: [
       {
         description: "does not mention any specific database",
-        check: (r) => !containsAnyTech(r, ["mongodb", "postgres", "postgresql", "mysql", "sqlite", "redis", "dynamodb", "firebase", "supabase"]),
+        check: (r) =>
+          !containsAnyTech(r, [
+            "mongodb",
+            "postgres",
+            "postgresql",
+            "mysql",
+            "sqlite",
+            "redis",
+            "dynamodb",
+            "firebase",
+            "supabase",
+          ]),
       },
       {
         description: "reply is brief",
@@ -81,13 +92,24 @@ const TEST_CASES: TestCase[] = [
   },
   {
     name: "defers on framework choice",
-    taskPrompt: "Build a chat application where users can send messages in rooms.",
+    taskPrompt:
+      "Build a chat application where users can send messages in rooms.",
     claudeText:
       "Should I use React or Vue for the frontend, and Express or Fastify on the backend?",
     expectations: [
       {
         description: "does not mention any specific framework",
-        check: (r) => !containsAnyTech(r, ["react", "vue", "angular", "svelte", "next.js", "nextjs", "express", "fastify"]),
+        check: (r) =>
+          !containsAnyTech(r, [
+            "react",
+            "vue",
+            "angular",
+            "svelte",
+            "next.js",
+            "nextjs",
+            "express",
+            "fastify",
+          ]),
       },
       {
         description: "reply is brief",
@@ -97,12 +119,14 @@ const TEST_CASES: TestCase[] = [
   },
   {
     name: "declines out-of-scope feature",
-    taskPrompt: "Build a simple notes app where users can create and edit text notes.",
+    taskPrompt:
+      "Build a simple notes app where users can create and edit text notes.",
     claudeText:
       "Should I add OAuth authentication with Google sign-in, and also add export-to-PDF functionality?",
     expectations: [
       {
-        description: "declines scope expansion (mentions focusing on task / not needed)",
+        description:
+          "declines scope expansion (mentions focusing on task / not needed)",
         check: (r) => {
           const lower = r.toLowerCase();
           return (
@@ -125,11 +149,11 @@ const TEST_CASES: TestCase[] = [
     name: "answers a functional clarifying question",
     taskPrompt:
       "Build a blog platform where users can write posts. Users should be able to delete their own posts but not edit them after publishing.",
-    claudeText:
-      "Can users delete their own posts, or only admins?",
+    claudeText: "Can users delete their own posts, or only admins?",
     expectations: [
       {
-        description: "answers the question (mentions users/their own/themselves)",
+        description:
+          "answers the question (mentions users/their own/themselves)",
         check: (r) => {
           const lower = r.toLowerCase();
           return (
@@ -197,7 +221,9 @@ async function main(): Promise<void> {
     console.error(`Smoke test FAILED — ${failed} expectation(s) not met.`);
     process.exit(1);
   }
-  console.log(`Smoke test PASSED — all expectations met across ${TEST_CASES.length} cases.`);
+  console.log(
+    `Smoke test PASSED — all expectations met across ${TEST_CASES.length} cases.`
+  );
 }
 
 main().catch((err) => {

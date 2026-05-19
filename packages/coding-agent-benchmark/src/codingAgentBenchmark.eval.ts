@@ -4,9 +4,7 @@ import {
   createClaudeCodeSandbox,
   stopAllActiveSandboxes,
 } from "./sandbox/runClaudeCodeSandbox";
-import {
-  ANTHROPIC_FOUNDRY_ENV_VARS,
-} from "./envVars";
+import { ANTHROPIC_FOUNDRY_ENV_VARS } from "./envVars";
 import {
   datasets,
   codeJudgeModel,
@@ -16,8 +14,16 @@ import {
 } from "./eval/benchmarkConfig";
 import { codingAgentBenchmarkModels } from "./eval/benchmarkModels";
 import { makeRunCodingAgentConversation } from "./eval/runCodingAgentConversation";
-import { createMongoDbAssistantEvalCli, EvalCliConfig } from "mongodb-assistant-eval";
-import { CodingAgentEvalCaseInput, CodingAgentEvalCaseMetadata, CodingAgentTaskExpected, CodingAgentTaskOutput } from "./eval/CodingAgentEval";
+import {
+  createMongoDbAssistantEvalCli,
+  EvalCliConfig,
+} from "mongodb-assistant-eval";
+import {
+  CodingAgentEvalCaseInput,
+  CodingAgentEvalCaseMetadata,
+  CodingAgentTaskExpected,
+  CodingAgentTaskOutput,
+} from "./eval/CodingAgentEval";
 
 const BRAINTRUST_PROJECT_NAME = "coding-agent-benchmark";
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : undefined;
@@ -107,7 +113,6 @@ async function mainCli() {
   const cli = createMongoDbAssistantEvalCli(config);
   await cli.parseAsync();
 }
-
 
 process.on("SIGINT", () => handleShutdownSignal("SIGINT"));
 process.on("SIGTERM", () => handleShutdownSignal("SIGTERM"));

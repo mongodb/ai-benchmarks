@@ -7,11 +7,11 @@ export const VERCEL_ENV_VARS = {
 };
 
 /**
- * Azure Foundry credentials passed *into* the sandbox so Claude Code
- * authenticates without touching any personal Anthropic account.
- *
- * Note: these variable names are documented but unproven — validate before
- * running a full benchmark run (Milestone #1 in CLAUDE_CODE_APP_DEV_BENCHMARK_PHASE_ONE_PLAN.md).
+ Azure Foundry credentials passed *into* the sandbox so Claude Code
+ authenticates without touching any personal Anthropic account.
+ 
+ Note: these variable names are documented but unproven — validate before
+ running a full benchmark run (Milestone #1 in CLAUDE_CODE_APP_DEV_BENCHMARK_PHASE_ONE_PLAN.md).
  */
 export const ANTHROPIC_FOUNDRY_ENV_VARS = {
   ANTHROPIC_FOUNDRY_RESOURCE: "",
@@ -26,4 +26,3 @@ export const CLAUDE_CODE_SNAPSHOT_IDS = {
   CLAUDE_CODE_SUPERPOWERS_FORK_SNAPSHOT_ID: "",
   CLAUDE_CODE_CLAUDE_MD_SNAPSHOT_ID: "",
 };
-

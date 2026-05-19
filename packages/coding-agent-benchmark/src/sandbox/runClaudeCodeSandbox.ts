@@ -26,8 +26,8 @@ const longPollFetch = ((url, opts) =>
 const activeSandboxes = new Set<Sandbox>();
 
 /**
- * Stop every sandbox currently in flight. Intended for shutdown handlers
- * (e.g. SIGINT) so orphaned sandboxes don't keep consuming tokens.
+ Stop every sandbox currently in flight. Intended for shutdown handlers
+ (e.g. SIGINT) so orphaned sandboxes don't keep consuming tokens.
  */
 export async function stopAllActiveSandboxes(): Promise<void> {
   const sandboxes = [...activeSandboxes];
@@ -59,23 +59,25 @@ export type RunClaudeOptions = {
 };
 
 /**
- * Long-lived sandbox handle that can run `claude` multiple times against
- * the same workspace. Use for multi-turn conversations where session state
- * must persist on disk between invocations.
+ Long-lived sandbox handle that can run `claude` multiple times against
+ the same workspace. Use for multi-turn conversations where session state
+ must persist on disk between invocations.
  */
 export type ClaudeCodeSandboxHandle = {
-  runClaude(options: RunClaudeOptions): Promise<
-    { type: "ok"; run: ClaudeCommandResult, claudeText: string } |
-    { type: "sandbox_stopped" }
+  runClaude(
+    options: RunClaudeOptions
+  ): Promise<
+    | { type: "ok"; run: ClaudeCommandResult; claudeText: string }
+    | { type: "sandbox_stopped" }
   >;
   collectFiles(): Promise<GeneratedFile[]>;
   close(): Promise<void>;
 };
 
 /**
- * Create a sandbox, initialize its workspace, and return a handle for running
- * `claude` against it. The caller is responsible for calling `close()` to stop
- * the sandbox; otherwise it will be reaped on shutdown via stopAllActiveSandboxes.
+ Create a sandbox, initialize its workspace, and return a handle for running
+ `claude` against it. The caller is responsible for calling `close()` to stop
+ the sandbox; otherwise it will be reaped on shutdown via stopAllActiveSandboxes.
  */
 export async function createClaudeCodeSandbox(
   params: CreateClaudeCodeSandboxParams
@@ -101,7 +103,7 @@ export async function createClaudeCodeSandbox(
   activeSandboxes.add(sandbox);
 
   // Start the deadline timer immediately after Sandbox.create() resolves so
-  // Vercel's timeout clock and our timer are aligned. 
+  // Vercel's timeout clock and our timer are aligned.
   let closed = false;
   let cachedSnapshot: GeneratedFile[] | null = null;
 
@@ -111,7 +113,9 @@ export async function createClaudeCodeSandbox(
     try {
       cachedSnapshot = await collectGeneratedFiles(sandbox, PROJECT_DIR);
       console.log(
-        `[sandbox] deadline snapshot captured ${cachedSnapshot.length} files in ${Date.now() - start}ms`
+        `[sandbox] deadline snapshot captured ${
+          cachedSnapshot.length
+        } files in ${Date.now() - start}ms`
       );
     } catch (err) {
       console.warn(`[sandbox] deadline snapshot failed:`, err);
@@ -125,76 +129,84 @@ export async function createClaudeCodeSandbox(
     closed = true;
     clearTimeout(deadlineTimer);
     activeSandboxes.delete(sandbox);
-    await sandbox.stop().catch(() => {});
+    await sandbox.stop().catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
     throw err;
   }
 
   return {
     async runClaude(options: RunClaudeOptions) {
-      return traced(async () => {
-        const { input, continueSession, outputFormat } = options;
-        const startTime = Date.now();
+      return traced(
+        async () => {
+          const { input, continueSession, outputFormat } = options;
+          const startTime = Date.now();
 
-        // build command args
-        const args = [
-          "--dangerously-skip-permissions",
-          "--model",
-          model,
-        ];
-        if (pluginDir) args.push("--plugin-dir", pluginDir);
-        args.push("--print");
-        if (continueSession) args.push("--continue");
-        if (outputFormat === "json") args.push("--output-format", "json");
-        args.push(input);
+          // build command args
+          const args = ["--dangerously-skip-permissions", "--model", model];
+          if (pluginDir) args.push("--plugin-dir", pluginDir);
+          args.push("--print");
+          if (continueSession) args.push("--continue");
+          if (outputFormat === "json") args.push("--output-format", "json");
+          args.push(input);
 
-        // run command
-        let commandOutput: CommandFinished | null = null;
-        try {
-          const command = await sandbox.runCommand({
-            cmd: "claude",
-            args,
-            cwd: PROJECT_DIR,
-            detached: true,
-          });
-          commandOutput = await waitForCommandWithRecovery(command);
-        } catch (err) {
-          // handle errors. most resolvable errors are due to sandbox timeouts
-          if (isSandboxStoppedError(err)) {
-            return { type: "sandbox_stopped" };
-          } 
-          if (err instanceof Error && err.message === SANDBOX_UNAVAILABLE_ERR_MSG) {
-            return { type: "sandbox_stopped" };
+          // run command
+          let commandOutput: CommandFinished | null = null;
+          try {
+            const command = await sandbox.runCommand({
+              cmd: "claude",
+              args,
+              cwd: PROJECT_DIR,
+              detached: true,
+            });
+            commandOutput = await waitForCommandWithRecovery(command);
+          } catch (err) {
+            // handle errors. most resolvable errors are due to sandbox timeouts
+            if (isSandboxStoppedError(err)) {
+              return { type: "sandbox_stopped" };
+            }
+            if (
+              err instanceof Error &&
+              err.message === SANDBOX_UNAVAILABLE_ERR_MSG
+            ) {
+              return { type: "sandbox_stopped" };
+            }
+            throw err;
           }
-          throw err;
-        }
 
-        const stdout = await commandOutput.stdout();
-        return {
-          type: "ok",
-          run: {
-            stdout,
-            stderr: await commandOutput.stderr(),
-            exitCode: commandOutput.exitCode,
-            durationMs: Date.now() - startTime,
-          },
-          claudeText: extractResultFromJson(stdout),
-        };
-      },
-      {
-        name: "runClaudeCodeAgent",
-      }
-    )},
+          const stdout = await commandOutput.stdout();
+          return {
+            type: "ok",
+            run: {
+              stdout,
+              stderr: await commandOutput.stderr(),
+              exitCode: commandOutput.exitCode,
+              durationMs: Date.now() - startTime,
+            },
+            claudeText: extractResultFromJson(stdout),
+          };
+        },
+        {
+          name: "runClaudeCodeAgent",
+        }
+      );
+    },
     /**
-     * Collects the generated files from the sandbox.
-     * @returns The collected files, or the cached snapshot if the collection failed or returned no files.
+     Collects the generated files from the sandbox.
+     @returns The collected files, or the cached snapshot if the collection failed or returned no files.
      */
     async collectFiles() {
       try {
-        const maybeCollectedFiles = await collectGeneratedFiles(sandbox, PROJECT_DIR);
-        if (maybeCollectedFiles && maybeCollectedFiles.length > 0) return maybeCollectedFiles;
+        const maybeCollectedFiles = await collectGeneratedFiles(
+          sandbox,
+          PROJECT_DIR
+        );
+        if (maybeCollectedFiles && maybeCollectedFiles.length > 0)
+          return maybeCollectedFiles;
         throw new Error("[sandbox] collectFiles returned no files");
       } catch (err) {
-        console.warn("[sandbox] collectFiles failed, returning cached snapshot or empty array", err);
+        console.warn(
+          "[sandbox] collectFiles failed, returning cached snapshot or empty array",
+          err
+        );
         return cachedSnapshot ?? [];
       }
     },
@@ -219,12 +231,12 @@ export type RunClaudeCodeSandbox = (
 ) => Promise<SandboxResult>;
 
 /**
- * Builds a per-case `runClaudeCodeSandbox` bound to the run-level configuration
- * (snapshot, model, Claude Code env). The returned function accepts just the
- * per-case input (currently just `prompt`) and returns the full sandbox result.
- *
- * For multi-turn conversation use cases, prefer `createClaudeCodeSandbox`
- * directly to keep the sandbox alive across `claude --continue` calls.
+ Builds a per-case `runClaudeCodeSandbox` bound to the run-level configuration
+ (snapshot, model, Claude Code env). The returned function accepts just the
+ per-case input (currently just `prompt`) and returns the full sandbox result.
+ 
+ For multi-turn conversation use cases, prefer `createClaudeCodeSandbox`
+ directly to keep the sandbox alive across `claude --continue` calls.
  */
 export function makeRunClaudeCodeSandbox(
   params: MakeRunClaudeCodeSandboxParams
@@ -269,7 +281,9 @@ async function initializeWorkspace(sandbox: Sandbox): Promise<void> {
 
 const SANDBOX_UNAVAILABLE_ERR_MSG = "SandboxUnavailableError";
 
-async function waitForCommandWithRecovery(command: Command): Promise<CommandFinished> {
+async function waitForCommandWithRecovery(
+  command: Command
+): Promise<CommandFinished> {
   const maxAttempts = 3;
   const backoffsMs = [1_000, 5_000];
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -326,9 +340,9 @@ function findErrorCode(err: unknown): string | undefined {
 }
 
 /**
- * Extract the `.result` field from `claude --output-format json` stdout.
- * Falls back to the raw stdout if JSON parsing fails so the loop can keep
- * making progress on classification.
+ Extract the `.result` field from `claude --output-format json` stdout.
+ Falls back to the raw stdout if JSON parsing fails so the loop can keep
+ making progress on classification.
  */
 export function extractResultFromJson(stdout: string): string {
   const trimmed = stdout.trim();

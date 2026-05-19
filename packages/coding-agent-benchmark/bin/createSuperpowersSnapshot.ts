@@ -1,12 +1,12 @@
 import "dotenv/config";
-import { createBaseSnapshot } from "../sandbox/createClaudeCodeSnapshot";
+import { createSuperpowersSnapshot } from "../src/sandbox/createClaudeCodeSnapshot";
 
 async function main() {
-  const snapshotId = await createBaseSnapshot();
+  const snapshotId = await createSuperpowersSnapshot();
 
   console.log(`\nSnapshot ID: ${snapshotId}`);
   console.log(`\nAdd to your .env file:`);
-  console.log(`CLAUDE_CODE_BASE_SNAPSHOT_ID=${snapshotId}`);
+  console.log(`CLAUDE_CODE_SUPERPOWERS_SNAPSHOT_ID=${snapshotId}`);
 }
 
 main().catch((err) => {

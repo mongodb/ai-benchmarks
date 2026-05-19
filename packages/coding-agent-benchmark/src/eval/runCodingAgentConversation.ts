@@ -3,7 +3,10 @@ import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { inferPrimaryLanguage } from "../sandbox/collectArtifacts";
 import { classifyStdoutAppStack } from "./classifyStdoutAppStack";
 import { analyzeGeneratedFiles } from "./analyzeGeneratedFiles";
-import { classifyCodingAgentStopReason, STOP_REASON_FINISHED } from "./classifyCodingAgentStopReason";
+import {
+  classifyCodingAgentStopReason,
+  STOP_REASON_FINISHED,
+} from "./classifyCodingAgentStopReason";
 import {
   generateHumanAgentReply,
   type GenerateHumanAgentReplyParams,
@@ -105,7 +108,7 @@ async function generateConversationSample(params: {
     });
   } finally {
     convoOutcome.files = await sandbox.collectFiles().catch(() => []);
-    await sandbox.close().catch(() => {});
+    await sandbox.close().catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
   }
 
   const aggregatedStdout = convoOutcome.history
@@ -203,7 +206,7 @@ async function runConversationLoop(params: {
     | { status: typeof CONTINUE_CONVERSATION; runResult: ClaudeCommandResult };
 
   for (let turn = 1; turn <= maxTurns; turn++) {
-    const { status, runResult } = await traced( 
+    const { status, runResult } = await traced(
       async (): Promise<LoopStepResult> => {
         history.push({ role: "human", content: nextInput });
 
@@ -212,30 +215,32 @@ async function runConversationLoop(params: {
           continueSession: useContinue,
           outputFormat: "json",
         });
-  
+
         // Return null here to avoid overwriting a real result with a failure.
         if (turnResult.type === "sandbox_stopped") {
           sandboxStopped = true;
           return { status: ERR_SANDBOX_STOPPED, runResult: null };
         }
-  
+
         const { run, claudeText } = turnResult;
         totalDurationMs += run.durationMs;
         turnCount = turn;
         history.push({ role: "claude", content: claudeText });
-  
-        if (run.exitCode !== 0) return { status: END_CONVERSATION, runResult: run };
-  
+
+        if (run.exitCode !== 0)
+          return { status: END_CONVERSATION, runResult: run };
+
         const agentDone = await isCodingAgentDone({
           model: lightJudgeModel,
           stdout: claudeText,
         });
         if (turn === 1) attemptedBuildOnFirstTurn = agentDone;
         if (agentDone) return { status: END_CONVERSATION, runResult: run };
-  
+
         // Claude is still asking. Decide what to send on the next turn.
-        if (turn >= maxTurns) return { status: END_CONVERSATION, runResult: run };
-  
+        if (turn >= maxTurns)
+          return { status: END_CONVERSATION, runResult: run };
+
         if (turn === maxTurns - 1) {
           // One turn left after this — use it on the fallback prompt.
           nextInput = FALLBACK_PROMPT;
@@ -259,7 +264,7 @@ async function runConversationLoop(params: {
       {
         name: "Conversate",
       }
-    )
+    );
     if (status === ERR_SANDBOX_STOPPED) break;
 
     lastRun = runResult;
@@ -280,20 +285,18 @@ async function runConversationLoop(params: {
 }
 
 function makeRunHumanAgentTurnTraced(model: LanguageModel) {
-  return wrapTraced(
-    async function replyWithHumanAgent(turnInput: {
-      turn: number;
-      taskPrompt: string;
-      claudeText: string;
-    }): Promise<string | null> {
-      const { taskPrompt, claudeText } = turnInput;
-      return generateHumanAgentReplyWithRetry({
-        model,
-        taskPrompt,
-        claudeText,
-      });
-    },
-  );
+  return wrapTraced(async function replyWithHumanAgent(turnInput: {
+    turn: number;
+    taskPrompt: string;
+    claudeText: string;
+  }): Promise<string | null> {
+    const { taskPrompt, claudeText } = turnInput;
+    return generateHumanAgentReplyWithRetry({
+      model,
+      taskPrompt,
+      claudeText,
+    });
+  });
 }
 
 async function isCodingAgentDone(params: {

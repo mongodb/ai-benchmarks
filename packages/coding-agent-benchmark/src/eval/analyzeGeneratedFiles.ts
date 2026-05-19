@@ -1,9 +1,6 @@
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "braintrust";
-import {
-  AppStackClassification,
-  classifyAppStack,
-} from "benchmarks";
+import { AppStackClassification, classifyAppStack } from "benchmarks";
 import type { GeneratedFile } from "../sandbox/SandboxResult";
 
 const MAX_SOURCE_FILES = 3;
@@ -102,9 +99,9 @@ function renderFileTree(files: GeneratedFile[]): string {
 }
 
 /**
- * LLM-judge classification of the technology stack from the generated file
- * tree. Reads manifest files plus up to 3 large source files, renders them
- * for the judge, then reuses the shared classifyAppStack schema.
+ LLM-judge classification of the technology stack from the generated file
+ tree. Reads manifest files plus up to 3 large source files, renders them
+ for the judge, then reuses the shared classifyAppStack schema.
  */
 export const analyzeGeneratedFiles = wrapTraced(
   async function analyzeGeneratedFiles({
@@ -128,7 +125,9 @@ export const analyzeGeneratedFiles = wrapTraced(
     }
     const generation = [
       `<file-tree>\n${renderFileTree(files)}\n</file-tree>`,
-      `<representative-files>\n${renderRepresentativeFiles(selected)}\n</representative-files>`,
+      `<representative-files>\n${renderRepresentativeFiles(
+        selected
+      )}\n</representative-files>`,
     ].join("\n\n");
     return classifyAppStack({ model, generation });
   }

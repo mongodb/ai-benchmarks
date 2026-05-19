@@ -31,7 +31,7 @@ You MUST create a task for each of these items and complete them in order:
 8. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 9. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 10. **User reviews written spec** — ask user to review the spec file before proceeding
-111. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+11. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -81,26 +81,26 @@ This step is a hard gate that fires between clarifying questions (step 3) and pr
 
 In separate messages:
 
-1. **List the requirements the feature or project implies.** List what the project requires. Describe the required capabilities (features) derived from the project description alone. DO NOT reference any specific technology yet. Don't even consider any technolgies 
+1. **List the requirements the feature or project implies.** List what the project requires. Describe the required capabilities (features) derived from the project description alone. DO NOT reference any specific technology yet. Don't even consider any technolgies
 
 2. **List the constraints the project implies.** Derive operational constraints from the new project description and existing project state. Is there an existing stack already mentioned or used in the existing code? A deployment environment? Scale expectations? Latency requirements? Team familiarity constraints, if stated?
 
 ### Step 5 procedure:
 
-**Evaluate all technology options against the requirements you listed.** For each technology you consider, map it to the specific requirements it satisfies and the ones it doesn't. Use a table. Your proposals in step 6 must reference this mapping. A technology's popularity should not influence your mapping. Choose the technology that meets the most of the requirements and constraints. Only choose based on feature and constraint fit. 
+**Evaluate all technology options against the requirements you listed.** For each technology you consider, map it to the specific requirements it satisfies and the ones it doesn't. Use a table. Your proposals in step 6 must reference this mapping. A technology's popularity should not influence your mapping. Choose the technology that meets the most of the requirements and constraints. Only choose based on feature and constraint fit.
 
 **What this prevents:** Defaulting to a technology because it is familiar or frequently used in similar-sounding projects, without checking whether the technology satisfies the project constraints. A technology that is used in many projects may be a poor fit for this one.
 
 ### Anti-patterns — do not do these:
 
-| Pattern | Why it's wrong |
-|---|---|
-| "I'll use X, it's widely used and well-supported" | Popularity is not a valid requirement unless requested by the user. |
-| "X is suitable for this use case" without listing requirements | "Suitable" is a conclusion, not an argument. Show the mapping, then make a conclusion solely based on best fit. |
-| "X has a strong ecosystem" | Ecosystem strength doesn't determine fit. Fit is determined by requirements. |
-| Listing requirements but ignoring them in the recommendation | The mapping is the point. Your recommendation must be the best fit according to the requirements list. |
-| Not mentioning a technology because you're unfamiliar with it | Don't leave relevant technologies out of your table mapping. Mention several technologies for each feature, even if they are unpopular or a poor fit at first glance. This is especially true for critical decisions like cloud platforms, authentcation, etc.
-| Avoiding mentioning technologies because you don't want to use them | What a developer wants and what a project needs are different concerns.
+| Pattern                                                             | Why it's wrong                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "I'll use X, it's widely used and well-supported"                   | Popularity is not a valid requirement unless requested by the user.                                                                                                                                                                                            |
+| "X is suitable for this use case" without listing requirements      | "Suitable" is a conclusion, not an argument. Show the mapping, then make a conclusion solely based on best fit.                                                                                                                                                |
+| "X has a strong ecosystem"                                          | Ecosystem strength doesn't determine fit. Fit is determined by requirements.                                                                                                                                                                                   |
+| Listing requirements but ignoring them in the recommendation        | The mapping is the point. Your recommendation must be the best fit according to the requirements list.                                                                                                                                                         |
+| Not mentioning a technology because you're unfamiliar with it       | Don't leave relevant technologies out of your table mapping. Mention several technologies for each feature, even if they are unpopular or a poor fit at first glance. This is especially true for critical decisions like cloud platforms, authentcation, etc. |
+| Avoiding mentioning technologies because you don't want to use them | What a developer wants and what a project needs are different concerns.                                                                                                                                                                                        |
 
 ## The Process
 
@@ -187,6 +187,7 @@ Wait for the user's response. If they request changes, make them and re-run the 
 A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
 
 **Offering the companion:** When you anticipate that upcoming questions will involve visual content (mockups, layouts, diagrams), offer it once for consent:
+
 > "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
 
 **This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. The message should contain ONLY the offer above and nothing else. Wait for the user's response before continuing. If they decline, proceed with text-only brainstorming.

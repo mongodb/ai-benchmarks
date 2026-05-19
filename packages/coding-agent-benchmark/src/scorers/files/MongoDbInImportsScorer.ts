@@ -1,7 +1,7 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
 import type { GeneratedFile } from "../../sandbox/SandboxResult";
-import { nullifyScore } from "../nullifyScore";
+import { nullifySampledScore } from "../nullifySampledScore";
 
 const SOURCE_EXTENSIONS = [
   ".ts",
@@ -41,19 +41,21 @@ function isSourceFile(path: string): boolean {
 }
 
 function fileImportsMongoDb(file: GeneratedFile): string[] {
-  return IMPORT_PATTERNS.filter((p) => p.test(file.content)).map((p) => p.source);
+  return IMPORT_PATTERNS.filter((p) => p.test(file.content)).map(
+    (p) => p.source
+  );
 }
 
 /**
- * Checks if any source file imports a MongoDB driver / ORM. Complements
- * MongoDbInPackageJson — catches single-file scripts and non-Node ecosystems.
+ Checks if any source file imports a MongoDB driver / ORM. Complements
+ MongoDbInPackageJson — catches single-file scripts and non-Node ecosystems.
  */
 export const MongoDbInImports: CodingAgentEvalScorer = ({ output }) => {
   const name = "MongoDbInImports";
   const { samples } = output;
 
   // Short-circuit if no samples (likely sandbox timeout).
-  if (samples.length === 0) return nullifyScore(name);
+  if (samples.length === 0) return nullifySampledScore(name);
 
   const sampleResults = samples.map((s) => {
     const sourceFiles = s.files.filter((f) => isSourceFile(f.path));

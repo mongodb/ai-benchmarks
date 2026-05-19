@@ -1,16 +1,13 @@
 import { LanguageModel } from "mongodb-rag-core/aiSdk";
 import { wrapTraced } from "braintrust";
-import {
-  AppStackClassification,
-  classifyAppStack,
-} from "benchmarks";
+import { AppStackClassification, classifyAppStack } from "benchmarks";
 
 const STDOUT_CHAR_LIMIT = 60_000;
 
 /**
- * Classify the technology stack referenced in the coding agent's stdout
- * conversation text. Truncates very long stdout to stay within judge model
- * context. Some agents can generate very long narrations.
+ Classify the technology stack referenced in the coding agent's stdout
+ conversation text. Truncates very long stdout to stay within judge model
+ context. Some agents can generate very long narrations.
  */
 export const classifyStdoutAppStack = wrapTraced(
   async function classifyStdoutAppStack({

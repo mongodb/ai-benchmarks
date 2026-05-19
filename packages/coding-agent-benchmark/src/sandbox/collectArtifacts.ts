@@ -42,8 +42,7 @@ async function collectDir(
     if (name.startsWith(".") || IGNORED_DIRS.has(name)) continue;
 
     const fullPath = `${currentDir}/${name}`;
-    const isDir =
-      typeof entry === "string" ? false : entry.isDirectory();
+    const isDir = typeof entry === "string" ? false : entry.isDirectory();
 
     if (isDir) {
       await collectDir(sandbox, rootDir, fullPath, files);

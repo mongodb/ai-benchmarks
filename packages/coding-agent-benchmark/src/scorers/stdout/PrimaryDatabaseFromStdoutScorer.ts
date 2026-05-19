@@ -1,11 +1,13 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
+import { nullifySampledScore } from "../nullifySampledScore";
 
 export const PrimaryDatabaseFromStdoutIsMongoDb: CodingAgentEvalScorer = ({
   output,
 }) => {
   const name = "PrimaryDatabaseFromStdoutIsMongoDb";
   const { samples } = output;
+  if (samples.length === 0) nullifySampledScore(name);
 
   const sampleResults = samples.map((s) => ({
     pass: s.stdoutClassification.primaryDatabase === "mongodb",
@@ -15,8 +17,20 @@ export const PrimaryDatabaseFromStdoutIsMongoDb: CodingAgentEvalScorer = ({
   const metrics = computeSampleMetrics({ total: samples.length, correct });
 
   return [
-    { name: `${name}@k`, score: metrics["pass@k"], metadata: { ...metrics, sampleResults } },
-    { name: `${name}%k`, score: metrics["pass%k"], metadata: { ...metrics, sampleResults } },
-    { name: `${name}^k`, score: metrics["pass^k"], metadata: { ...metrics, sampleResults } },
+    {
+      name: `${name}@k`,
+      score: metrics["pass@k"],
+      metadata: { ...metrics, sampleResults },
+    },
+    {
+      name: `${name}%k`,
+      score: metrics["pass%k"],
+      metadata: { ...metrics, sampleResults },
+    },
+    {
+      name: `${name}^k`,
+      score: metrics["pass^k"],
+      metadata: { ...metrics, sampleResults },
+    },
   ];
 };

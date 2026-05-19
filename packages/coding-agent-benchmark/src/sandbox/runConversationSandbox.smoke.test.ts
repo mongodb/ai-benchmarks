@@ -1,6 +1,9 @@
 import "dotenv/config";
 import { createClaudeCodeSandbox } from "./runClaudeCodeSandbox";
-import { ANTHROPIC_FOUNDRY_ENV_VARS, CLAUDE_CODE_SNAPSHOT_IDS } from "../envVars";
+import {
+  ANTHROPIC_FOUNDRY_ENV_VARS,
+  CLAUDE_CODE_SNAPSHOT_IDS,
+} from "../envVars";
 import { assertEnvVars } from "mongodb-rag-core";
 
 function getClaudeCodeSandboxEnv(): Record<string, string> {
@@ -11,11 +14,11 @@ function getClaudeCodeSandboxEnv(): Record<string, string> {
 }
 
 /**
- * Spike: verify that `claude --continue` preserves conversation state across
- * sequential `sandbox.runCommand` invocations on the same sandbox instance,
- * and that `--output-format json` produces a `.result` field we can extract.
- *
- * This is the highest-risk assumption in the conversation runner design.
+ Spike: verify that `claude --continue` preserves conversation state across
+ sequential `sandbox.runCommand` invocations on the same sandbox instance,
+ and that `--output-format json` produces a `.result` field we can extract.
+ 
+ This is the highest-risk assumption in the conversation runner design.
  */
 async function main(): Promise<void> {
   const { CLAUDE_CODE_BASE_SNAPSHOT_ID: snapshotId } = assertEnvVars(
@@ -42,7 +45,9 @@ async function main(): Promise<void> {
     const { run: turn1 } = turn1Result;
     console.log(`  exitCode:   ${turn1.exitCode}`);
     console.log(`  durationMs: ${turn1.durationMs}`);
-    console.log(`  raw stdout (first 500 chars):\n${turn1.stdout.slice(0, 500)}`);
+    console.log(
+      `  raw stdout (first 500 chars):\n${turn1.stdout.slice(0, 500)}`
+    );
 
     if (turn1.exitCode !== 0) {
       throw new Error(`Turn 1 failed with exit code ${turn1.exitCode}`);
@@ -52,7 +57,9 @@ async function main(): Promise<void> {
     console.log(`\n  .result field:\n    ${parsed1.result}`);
     console.log(`  .session_id: ${parsed1.session_id ?? "<missing>"}`);
 
-    console.log("\nTurn 2: using --continue, asking what color was mentioned...");
+    console.log(
+      "\nTurn 2: using --continue, asking what color was mentioned..."
+    );
     const turn2Result = await handle.runClaude({
       input: "What color did I just mention? Reply with just the color name.",
       continueSession: true,
@@ -64,7 +71,9 @@ async function main(): Promise<void> {
     const { run: turn2 } = turn2Result;
     console.log(`  exitCode:   ${turn2.exitCode}`);
     console.log(`  durationMs: ${turn2.durationMs}`);
-    console.log(`  raw stdout (first 500 chars):\n${turn2.stdout.slice(0, 500)}`);
+    console.log(
+      `  raw stdout (first 500 chars):\n${turn2.stdout.slice(0, 500)}`
+    );
 
     if (turn2.exitCode !== 0) {
       throw new Error(`Turn 2 failed with exit code ${turn2.exitCode}`);
@@ -108,7 +117,9 @@ function parseClaudeJsonOutput(stdout: string): ClaudeJsonOutput {
     typeof (parsed as Record<string, unknown>).result !== "string"
   ) {
     throw new Error(
-      `claude JSON output missing string .result field. Got: ${JSON.stringify(parsed).slice(0, 500)}`
+      `claude JSON output missing string .result field. Got: ${JSON.stringify(
+        parsed
+      ).slice(0, 500)}`
     );
   }
   return parsed as ClaudeJsonOutput;

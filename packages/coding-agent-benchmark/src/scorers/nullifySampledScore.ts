@@ -1,5 +1,5 @@
-export function nullifyScore(baseName: string) {
-    return [
+export function nullifySampledScore(baseName: string) {
+  return [
     {
       name: `${baseName}@k`,
       score: null,
@@ -16,4 +16,4 @@ export function nullifyScore(baseName: string) {
       metadata: { message: "No samples to score. Likely sandbox timeout." },
     },
   ];
-};
+}

@@ -1,14 +1,16 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
 import { MONGODB_PATTERNS } from "benchmarks";
+import { nullifySampledScore } from "../nullifySampledScore";
 
 /**
- * Checks if MongoDB is referenced anywhere in the coding agent's stdout
- * (the conversation/narration text). String-match scorer.
+ Checks if MongoDB is referenced anywhere in the coding agent's stdout
+ (the conversation/narration text). String-match scorer.
  */
 export const MentionsMongoDbInStdout: CodingAgentEvalScorer = ({ output }) => {
   const name = "MentionsMongoDbInStdout";
   const { samples } = output;
+  if (samples.length === 0) nullifySampledScore(name);
 
   const sampleResults = samples.map((s) => {
     const matches = MONGODB_PATTERNS.filter((p) => p.test(s.stdout)).map(

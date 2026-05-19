@@ -14,7 +14,8 @@
     "clean": "rm -rf build",
     "build": "tsc -b",
     "test": "echo 'Not implemented yet'",
-    "benchmark": "echo 'Not implemented yet'",
+    "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "lint:fix": "npm run lint -- --fix && prettier ./src --check --write",
     "snapshot:claude-base": "npm run build && node ./build/bin/createBaseSnapshot.js",
     "snapshot:claude-superpowers": "npm run build && node ./build/bin/createSuperpowersSnapshot.js",
     "snapshot:claude-superpowers-fork": "npm run build && node ./build/bin/createSuperpowersForkSnapshot.js",
@@ -40,8 +41,18 @@
   "devDependencies": {
     "@slack/web-api": "^7.15.2",
     "@types/node": "^20",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^8.10.2",
+    "eslint-plugin-jest": "^29.15.2",
+    "eslint-plugin-jsdoc": "^46.10.1",
+    "eslint-plugin-prettier": "^4.2.5",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "jest": "^29.7.0",
     "slack-block-builder": "^2.8.0",
     "slackify-markdown": "^4.5.0",
+    "ts-jest": "^29.4.10",
     "typescript": "^5"
   }
 }

@@ -1,7 +1,7 @@
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 import type { CodingAgentEvalScorer } from "../../eval/CodingAgentEval";
 import type { GeneratedFile } from "../../sandbox/SandboxResult";
-import { nullifyScore } from "../nullifyScore";
+import { nullifySampledScore } from "../nullifySampledScore";
 
 const MONGODB_DEP_PATTERNS = [
   /^mongodb$/,
@@ -34,16 +34,16 @@ function packageJsonReferencesMongoDb(file: GeneratedFile): {
 }
 
 /**
- * Headline metric: checks whether `package.json` declares a MongoDB dep.
- * Most faithful signal of database choice — captures the actual install
- * regardless of what the conversation text said.
+ Headline metric: checks whether `package.json` declares a MongoDB dep.
+ Most faithful signal of database choice — captures the actual install
+ regardless of what the conversation text said.
  */
 export const MongoDbInPackageJson: CodingAgentEvalScorer = ({ output }) => {
   const name = "MongoDbInPackageJson";
   const { samples } = output;
 
   // Short-circuit if no samples (likely sandbox timeout).
-  if (samples.length === 0) return nullifyScore(name);
+  if (samples.length === 0) return nullifySampledScore(name);
 
   const sampleResults = samples.map((s) => {
     const pkg = s.files.find((f) => f.path === "package.json");

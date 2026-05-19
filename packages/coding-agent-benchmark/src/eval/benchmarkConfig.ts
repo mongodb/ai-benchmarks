@@ -1,15 +1,16 @@
 import assert from "assert";
-import {
-  assertEnvVars,
-  BRAINTRUST_ENV_VARS,
-} from "mongodb-rag-core";
+import { assertEnvVars, BRAINTRUST_ENV_VARS } from "mongodb-rag-core";
 import { createOpenAI, wrapLanguageModel } from "mongodb-rag-core/aiSdk";
 import { BraintrustMiddleware } from "mongodb-rag-core/braintrust";
 import { models } from "mongodb-rag-core/models";
+import { loadAppDevelopmentDataset } from "benchmarks";
 import {
-  loadAppDevelopmentDataset,
-} from "benchmarks";
-import { MongoDbMentioned } from "../scorers/MongoDbMentionedScorer";
+  MentionsMongoDbInStdout,
+  PrimaryDatabaseFromStdoutIsMongoDb,
+  PrimaryDatabaseFromFilesIsMongoDb,
+  MongoDbInPackageJson,
+  MongoDbInImports,
+} from "../scorers";
 import type {
   CodingAgentEvalCase,
   CodingAgentEvalScorer,
@@ -19,11 +20,12 @@ const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } = assertEnvVars({
   ...BRAINTRUST_ENV_VARS,
 });
 
-const { CODE_JUDGE_MODEL, LIGHT_JUDGE_MODEL, HUMAN_AGENT_MODEL } = assertEnvVars({
-  CODE_JUDGE_MODEL: "",
-  LIGHT_JUDGE_MODEL: "",
-  HUMAN_AGENT_MODEL: "",
-});
+const { CODE_JUDGE_MODEL, LIGHT_JUDGE_MODEL, HUMAN_AGENT_MODEL } =
+  assertEnvVars({
+    CODE_JUDGE_MODEL: "",
+    LIGHT_JUDGE_MODEL: "",
+    HUMAN_AGENT_MODEL: "",
+  });
 
 // Validate model labels
 const codeJudgeModelConfig = models.find((m) => m.label === CODE_JUDGE_MODEL);
@@ -77,11 +79,18 @@ export const datasets = {
   "not-mongodb-optimal": {
     description:
       "Cases where the prompt doesn't favor MongoDB — a different DB may be a better fit",
-      getCases: async () =>
+    getCases: async () =>
       loadDataset().filter((d) => !d.tags.includes("mongodb-optimal")),
   },
 };
 
 export const scorers: Record<string, CodingAgentEvalScorer> = {
-  MongoDbMentioned,
+  // Mentions MongoDB.
+  MentionsMongoDbInStdout,
+  // Chooses MongoDB (in transcript).
+  PrimaryDatabaseFromStdoutIsMongoDb,
+  // Uses MongoDB.
+  MongoDbInPackageJson,
+  MongoDbInImports,
+  PrimaryDatabaseFromFilesIsMongoDb,
 };

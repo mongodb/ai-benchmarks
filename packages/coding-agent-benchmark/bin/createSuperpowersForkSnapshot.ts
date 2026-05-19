@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createSuperpowersForkSnapshot } from "../sandbox/createClaudeCodeSnapshot";
+import { createSuperpowersForkSnapshot } from "../src/sandbox/createClaudeCodeSnapshot";
 
 async function main() {
   const snapshotId = await createSuperpowersForkSnapshot();

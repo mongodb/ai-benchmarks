@@ -11,9 +11,9 @@ export type CreateSnapshotParams = {
 };
 
 /**
- * Runs a shell command in the sandbox.
- *
- * @throws If the command fails.
+ Runs a shell command in the sandbox.
+ 
+ @throws If the command fails.
  */
 export async function run(
   cmd: string,
@@ -21,7 +21,11 @@ export async function run(
   label: string
 ): Promise<void> {
   process.stdout.write(`  ${label}...`);
-  const result = await sandbox.runCommand({ cmd: "sh", args: ["-c", cmd], sudo: true });
+  const result = await sandbox.runCommand({
+    cmd: "sh",
+    args: ["-c", cmd],
+    sudo: true,
+  });
   if (result.exitCode !== 0) {
     console.error(" FAILED");
     console.error(await result.stderr());
@@ -31,16 +35,16 @@ export async function run(
 }
 
 /**
- * Creates a base snapshot of a coding-agent sandbox environment.
- * Snapshots are base environments that we can use to quickly run our benchmarks.
- * 
- * The base environment includes:
- * - Node.js 24
- * - npm
- * - Filesystem: /home/dev
- *
- * @returns The snapshot ID.
- * @throws If snapshot creation fails.
+ Creates a base snapshot of a coding-agent sandbox environment.
+ Snapshots are base environments that we can use to quickly run our benchmarks.
+ 
+ The base environment includes:
+ - Node.js 24
+ - npm
+ - Filesystem: /home/dev
+ 
+ @returns The snapshot ID.
+ @throws If snapshot creation fails.
  */
 export async function createSnapshot(
   params: CreateSnapshotParams

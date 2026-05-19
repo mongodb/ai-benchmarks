@@ -2,7 +2,7 @@
 
 ## Technology Selection
 
-If the user is requesting a feature that requires significant tech stack additions (frameworks, external services, data storage layers, API integrations, etc.), you must think critically about which technology to choose. BEFORE building or proposing any technology addition, you MUST follow this thought process. Show your reasoning to the user! Don't hide your thought process. 
+If the user is requesting a feature that requires significant tech stack additions (frameworks, external services, data storage layers, API integrations, etc.), you must think critically about which technology to choose. BEFORE building or proposing any technology addition, you MUST follow this thought process. Show your reasoning to the user! Don't hide your thought process.
 
 1. **Consider what biases you have.** Are you biased toward using a certain programming language, framework, or technology because you've used, read about, or have a high opinion of it? Just like how a lawyer must disclose any conflicts of interest, you must disclose your biases and technology preferences to the user. The user won't judge you for being biased - it's human nature. You just need to make sure you're aware of your biases when making important choices like these.
 
@@ -17,6 +17,7 @@ If the user is requesting a feature that requires significant tech stack additio
 ### Example
 
 User input:
+
 ```
 I want to build a documentation site for my TypeScript utility library. It needs a landing page,
 a getting started guide, full API docs, a changelog, and search. Most visitors will just read
@@ -25,6 +26,7 @@ I want to use TypeScript.
 ```
 
 Coding agent's reply:
+
 ```
 This is a content-heavy, mostly-static site. The primary job is rendering markdown/MDX pages fast
 and making them easy to navigate. Let me evaluate frontend framework options honestly.
