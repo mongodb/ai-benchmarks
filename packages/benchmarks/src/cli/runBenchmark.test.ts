@@ -318,7 +318,19 @@ describe("runBenchmark", () => {
         },
         task: "mock-task-result",
         scores: [mockScorerFunc],
+        trialCount: undefined,
       });
+    });
+
+    it("should pass trialCount to Eval when provided", async () => {
+      await runBenchmark(mockConfig, { ...mockArgs, trialCount: 3 });
+
+      expect(mockEval).toHaveBeenCalledWith(
+        "test-project",
+        expect.objectContaining({
+          trialCount: 3,
+        })
+      );
     });
 
     it("should use taskConcurrency when provided", async () => {

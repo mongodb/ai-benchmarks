@@ -14,6 +14,7 @@ export interface RunBenchmarkArgs {
   modelConcurrency: number;
   sampleSize?: number;
   sampleType?: "firstN" | "random";
+  trialCount?: number;
 }
 
 export async function runBenchmark(
@@ -27,6 +28,7 @@ export async function runBenchmark(
     modelConcurrency,
     sampleSize,
     sampleType,
+    trialCount,
   }: RunBenchmarkArgs
 ) {
   const benchmarkConfig = config.benchmarks[type];
@@ -116,6 +118,7 @@ export async function runBenchmark(
             },
             task: await taskToRun.taskFunc(config.modelProvider, model),
             scores,
+            trialCount,
           });
 
           console.log(`✓ Completed experiment: ${experimentName}`);

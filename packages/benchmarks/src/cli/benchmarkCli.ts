@@ -55,6 +55,12 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               "Number of models to run experiments on at once. Default is 2.",
             default: 2,
           })
+          .option("trialCount", {
+            type: "number",
+            describe:
+              "Number of times to run each input through the task. Default is 1.",
+            default: 1,
+          })
           .strict()
           .check((argv) => {
             const errors: string[] = [];
@@ -128,6 +134,13 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               errors.push("sampleSize must be a positive integer");
             }
 
+            if (
+              !Number.isInteger(argv.trialCount) ||
+              argv.trialCount < 1
+            ) {
+              errors.push("trialCount must be a positive integer");
+            }
+
             if (errors.length > 0) {
               throw new Error(errors.join(", "));
             }
@@ -155,6 +168,7 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             modelConcurrency: argv.modelConcurrency,
             sampleSize: argv.sampleSize,
             sampleType: argv.sampleType,
+            trialCount: argv.trialCount,
           };
           await runBenchmark(config, args);
         } catch (error) {
