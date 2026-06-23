@@ -27,6 +27,7 @@ const config: BenchmarkCliConfig = {
     nl_to_mongosh: nlToMongoshBenchmarkConfig,
     nl_to_atlas_search: nlToAtlasSearchBenchmarkConfig,
     app_development: appDevelopmentBenchmarkConfig,
+    coding_agent_app_development: appDevelopmentBenchmarkConfig,
   },
 };
 
