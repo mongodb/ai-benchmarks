@@ -5,11 +5,9 @@ import { MONGODB_PATTERNS } from "../../app-development/metrics/MentionsMongoDbI
  * String-matching scorer that checks whether MongoDB is mentioned anywhere in
  * the coding agent's generation transcript (the output written to stdout).
  *
- * Reuses the MongoDB patterns from `MentionsMongoDbInGeneration`.
+ * Reuses the MongoDB patterns from {@link MONGODB_PATTERNS}.
  *
- * Returns 1 if MongoDB is mentioned, otherwise 0. Sampling across multiple
- * trajectories is handled by Braintrust's `trialCount`, so this scores a
- * single trajectory.
+ * Returns 1 if MongoDB is mentioned, otherwise 0.
  */
 export const MongoDbInTranscript: CodingAgentAppDevelopmentEvalScorer = ({
   output,

@@ -45,11 +45,7 @@ function fileImportsMongoDb(content: string): string[] {
  * Checks whether MongoDB is used in the generated code by detecting whether a
  * MongoDB library / driver / ODM is imported into any source file.
  *
- * Based on the previously developed `MongoDbInImports` metric.
- *
- * Returns 1 if MongoDB is imported in the application, otherwise 0. Sampling
- * across multiple trajectories is handled by Braintrust's `trialCount`, so this
- * scores a single trajectory.
+ * Returns 1 if MongoDB is imported in the application, otherwise 0.
  */
 export const MongoDbInCode: CodingAgentAppDevelopmentEvalScorer = ({
   output,

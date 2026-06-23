@@ -1,14 +1,28 @@
+import { Score } from "autoevals";
 import { MongoDbInCode } from "./MongoDbInCode";
 
-function score(files: Record<string, string>) {
+function runMongoDbInCode(files: Record<string, string>) {
   return MongoDbInCode({
-    output: { transcript: "", files },
-  } as any) as { name: string; score: number; metadata?: any };
+    input: {
+      messages: [],
+      name: "test",
+    },
+    metadata: {
+      difficulty: "beginner",
+    },
+
+    output: {
+      transcript: "",
+      // Only files are relevant for this metric.
+      // The other values are just placeholders.
+      files,
+    },
+  }) as Score;
 }
 
 describe("MongoDbInCode", () => {
   test("scores 1 when a JS file imports mongodb via require", () => {
-    const result = score({
+    const result = runMongoDbInCode({
       "index.js": "const { MongoClient } = require('mongodb');",
     });
     expect(result.name).toBe("MongoDbInCode");
@@ -16,24 +30,25 @@ describe("MongoDbInCode", () => {
   });
 
   test("scores 1 for an ESM import of mongoose", () => {
-    expect(score({ "db.ts": "import mongoose from 'mongoose';" }).score).toBe(
-      1
-    );
+    expect(
+      runMongoDbInCode({ "db.ts": "import mongoose from 'mongoose';" }).score
+    ).toBe(1);
   });
 
   test("scores 1 for a @mongodb-js scoped package import", () => {
     expect(
-      score({ "db.ts": "import { foo } from '@mongodb-js/zstd';" }).score
+      runMongoDbInCode({ "db.ts": "import { foo } from '@mongodb-js/zstd';" })
+        .score
     ).toBe(1);
   });
 
   test("scores 1 for a python pymongo import", () => {
-    expect(score({ "app.py": "import pymongo" }).score).toBe(1);
+    expect(runMongoDbInCode({ "app.py": "import pymongo" }).score).toBe(1);
   });
 
   test("scores 1 for a python motor import", () => {
     expect(
-      score({
+      runMongoDbInCode({
         "app.py": "from motor.motor_asyncio import AsyncIOMotorClient",
       }).score
     ).toBe(1);
@@ -41,26 +56,32 @@ describe("MongoDbInCode", () => {
 
   test("scores 1 for the go mongo driver", () => {
     expect(
-      score({ "main.go": 'import "go.mongodb.org/mongo-driver/mongo"' }).score
+      runMongoDbInCode({
+        "main.go": 'import "go.mongodb.org/mongo-driver/mongo"',
+      }).score
     ).toBe(1);
   });
 
   test("scores 0 when no source file imports mongodb", () => {
-    expect(score({ "index.js": "import express from 'express';" }).score).toBe(
-      0
-    );
+    expect(
+      runMongoDbInCode({ "index.js": "import express from 'express';" }).score
+    ).toBe(0);
   });
 
   test("ignores MongoDB mentions in non-source files", () => {
-    expect(score({ "README.md": "This app uses mongodb." }).score).toBe(0);
+    expect(
+      runMongoDbInCode({ "README.md": "This app uses mongodb." }).score
+    ).toBe(0);
   });
 
   test("scores 0 when there are no files", () => {
-    expect(score({}).score).toBe(0);
+    expect(runMongoDbInCode({}).score).toBe(0);
   });
 
   test("includes matched files in metadata", () => {
-    const result = score({ "index.js": "require('mongodb')" });
-    expect(result.metadata?.matchedFiles?.[0]?.path).toBe("index.js");
+    const result = runMongoDbInCode({ "index.js": "require('mongodb')" });
+    expect(
+      (result.metadata?.matchedFiles as Array<{ path: string }>)[0]?.path
+    ).toBe("index.js");
   });
 });
