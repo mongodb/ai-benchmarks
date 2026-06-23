@@ -10,6 +10,7 @@ import { discoveryBenchmarkConfig } from "../discovery/config";
 import { nlToMongoshBenchmarkConfig } from "../textToDriver/nlToMongoshBenchmarkConfig";
 import { nlToAtlasSearchBenchmarkConfig } from "../textToDriver/nltoAtlasSearchBenchmarkConfig";
 import { appDevelopmentBenchmarkConfig } from "../app-development/config";
+import { codingAgentAppDevelopmentBenchmarkConfig } from "../coding-agent-app-development/config";
 
 const { BRAINTRUST_API_KEY, BRAINTRUST_ENDPOINT } =
   assertEnvVars(BRAINTRUST_ENV_VARS);
@@ -27,7 +28,7 @@ const config: BenchmarkCliConfig = {
     nl_to_mongosh: nlToMongoshBenchmarkConfig,
     nl_to_atlas_search: nlToAtlasSearchBenchmarkConfig,
     app_development: appDevelopmentBenchmarkConfig,
-    coding_agent_app_development: appDevelopmentBenchmarkConfig,
+    coding_agent_app_development: codingAgentAppDevelopmentBenchmarkConfig,
   },
 };
 

@@ -6,8 +6,10 @@ import {
   CodingAgentAppDevelopmentMetadata,
 } from "./CodingAgentAppDevelopmentEval";
 import { loadAppDevelopmentDataset } from "./loadAppDevelopmentDataset";
+import { MongoDbInCode } from "./metrics/MongoDbInCode";
+import { MongoDbInTranscript } from "./metrics/MongoDbInTranscript";
 
-export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
+export const codingAgentAppDevelopmentBenchmarkConfig: BenchmarkConfig<
   CodingAgentAppDevelopmentEvalCaseInput,
   CodingAgentAppDevelopmentTaskOutput,
   CodingAgentAppDevelopmentTaskExpected,
@@ -48,19 +50,15 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
   },
 
   scorers: {
-    primary_database_is_mongodb: {
-      description: "Checks if MongoDB was chosen as the primary database",
-      scorerFunc: (args) => {
-        // TODO: real implementation!
-        return 0;
-      },
+    mongodb_in_code: {
+      description:
+        "Checks if MongoDB is used in the generated code by detecting a MongoDB library import in any source file",
+      scorerFunc: MongoDbInCode,
     },
-    mentions_mongodb: {
-      description: "Checks if MongoDB is referenced anywhere in the generation",
-      scorerFunc: (args) => {
-        // TODO: real implementation!
-        return 0;
-      },
+    mongodb_in_transcript: {
+      description:
+        "Checks if MongoDB is mentioned in the generation transcript written to stdout",
+      scorerFunc: MongoDbInTranscript,
     },
   },
 };
