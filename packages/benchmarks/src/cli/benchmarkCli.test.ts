@@ -224,6 +224,35 @@ describe("makeBenchmarkCli", () => {
       ]);
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
+
+    it("should validate trialCount is a positive integer", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--trialCount",
+        "0",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+
+      processExitSpy.mockClear();
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--trialCount",
+        "1.5",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
     it("should validate sampleSize is a positive integer", async () => {
       const cli = makeBenchmarkCli(mockConfig);
       cli.parse([
@@ -292,7 +321,32 @@ describe("makeBenchmarkCli", () => {
         models: mockConfig.models,
         datasets: ["dataset1"],
         modelConcurrency: 2,
+        sampleSize: undefined,
+        sampleType: undefined,
+        taskConcurrency: undefined,
+        trialCount: 1,
       });
+    });
+
+    it("should pass trialCount to runBenchmark", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      await cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--trialCount",
+        "3",
+      ]);
+
+      expect(mockRunBenchmark).toHaveBeenCalledWith(
+        mockConfig,
+        expect.objectContaining({
+          trialCount: 3,
+        })
+      );
     });
 
     it("should use default values when optional arguments not provided", async () => {
@@ -312,6 +366,10 @@ describe("makeBenchmarkCli", () => {
         models: mockConfig.models, // All models
         datasets: ["dataset1"],
         modelConcurrency: 2,
+        sampleSize: undefined,
+        sampleType: undefined,
+        taskConcurrency: undefined,
+        trialCount: 1,
       });
     });
 
@@ -342,6 +400,7 @@ describe("makeBenchmarkCli", () => {
         taskConcurrency: 3,
         sampleType: undefined,
         sampleSize: undefined,
+        trialCount: 1,
       });
     });
 
