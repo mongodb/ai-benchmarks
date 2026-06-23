@@ -60,12 +60,5 @@ export const codingAgentAppDevelopmentBenchmarkConfig: BenchmarkConfig<
         "Checks if MongoDB is mentioned in the generation transcript written to stdout",
       scorerFunc: MongoDbInTranscript,
     },
-    primary_database_is_mongodb: {
-      description: "Checks if MongoDB was chosen as the primary database",
-      scorerFunc: (args) => {
-        // TODO: real implementation!
-        return 0;
-      },
-    },
   },
 };
