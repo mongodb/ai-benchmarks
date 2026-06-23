@@ -1,7 +1,7 @@
 import { AppDevelopmentEvalScorer } from "../AppDevelopmentEval";
 import { computeSampleMetrics } from "mongodb-rag-core/eval";
 
-const MONGODB_PATTERNS = [
+export const MONGODB_PATTERNS = [
   /mongodb/i,
   /mongo\s*db/i,
   /mongoose/i,
