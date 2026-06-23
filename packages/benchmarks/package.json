@@ -49,6 +49,7 @@
     "@ai-sdk/openai": "^3.0.0",
     "@modelcontextprotocol/sdk": "^1.17.2",
     "@supercharge/promise-pool": "^3.2.0",
+    "@vercel/sandbox": "^1.10.2",
     "ai": "^6.0.0",
     "autoevals": "^0.0.129",
     "csv-writer": "^1.6.0",
