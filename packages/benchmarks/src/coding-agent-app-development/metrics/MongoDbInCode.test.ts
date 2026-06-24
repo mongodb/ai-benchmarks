@@ -16,6 +16,7 @@ function runMongoDbInCode(files: Record<string, string>) {
       // Only files are relevant for this metric.
       // The other values are just placeholders.
       files,
+      databaseLibraries: [],
     },
   }) as Score;
 }
