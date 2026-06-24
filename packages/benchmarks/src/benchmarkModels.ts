@@ -41,6 +41,8 @@ export const MODELS = (
     "nova-lite-v1:0",
     "nova-pro-v1:0",
     "mistral-large-2",
+    "azure/claude-sonnet-4-6",
+    "azure/claude-haiku-4-5",
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);

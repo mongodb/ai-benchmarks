@@ -88,6 +88,58 @@ describe("extractDbLibrariesUsed", () => {
     expect(byLib["drizzle-orm"]).toBeNull();
   });
 
+  test("infers the concrete database from Prisma schema providers", () => {
+    const files: Files = {
+      "package.json": packageJson({
+        dependencies: { "@prisma/client": "^5.0.0" },
+      }),
+      "prisma/schema.prisma": `
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+        }
+      `,
+    };
+    const result = extractDbLibrariesUsed({ files });
+    expect(result).toContainEqual({
+      library: "prisma:postgresql",
+      database: "postgresql",
+      packageJsonPath: "prisma/schema.prisma",
+      field: "dependencies",
+    });
+  });
+
+  test("maps Prisma sqlite providers to sqlite", () => {
+    const files: Files = {
+      "schema.prisma": `
+        datasource db {
+          provider = "sqlite"
+          url      = "file:./dev.db"
+        }
+      `,
+    };
+    const result = extractDbLibrariesUsed({ files });
+    expect(result).toContainEqual({
+      library: "prisma:sqlite",
+      database: "sqlite",
+      packageJsonPath: "schema.prisma",
+      field: "dependencies",
+    });
+  });
+
+  test("detects node:sqlite imports in source files", () => {
+    const files: Files = {
+      "src/db.ts": `import { DatabaseSync } from "node:sqlite";`,
+    };
+    const result = extractDbLibrariesUsed({ files });
+    expect(result).toContainEqual({
+      library: "node:sqlite",
+      database: "sqlite",
+      packageJsonPath: "src/db.ts",
+      field: "dependencies",
+    });
+  });
+
   test("detects libraries listed in devDependencies", () => {
     const files: Files = {
       "package.json": packageJson({
@@ -100,6 +152,21 @@ describe("extractDbLibrariesUsed", () => {
       database: "sqlite",
       packageJsonPath: "package.json",
       field: "devDependencies",
+    });
+  });
+
+  test("detects sql.js as sqlite", () => {
+    const files: Files = {
+      "package.json": packageJson({
+        dependencies: { "sql.js": "^1.14.1" },
+      }),
+    };
+    const result = extractDbLibrariesUsed({ files });
+    expect(result).toContainEqual({
+      library: "sql.js",
+      database: "sqlite",
+      packageJsonPath: "package.json",
+      field: "dependencies",
     });
   });
 

@@ -58,6 +58,7 @@ export const DB_LIBRARIES: Record<string, PrimaryDatabase | null> = {
   // SQLite / libSQL (Turso)
   sqlite3: "sqlite",
   "better-sqlite3": "sqlite",
+  "sql.js": "sqlite",
   "node:sqlite": "sqlite",
   "@libsql/client": "turso",
   libsql: "turso",
@@ -164,6 +165,47 @@ function lookupDatabase(
 
 const DEPENDENCY_FIELDS = ["dependencies", "devDependencies"] as const;
 
+const SOURCE_EXTENSIONS = [
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+];
+
+const PRISMA_PROVIDER_TO_DATABASE: Record<string, PrimaryDatabase> = {
+  postgresql: "postgresql",
+  postgres: "postgresql",
+  mysql: "mysql",
+  sqlite: "sqlite",
+  mongodb: "mongodb",
+  sqlserver: "mssql",
+  cockroachdb: "cockroachdb",
+};
+
+function isPrismaSchema(path: string): boolean {
+  return path === "schema.prisma" || path.endsWith(".prisma");
+}
+
+function isSourceFile(path: string): boolean {
+  return SOURCE_EXTENSIONS.some((ext) => path.endsWith(ext));
+}
+
+function extractPrismaProviders(content: string): string[] {
+  return [...content.matchAll(/\bprovider\s*=\s*"([^"]+)"/g)].map(
+    ([, provider]) => provider
+  );
+}
+
+function sourceImportsNodeSqlite(content: string): boolean {
+  return (
+    /\bfrom\s+["']node:sqlite["']/.test(content) ||
+    /\bimport\s+["']node:sqlite["']/.test(content) ||
+    /\brequire\(["']node:sqlite["']\)/.test(content)
+  );
+}
+
 /**
  * Inspect every `package.json` in the generated files and report which
  * database libraries appear in their `dependencies` / `devDependencies`.
@@ -179,6 +221,30 @@ export function extractDbLibrariesUsed({
   const detected: DetectedDbLibrary[] = [];
 
   for (const [path, content] of Object.entries(files)) {
+    if (isPrismaSchema(path)) {
+      for (const provider of extractPrismaProviders(content)) {
+        const database = PRISMA_PROVIDER_TO_DATABASE[provider];
+        if (!database) continue;
+        detected.push({
+          library: `prisma:${provider}`,
+          database,
+          packageJsonPath: path,
+          field: "dependencies",
+        });
+      }
+      continue;
+    }
+
+    if (isSourceFile(path) && sourceImportsNodeSqlite(content)) {
+      detected.push({
+        library: "node:sqlite",
+        database: "sqlite",
+        packageJsonPath: path,
+        field: "dependencies",
+      });
+      continue;
+    }
+
     if (!isPackageJson(path)) continue;
 
     let parsed: unknown;

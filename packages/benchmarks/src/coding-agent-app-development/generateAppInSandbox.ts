@@ -3,6 +3,9 @@ import { CodingAgentAppDevelopmentEvalCaseInput } from "./CodingAgentAppDevelopm
 import { extractDbLibrariesUsed, extractFilesFromSandbox } from "./utils";
 import assert from "assert";
 import { AgentConfig } from "./agents";
+import { OUTPUT_DIR } from "./prompts";
+
+const PROMPT_FILE_PATH = "/tmp/claude-prompt.txt";
 
 function buildFullPrompt(
   systemPrompt: string,
@@ -20,38 +23,95 @@ export interface GenerateAppInSandboxParams {
   model: string;
   systemPrompt: string;
   input: CodingAgentAppDevelopmentEvalCaseInput;
+  braintrustParent?: string;
 }
+
+function makeSandboxEnv({
+  agent,
+  braintrustParent,
+}: {
+  agent: AgentConfig;
+  braintrustParent?: string;
+}) {
+  if (!braintrustParent) {
+    return agent.env;
+  }
+  return {
+    ...agent.env,
+    ...agent.buildBraintrustParentEnv?.(agent.env, braintrustParent),
+  };
+}
+
 export const generateAppInSandbox = async function ({
   agent,
   model,
   systemPrompt,
   input,
+  braintrustParent,
 }: GenerateAppInSandboxParams) {
   assertSandboxEnv();
   const prompt = buildFullPrompt(systemPrompt, input);
-
+  const sandboxEnv = makeSandboxEnv({
+    agent,
+    braintrustParent,
+  });
   let sandbox: Sandbox | undefined;
   try {
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
     // create sandbox
     sandbox = await Sandbox.create({
       resources: { vcpus: 2 },
-      timeout: 10 * 60 * 1000,
-      env: agent.env,
+      timeout: THREE_HOURS_MS,
+      env: sandboxEnv,
     });
     assert(sandbox, "Sandbox creation failed");
 
+    await sandbox.runCommand({
+      cmd: "sh",
+      args: [
+        "-c",
+        `mkdir -p ${OUTPUT_DIR} && chown -R vercel-sandbox:vercel-sandbox ${OUTPUT_DIR}`,
+      ],
+      sudo: true,
+    });
+
     // setup agent in sandbox
-    const setupCommands = agent.buildSetupCommands(agent.env);
+    const setupCommands = agent.buildSetupCommands(agent.env, model);
     for (const setupCmd of setupCommands) {
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
 
-    // run agent!
-    const fullCommand = agent.buildMainCommand(prompt, model);
-    const { stdout, stderr } = await sandbox.runCommand("sh", [
-      "-c",
-      fullCommand,
+    await sandbox.writeFiles([
+      {
+        path: PROMPT_FILE_PATH,
+        content: prompt,
+      },
     ]);
+
+    // run agent!
+    const fullCommand = agent.buildMainCommand(PROMPT_FILE_PATH, model);
+    const command = await sandbox.runCommand({
+      cmd: "sh",
+      args: ["-c", fullCommand],
+      cwd: OUTPUT_DIR,
+      detached: true,
+    });
+
+    await command.wait();
+    const stdout = await command.stdout().catch((error) => {
+      console.error("failed to read stdout", error);
+      return "";
+    });
+    const stderr = await command.stderr().catch((error) => {
+      console.error("failed to read stderr", error);
+      return "";
+    });
+
+    if (command.exitCode !== null && command.exitCode !== 0) {
+      throw new Error(
+        `Agent command exited with code ${command.exitCode}\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`
+      );
+    }
 
     const files = await extractFilesFromSandbox({ sandbox });
     const databaseLibraries = extractDbLibrariesUsed({ files });
@@ -59,8 +119,8 @@ export const generateAppInSandbox = async function ({
     return {
       files,
       databaseLibraries,
-      stdout: await stdout(),
-      stderr: await stderr(),
+      stdout,
+      stderr,
     };
   } finally {
     // clean up sandbox
