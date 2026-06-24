@@ -58,6 +58,7 @@ export const DB_LIBRARIES: Record<string, PrimaryDatabase | null> = {
   // SQLite / libSQL (Turso)
   sqlite3: "sqlite",
   "better-sqlite3": "sqlite",
+  "sql.js": "sqlite",
   "node:sqlite": "sqlite",
   "@libsql/client": "turso",
   libsql: "turso",

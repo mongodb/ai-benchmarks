@@ -602,7 +602,17 @@ const allModels = [
   },
   {
     label: "azure/claude-sonnet-4-6",
-    deployment: "claude-sonnet-4-6",
+    deployment: "azure-claude-sonnet-4-6",
+    developer: "Anthropic",
+    maxConcurrency: 5,
+    provider: "braintrust",
+    authorized: true,
+    reasoning: true,
+    host: "Microsoft Azure",
+  },
+  {
+    label: "azure/claude-haiku-4-5",
+    deployment: "claude-haiku-4-5",
     developer: "Anthropic",
     maxConcurrency: 5,
     provider: "braintrust",

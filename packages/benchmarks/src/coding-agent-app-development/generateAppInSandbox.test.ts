@@ -18,10 +18,14 @@ type MockSandbox = Pick<Sandbox, "runCommand" | "stop" | "fs">;
 
 function makeMockSandbox({
   files = {},
-  mainCommandResult = { stdout: "agent stdout", stderr: "agent stderr" },
+  mainCommandResult = {
+    stdout: "agent stdout",
+    stderr: "agent stderr",
+    exitCode: 0,
+  },
 }: {
   files?: Record<string, string | { content: string; size: number }>;
-  mainCommandResult?: { stdout: string; stderr: string };
+  mainCommandResult?: { stdout: string; stderr: string; exitCode?: number };
 } = {}): MockSandbox {
   const fileMap = new Map<string, { content: string; size: number }>();
   for (const [path, value] of Object.entries(files)) {
@@ -71,6 +75,7 @@ function makeMockSandbox({
     runCommand: jest.fn().mockResolvedValue({
       stdout: jest.fn().mockResolvedValue(mainCommandResult.stdout),
       stderr: jest.fn().mockResolvedValue(mainCommandResult.stderr),
+      exitCode: mainCommandResult.exitCode ?? 0,
     }),
     stop: jest.fn().mockResolvedValue(undefined),
     fs,
@@ -157,6 +162,56 @@ describe("generateAppInSandbox", () => {
     });
   });
 
+  test("adds the Braintrust parent span to Claude Code custom headers", async () => {
+    const agent = makeAgentConfig({
+      env: {
+        AGENT_API_KEY: "test-key",
+        ANTHROPIC_CUSTOM_HEADERS: "x-existing-header: test",
+      },
+    });
+    const sandbox = makeMockSandbox();
+    mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
+
+    await generateAppInSandbox({
+      agent,
+      model: "test-model",
+      systemPrompt: "Build complete apps.",
+      input: makeInput(),
+      braintrustParent: "span-export-value",
+    });
+
+    expect(mockCreateSandbox).toHaveBeenCalledWith({
+      resources: { vcpus: 2 },
+      timeout: 10 * 60 * 1000,
+      env: {
+        AGENT_API_KEY: "test-key",
+        ANTHROPIC_CUSTOM_HEADERS:
+          "x-existing-header: test\nx-bt-parent: span-export-value",
+      },
+    });
+  });
+
+  test("creates the output directory before setup commands", async () => {
+    const sandbox = makeMockSandbox();
+    mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
+
+    await generateAppInSandbox({
+      agent: makeAgentConfig(),
+      model: "test-model",
+      systemPrompt: "Build complete apps.",
+      input: makeInput(),
+    });
+
+    expect(sandbox.runCommand).toHaveBeenNthCalledWith(1, {
+      cmd: "sh",
+      args: [
+        "-c",
+        "mkdir -p /app && chown -R vercel-sandbox:vercel-sandbox /app",
+      ],
+      sudo: true,
+    });
+  });
+
   test("runs setup commands before the main agent command", async () => {
     const agent = makeAgentConfig({
       setupCommands: ["install agent", "authenticate agent"],
@@ -173,18 +228,19 @@ describe("generateAppInSandbox", () => {
     });
 
     expect(agent.buildSetupCommands).toHaveBeenCalledWith(agent.env);
-    expect(sandbox.runCommand).toHaveBeenNthCalledWith(1, "sh", [
+    expect(sandbox.runCommand).toHaveBeenNthCalledWith(2, "sh", [
       "-c",
       "install agent",
     ]);
-    expect(sandbox.runCommand).toHaveBeenNthCalledWith(2, "sh", [
+    expect(sandbox.runCommand).toHaveBeenNthCalledWith(3, "sh", [
       "-c",
       "authenticate agent",
     ]);
-    expect(sandbox.runCommand).toHaveBeenNthCalledWith(3, "sh", [
-      "-c",
-      "run agent",
-    ]);
+    expect(sandbox.runCommand).toHaveBeenNthCalledWith(4, {
+      cmd: "sh",
+      args: ["-c", "run agent"],
+      cwd: "/app",
+    });
   });
 
   test("passes the formatted conversation prompt and model to the agent command builder", async () => {
@@ -231,8 +287,12 @@ Use MongoDB for storage.
       input: makeInput(),
     });
 
-    expect(sandbox.runCommand).toHaveBeenCalledTimes(1);
-    expect(sandbox.runCommand).toHaveBeenCalledWith("sh", ["-c", "run agent"]);
+    expect(sandbox.runCommand).toHaveBeenCalledTimes(2);
+    expect(sandbox.runCommand).toHaveBeenLastCalledWith({
+      cmd: "sh",
+      args: ["-c", "run agent"],
+      cwd: "/app",
+    });
   });
 
   test("stops the sandbox after a successful run", async () => {
@@ -283,6 +343,35 @@ Use MongoDB for storage.
         input: makeInput(),
       })
     ).rejects.toThrow(mainError);
+
+    expect(sandbox.stop).toHaveBeenCalledTimes(1);
+  });
+
+  test("throws stdout and stderr when the main command exits nonzero", async () => {
+    const sandbox = makeMockSandbox();
+    (sandbox.runCommand as jest.Mock)
+      .mockResolvedValueOnce({
+        stdout: jest.fn().mockResolvedValue(""),
+        stderr: jest.fn().mockResolvedValue(""),
+        exitCode: 0,
+      })
+      .mockResolvedValueOnce({
+        stdout: jest.fn().mockResolvedValue("agent stdout"),
+        stderr: jest.fn().mockResolvedValue("agent stderr"),
+        exitCode: 1,
+      });
+    mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
+
+    await expect(
+      generateAppInSandbox({
+        agent: makeAgentConfig({ setupCommands: [], mainCommand: "run agent" }),
+        model: "test-model",
+        systemPrompt: "Build complete apps.",
+        input: makeInput(),
+      })
+    ).rejects.toThrow(
+      "Agent command exited with code 1\nSTDOUT:\nagent stdout\nSTDERR:\nagent stderr"
+    );
 
     expect(sandbox.stop).toHaveBeenCalledTimes(1);
   });

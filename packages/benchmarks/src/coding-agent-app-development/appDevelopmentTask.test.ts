@@ -9,7 +9,13 @@ const mockGenerateAppInSandbox = generateAppInSandbox as jest.MockedFunction<
   typeof generateAppInSandbox
 >;
 
-const mockHooks = {} as any;
+function makeMockHooks() {
+  return {
+    span: {
+      export: jest.fn().mockResolvedValue("span-export-value"),
+    },
+  } as any;
+}
 
 function makeInput() {
   return {
@@ -49,14 +55,17 @@ describe("makeAppDevelopmentTask", () => {
     });
     const args = makeTaskArgs();
     const input = makeInput();
+    const hooks = makeMockHooks();
 
     const task = makeAppDevelopmentTask(args);
-    await task(input, mockHooks);
+    await task(input, hooks);
 
+    expect(hooks.span.export).toHaveBeenCalledTimes(1);
     expect(mockGenerateAppInSandbox).toHaveBeenCalledTimes(1);
     expect(mockGenerateAppInSandbox).toHaveBeenCalledWith({
       ...args,
       input,
+      braintrustParent: "span-export-value",
     });
   });
 
@@ -83,7 +92,7 @@ describe("makeAppDevelopmentTask", () => {
     });
 
     const task = makeAppDevelopmentTask(makeTaskArgs());
-    const result = await task(makeInput(), mockHooks);
+    const result = await task(makeInput(), makeMockHooks());
 
     expect(result).toEqual({
       files,
@@ -102,7 +111,7 @@ describe("makeAppDevelopmentTask", () => {
     });
 
     const task = makeAppDevelopmentTask(makeTaskArgs());
-    const result = await task(makeInput(), mockHooks);
+    const result = await task(makeInput(), makeMockHooks());
 
     expect(result).toEqual({
       files: {},
@@ -118,6 +127,8 @@ describe("makeAppDevelopmentTask", () => {
 
     const task = makeAppDevelopmentTask(makeTaskArgs());
 
-    await expect(task(makeInput(), mockHooks)).rejects.toThrow(generationError);
+    await expect(task(makeInput(), makeMockHooks())).rejects.toThrow(
+      generationError
+    );
   });
 });

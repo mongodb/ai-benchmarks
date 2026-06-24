@@ -103,6 +103,21 @@ describe("extractDbLibrariesUsed", () => {
     });
   });
 
+  test("detects sql.js as sqlite", () => {
+    const files: Files = {
+      "package.json": packageJson({
+        dependencies: { "sql.js": "^1.14.1" },
+      }),
+    };
+    const result = extractDbLibrariesUsed({ files });
+    expect(result).toContainEqual({
+      library: "sql.js",
+      database: "sqlite",
+      packageJsonPath: "package.json",
+      field: "dependencies",
+    });
+  });
+
   test("ignores non-database dependencies", () => {
     const files: Files = {
       "package.json": packageJson({
