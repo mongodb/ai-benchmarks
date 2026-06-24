@@ -27,22 +27,18 @@ export interface GenerateAppInSandboxParams {
 }
 
 function makeSandboxEnv({
-  agentEnv,
+  agent,
   braintrustParent,
 }: {
-  agentEnv: Record<string, string>;
+  agent: AgentConfig;
   braintrustParent?: string;
 }) {
   if (!braintrustParent) {
-    return agentEnv;
+    return agent.env;
   }
-  const braintrustHeader = `x-bt-parent: ${braintrustParent}`;
-  const existingHeaders = agentEnv.ANTHROPIC_CUSTOM_HEADERS;
   return {
-    ...agentEnv,
-    ANTHROPIC_CUSTOM_HEADERS: existingHeaders
-      ? `${existingHeaders}\n${braintrustHeader}`
-      : braintrustHeader,
+    ...agent.env,
+    ...agent.buildBraintrustParentEnv?.(agent.env, braintrustParent),
   };
 }
 
@@ -56,7 +52,7 @@ export const generateAppInSandbox = async function ({
   assertSandboxEnv();
   const prompt = buildFullPrompt(systemPrompt, input);
   const sandboxEnv = makeSandboxEnv({
-    agentEnv: agent.env,
+    agent,
     braintrustParent,
   });
   let sandbox: Sandbox | undefined;
@@ -101,6 +97,7 @@ export const generateAppInSandbox = async function ({
       detached: true,
     });
 
+    await command.wait();
     const stdout = await command.stdout().catch((error) => {
       console.error("failed to read stdout", error);
       return "";
@@ -109,6 +106,9 @@ export const generateAppInSandbox = async function ({
       console.error("failed to read stderr", error);
       return "";
     });
+    if (stderr) {
+      console.error("stderr:", stderr);
+    }
 
     if (command.exitCode !== null && command.exitCode !== 0) {
       throw new Error(

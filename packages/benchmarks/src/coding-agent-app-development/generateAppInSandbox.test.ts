@@ -88,16 +88,22 @@ function makeAgentConfig({
   env = { AGENT_API_KEY: "test-key" },
   setupCommands = ["npm install -g test-agent"],
   mainCommand = "test-agent --run",
+  buildBraintrustParentEnv,
 }: {
   env?: Record<string, string>;
   setupCommands?: string[];
   mainCommand?: string;
+  buildBraintrustParentEnv?: (
+    env: Record<string, string>,
+    braintrustParent: string
+  ) => Record<string, string>;
 } = {}) {
   return {
     id: "test-agent",
     env,
     buildSetupCommands: jest.fn().mockReturnValue(setupCommands),
     buildMainCommand: jest.fn().mockReturnValue(mainCommand),
+    buildBraintrustParentEnv,
   };
 }
 
@@ -164,12 +170,15 @@ describe("generateAppInSandbox", () => {
     });
   });
 
-  test("adds the Braintrust parent span to Claude Code custom headers", async () => {
+  test("adds the Braintrust parent span using the agent-specific env strategy", async () => {
+    const buildBraintrustParentEnv = jest.fn().mockReturnValue({
+      AGENT_CUSTOM_HEADERS: "x-bt-parent: span-export-value",
+    });
     const agent = makeAgentConfig({
       env: {
         AGENT_API_KEY: "test-key",
-        ANTHROPIC_CUSTOM_HEADERS: "x-existing-header: test",
       },
+      buildBraintrustParentEnv,
     });
     const sandbox = makeMockSandbox();
     mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
@@ -182,13 +191,16 @@ describe("generateAppInSandbox", () => {
       braintrustParent: "span-export-value",
     });
 
+    expect(buildBraintrustParentEnv).toHaveBeenCalledWith(
+      { AGENT_API_KEY: "test-key" },
+      "span-export-value"
+    );
     expect(mockCreateSandbox).toHaveBeenCalledWith({
       resources: { vcpus: 2 },
       timeout: 3 * 60 * 60 * 1000,
       env: {
         AGENT_API_KEY: "test-key",
-        ANTHROPIC_CUSTOM_HEADERS:
-          "x-existing-header: test\nx-bt-parent: span-export-value",
+        AGENT_CUSTOM_HEADERS: "x-bt-parent: span-export-value",
       },
     });
   });
