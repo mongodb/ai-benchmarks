@@ -6,6 +6,7 @@ import {
 } from "mongodb-rag-core/braintrust";
 import { ConversationEvalCase } from "mongodb-rag-core/eval";
 import { LlmOptions } from "mongodb-rag-core/executeCode";
+import { DetectedDbLibrary } from "./utils/extractDbLibrariesUsed";
 
 export type CodingAgentAppDevelopmentEvalCaseInput = {
   name: string;
@@ -35,6 +36,7 @@ export type Files = Record<string, string>;
 export type CodingAgentAppDevelopmentTaskOutput = {
   transcript: string;
   files: Files;
+  databaseLibraries: DetectedDbLibrary[];
 };
 
 export type CodingAgentAppDevelopmentTaskExpected = void;

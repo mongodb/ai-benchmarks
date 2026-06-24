@@ -12,3 +12,4 @@ node_modules
 .vscode
 build/
 .ipynb_checkpoints/
+.vercel
