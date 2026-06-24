@@ -16,6 +16,24 @@ const describeIfNotCi = process.env.CI ? describe.skip : describe;
 
 type MockSandbox = Pick<Sandbox, "runCommand" | "stop" | "fs" | "writeFiles">;
 
+function makeMockCommand({
+  stdout = "",
+  stderr = "",
+  exitCode = 0,
+}: {
+  stdout?: string;
+  stderr?: string;
+  exitCode?: number | null;
+} = {}) {
+  return {
+    wait: jest.fn().mockResolvedValue(undefined),
+    stdout: jest.fn().mockResolvedValue(stdout),
+    stderr: jest.fn().mockResolvedValue(stderr),
+    exitCode,
+    cmdId: "test-command-id",
+  };
+}
+
 function makeMockSandbox({
   files = {},
   mainCommandResult = {
@@ -72,12 +90,7 @@ function makeMockSandbox({
   };
 
   return {
-    runCommand: jest.fn().mockResolvedValue({
-      stdout: jest.fn().mockResolvedValue(mainCommandResult.stdout),
-      stderr: jest.fn().mockResolvedValue(mainCommandResult.stderr),
-      exitCode: mainCommandResult.exitCode ?? 0,
-      cmdId: "test-command-id",
-    }),
+    runCommand: jest.fn().mockResolvedValue(makeMockCommand(mainCommandResult)),
     writeFiles: jest.fn().mockResolvedValue(undefined),
     stop: jest.fn().mockResolvedValue(undefined),
     fs,
@@ -241,7 +254,10 @@ describe("generateAppInSandbox", () => {
       input: makeInput(),
     });
 
-    expect(agent.buildSetupCommands).toHaveBeenCalledWith(agent.env);
+    expect(agent.buildSetupCommands).toHaveBeenCalledWith(
+      agent.env,
+      "test-model"
+    );
     expect(sandbox.runCommand).toHaveBeenNthCalledWith(2, "sh", [
       "-c",
       "install agent",
@@ -320,16 +336,10 @@ Use MongoDB for storage.
   test("does not fail a detached main command with an unknown exit code", async () => {
     const sandbox = makeMockSandbox();
     (sandbox.runCommand as jest.Mock)
-      .mockResolvedValueOnce({
-        stdout: jest.fn().mockResolvedValue(""),
-        stderr: jest.fn().mockResolvedValue(""),
-        exitCode: 0,
-      })
-      .mockResolvedValueOnce({
-        stdout: jest.fn().mockResolvedValue("agent completed"),
-        stderr: jest.fn().mockResolvedValue(""),
-        exitCode: null,
-      });
+      .mockResolvedValueOnce(makeMockCommand())
+      .mockResolvedValueOnce(
+        makeMockCommand({ stdout: "agent completed", exitCode: null })
+      );
     mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
 
     await expect(
@@ -381,7 +391,7 @@ Use MongoDB for storage.
     const mainError = new Error("main command failed");
     const sandbox = makeMockSandbox();
     (sandbox.runCommand as jest.Mock)
-      .mockResolvedValueOnce({ stdout: "setup stdout", stderr: "" })
+      .mockResolvedValueOnce(makeMockCommand({ stdout: "setup stdout" }))
       .mockRejectedValueOnce(mainError);
     mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
 
@@ -400,16 +410,14 @@ Use MongoDB for storage.
   test("throws stdout and stderr when the main command exits nonzero", async () => {
     const sandbox = makeMockSandbox();
     (sandbox.runCommand as jest.Mock)
-      .mockResolvedValueOnce({
-        stdout: jest.fn().mockResolvedValue(""),
-        stderr: jest.fn().mockResolvedValue(""),
-        exitCode: 0,
-      })
-      .mockResolvedValueOnce({
-        stdout: jest.fn().mockResolvedValue("agent stdout"),
-        stderr: jest.fn().mockResolvedValue("agent stderr"),
-        exitCode: 1,
-      });
+      .mockResolvedValueOnce(makeMockCommand())
+      .mockResolvedValueOnce(
+        makeMockCommand({
+          stdout: "agent stdout",
+          stderr: "agent stderr",
+          exitCode: 1,
+        })
+      );
     mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
 
     await expect(

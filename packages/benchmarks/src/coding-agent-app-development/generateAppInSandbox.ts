@@ -76,7 +76,7 @@ export const generateAppInSandbox = async function ({
     });
 
     // setup agent in sandbox
-    const setupCommands = agent.buildSetupCommands(agent.env);
+    const setupCommands = agent.buildSetupCommands(agent.env, model);
     for (const setupCmd of setupCommands) {
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
@@ -106,9 +106,6 @@ export const generateAppInSandbox = async function ({
       console.error("failed to read stderr", error);
       return "";
     });
-    if (stderr) {
-      console.error("stderr:", stderr);
-    }
 
     if (command.exitCode !== null && command.exitCode !== 0) {
       throw new Error(
