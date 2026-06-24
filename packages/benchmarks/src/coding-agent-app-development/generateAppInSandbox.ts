@@ -5,6 +5,8 @@ import assert from "assert";
 import { AgentConfig } from "./agents";
 import { OUTPUT_DIR } from "./prompts";
 
+const PROMPT_FILE_PATH = "/tmp/claude-prompt.txt";
+
 function buildFullPrompt(
   systemPrompt: string,
   input: CodingAgentAppDevelopmentEvalCaseInput
@@ -59,10 +61,11 @@ export const generateAppInSandbox = async function ({
   });
   let sandbox: Sandbox | undefined;
   try {
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
     // create sandbox
     sandbox = await Sandbox.create({
       resources: { vcpus: 2 },
-      timeout: 10 * 60 * 1000,
+      timeout: THREE_HOURS_MS,
       env: sandboxEnv,
     });
     assert(sandbox, "Sandbox creation failed");
@@ -82,12 +85,20 @@ export const generateAppInSandbox = async function ({
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
 
+    await sandbox.writeFiles([
+      {
+        path: PROMPT_FILE_PATH,
+        content: prompt,
+      },
+    ]);
+
     // run agent!
-    const fullCommand = agent.buildMainCommand(prompt, model);
+    const fullCommand = agent.buildMainCommand(PROMPT_FILE_PATH, model);
     const command = await sandbox.runCommand({
       cmd: "sh",
       args: ["-c", fullCommand],
       cwd: OUTPUT_DIR,
+      detached: true,
     });
 
     const stdout = await command.stdout().catch((error) => {
@@ -99,7 +110,7 @@ export const generateAppInSandbox = async function ({
       return "";
     });
 
-    if (command.exitCode !== 0) {
+    if (command.exitCode !== null && command.exitCode !== 0) {
       throw new Error(
         `Agent command exited with code ${command.exitCode}\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`
       );

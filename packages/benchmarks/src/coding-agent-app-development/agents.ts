@@ -9,9 +9,9 @@ export interface AgentConfig {
   buildSetupCommands: (env: Record<string, string>) => string[];
   /** 
      @example
-     (prompt, model) => `echo '${prompt}' | claude --print --model ${model}`
+     (promptFilePath, model) => `claude --print --model ${model} < ${promptFilePath}`
    */
-  buildMainCommand: (prompt: string, model: string) => string;
+  buildMainCommand: (promptFilePath: string, model: string) => string;
 
   /** 
      @example
@@ -29,8 +29,8 @@ export const AGENTS: AgentConfig[] = [
   {
     id: "anthropic/claude-code",
     buildSetupCommands: () => ["npm install -g @anthropic-ai/claude-code"],
-    buildMainCommand: (prompt, model) =>
-      `echo '${prompt}' | claude --print --model ${model} --permission-mode bypassPermissions --dangerously-skip-permissions `,
+    buildMainCommand: (promptFilePath, model) =>
+      `claude --print --model ${model} --permission-mode bypassPermissions --dangerously-skip-permissions < ${promptFilePath}`,
     env: {
       ANTHROPIC_BASE_URL: process.env.BRAINTRUST_ENDPOINT,
       ANTHROPIC_API_KEY: process.env.BRAINTRUST_API_KEY,

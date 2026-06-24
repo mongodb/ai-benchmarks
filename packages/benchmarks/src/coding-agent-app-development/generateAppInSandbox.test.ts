@@ -14,7 +14,7 @@ const mockCreateSandbox = VercelSandbox.create as jest.MockedFunction<
 
 const describeIfNotCi = process.env.CI ? describe.skip : describe;
 
-type MockSandbox = Pick<Sandbox, "runCommand" | "stop" | "fs">;
+type MockSandbox = Pick<Sandbox, "runCommand" | "stop" | "fs" | "writeFiles">;
 
 function makeMockSandbox({
   files = {},
@@ -76,7 +76,9 @@ function makeMockSandbox({
       stdout: jest.fn().mockResolvedValue(mainCommandResult.stdout),
       stderr: jest.fn().mockResolvedValue(mainCommandResult.stderr),
       exitCode: mainCommandResult.exitCode ?? 0,
+      cmdId: "test-command-id",
     }),
+    writeFiles: jest.fn().mockResolvedValue(undefined),
     stop: jest.fn().mockResolvedValue(undefined),
     fs,
   } as unknown as MockSandbox;
@@ -157,7 +159,7 @@ describe("generateAppInSandbox", () => {
 
     expect(mockCreateSandbox).toHaveBeenCalledWith({
       resources: { vcpus: 2 },
-      timeout: 10 * 60 * 1000,
+      timeout: 3 * 60 * 60 * 1000,
       env: agent.env,
     });
   });
@@ -182,7 +184,7 @@ describe("generateAppInSandbox", () => {
 
     expect(mockCreateSandbox).toHaveBeenCalledWith({
       resources: { vcpus: 2 },
-      timeout: 10 * 60 * 1000,
+      timeout: 3 * 60 * 60 * 1000,
       env: {
         AGENT_API_KEY: "test-key",
         ANTHROPIC_CUSTOM_HEADERS:
@@ -240,10 +242,11 @@ describe("generateAppInSandbox", () => {
       cmd: "sh",
       args: ["-c", "run agent"],
       cwd: "/app",
+      detached: true,
     });
   });
 
-  test("passes the formatted conversation prompt and model to the agent command builder", async () => {
+  test("writes the formatted conversation prompt to a file before running the agent", async () => {
     const agent = makeAgentConfig({ mainCommand: "run agent" });
     const sandbox = makeMockSandbox();
     mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
@@ -255,8 +258,10 @@ describe("generateAppInSandbox", () => {
       input: makeInput(),
     });
 
-    expect(agent.buildMainCommand).toHaveBeenCalledWith(
-      `<system>
+    expect(sandbox.writeFiles).toHaveBeenCalledWith([
+      {
+        path: "/tmp/claude-prompt.txt",
+        content: `<system>
 Build complete apps.
 </system>
 <user>
@@ -268,6 +273,10 @@ I'll build it.
 <user>
 Use MongoDB for storage.
 </user>`,
+      },
+    ]);
+    expect(agent.buildMainCommand).toHaveBeenCalledWith(
+      "/tmp/claude-prompt.txt",
       "gpt-test"
     );
   });
@@ -292,6 +301,35 @@ Use MongoDB for storage.
       cmd: "sh",
       args: ["-c", "run agent"],
       cwd: "/app",
+      detached: true,
+    });
+  });
+
+  test("does not fail a detached main command with an unknown exit code", async () => {
+    const sandbox = makeMockSandbox();
+    (sandbox.runCommand as jest.Mock)
+      .mockResolvedValueOnce({
+        stdout: jest.fn().mockResolvedValue(""),
+        stderr: jest.fn().mockResolvedValue(""),
+        exitCode: 0,
+      })
+      .mockResolvedValueOnce({
+        stdout: jest.fn().mockResolvedValue("agent completed"),
+        stderr: jest.fn().mockResolvedValue(""),
+        exitCode: null,
+      });
+    mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
+
+    await expect(
+      generateAppInSandbox({
+        agent: makeAgentConfig({ setupCommands: [], mainCommand: "run agent" }),
+        model: "test-model",
+        systemPrompt: "Build complete apps.",
+        input: makeInput(),
+      })
+    ).resolves.toMatchObject({
+      stdout: "agent completed",
+      stderr: "",
     });
   });
 
