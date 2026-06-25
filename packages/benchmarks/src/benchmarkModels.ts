@@ -43,6 +43,7 @@ export const MODELS = (
     "mistral-large-2",
     "azure/claude-sonnet-4-6",
     "azure/claude-haiku-4-5",
+    "azure/deepseek-v4-pro",
   ] satisfies (typeof models)[number]["label"][]
 ).map((label) => {
   const model = models.find((m) => m.label === label);

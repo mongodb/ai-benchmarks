@@ -12,10 +12,10 @@ import { MONGODB_PATTERNS } from "../../app-development/metrics/MentionsMongoDbI
 export const MongoDbInTranscript: CodingAgentAppDevelopmentEvalScorer = ({
   output,
 }) => {
-  const transcript = output?.transcript ?? "";
+  const transcript = output.transcript;
 
   const matchedPatterns = MONGODB_PATTERNS.filter((pattern) =>
-    pattern.test(transcript)
+    new RegExp(pattern.source, pattern.flags).test(transcript)
   ).map((pattern) => pattern.source);
 
   return {
