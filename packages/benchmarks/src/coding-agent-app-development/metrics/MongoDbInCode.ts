@@ -45,7 +45,7 @@ function fileImportsMongoDb(content: string): string[] {
  * Checks whether MongoDB is used in the generated code by detecting whether a
  * MongoDB library / driver / ODM is imported into any source file.
  *
- * Returns 1 if MongoDB is imported in the application, otherwise 0.
+ * Returns 1 if MongoDB is imported in the application, 0 if not, and null if there are no files.
  */
 export const MongoDbInCode: CodingAgentAppDevelopmentEvalScorer = ({
   output,
@@ -53,7 +53,17 @@ export const MongoDbInCode: CodingAgentAppDevelopmentEvalScorer = ({
   const files = output?.files ?? {};
 
   const matchedFiles: Array<{ path: string; patterns: string[] }> = [];
-  for (const [path, content] of Object.entries(files)) {
+  const fileEntries = Object.entries(files);
+
+  if (fileEntries.length === 0) {
+    return {
+      name: "MongoDbInCode",
+      score: null,
+      metadata: { matchedFiles: [] },
+    };
+  }
+
+  for (const [path, content] of fileEntries) {
     if (!isSourceFile(path)) continue;
     const patterns = fileImportsMongoDb(content);
     if (patterns.length > 0) matchedFiles.push({ path, patterns });
