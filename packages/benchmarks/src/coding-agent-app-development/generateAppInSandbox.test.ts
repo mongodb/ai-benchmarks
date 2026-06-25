@@ -12,7 +12,7 @@ const mockCreateSandbox = VercelSandbox.create as jest.MockedFunction<
   typeof VercelSandbox.create
 >;
 
-const describeIfNotCi = process.env.CI ? describe.skip : describe;
+const describeIfNotCi = process.env.CI === "true" ? describe.skip : describe;
 
 type MockSandbox = Pick<Sandbox, "runCommand" | "stop" | "fs" | "writeFiles">;
 
