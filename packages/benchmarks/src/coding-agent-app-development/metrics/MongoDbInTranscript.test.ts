@@ -4,7 +4,7 @@ import { MONGODB_PATTERNS } from "../../app-development/metrics/MentionsMongoDbI
 function score(transcript: string) {
   return MongoDbInTranscript({
     output: { transcript, files: {} },
-  } as any) as { name: string; score: number; metadata?: any };
+  } as any) as { name: string; score: number | null; metadata?: any };
 }
 
 describe("MongoDbInTranscript", () => {
@@ -38,8 +38,12 @@ describe("MongoDbInTranscript", () => {
     ).toBe(0);
   });
 
-  test("scores 0 for an empty transcript", () => {
-    expect(score("").score).toBe(0);
+  test("does not score an empty transcript", () => {
+    const result = score("");
+
+    expect(result.name).toBe("MongoDbInTranscript");
+    expect(result.score).toBeNull();
+    expect(result.metadata?.matchedPatterns).toEqual([]);
   });
 
   test("includes matched patterns in metadata", () => {

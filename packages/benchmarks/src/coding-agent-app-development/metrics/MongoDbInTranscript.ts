@@ -7,12 +7,21 @@ import { MONGODB_PATTERNS } from "../../app-development/metrics/MentionsMongoDbI
  *
  * Reuses the MongoDB patterns from {@link MONGODB_PATTERNS}.
  *
- * Returns 1 if MongoDB is mentioned, otherwise 0.
+ * Returns 1 if MongoDB is mentioned, 0 if not, and null if the transcript is empty.
  */
 export const MongoDbInTranscript: CodingAgentAppDevelopmentEvalScorer = ({
   output,
 }) => {
   const transcript = output.transcript;
+
+  // Do not score if the transcript is empty.
+  if (transcript === "") {
+    return {
+      name: "MongoDbInTranscript",
+      score: null,
+      metadata: { matchedPatterns: [] },
+    };
+  }
 
   const matchedPatterns = MONGODB_PATTERNS.filter((pattern) =>
     new RegExp(pattern.source, pattern.flags).test(transcript)

@@ -75,8 +75,12 @@ describe("MongoDbInCode", () => {
     ).toBe(0);
   });
 
-  test("scores 0 when there are no files", () => {
-    expect(runMongoDbInCode({}).score).toBe(0);
+  test("does not score when there are no files", () => {
+    const result = runMongoDbInCode({});
+
+    expect(result.name).toBe("MongoDbInCode");
+    expect(result.score).toBeNull();
+    expect(result.metadata?.matchedFiles).toEqual([]);
   });
 
   test("includes matched files in metadata", () => {
