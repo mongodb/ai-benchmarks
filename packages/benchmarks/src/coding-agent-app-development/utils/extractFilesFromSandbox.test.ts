@@ -107,6 +107,37 @@ describe("extractFilesFromSandbox", () => {
     expect(Object.keys(files)).not.toContain("huge.bin");
   });
 
+  test("excludes files matching glob patterns", async () => {
+    const sandbox = makeFakeSandbox({
+      "/app/src/index.ts": "export const ok = true",
+      "/app/src/generated/client.ts": "generated",
+      "/app/package-lock.json": "{}",
+    });
+
+    const files = await extractFilesFromSandbox({
+      sandbox,
+      rootDir: "/app",
+      excludePaths: ["**/generated/**", "**/package-lock.json"],
+    });
+
+    expect(files).toEqual({
+      "src/index.ts": "export const ok = true",
+    });
+  });
+
+  test("excludes default opencode output by sandbox path", async () => {
+    const sandbox = makeFakeSandbox({
+      "/app/opencode.json": "{}",
+      "/app/src/index.ts": "export const ok = true",
+    });
+
+    const files = await extractFilesFromSandbox({ sandbox });
+
+    expect(files).toEqual({
+      "src/index.ts": "export const ok = true",
+    });
+  });
+
   test("returns an empty object when the root directory cannot be read", async () => {
     const sandbox = makeFakeSandbox({
       "/somewhere-else/file.txt": "data",

@@ -54,6 +54,7 @@
     "autoevals": "^0.0.129",
     "csv-writer": "^1.6.0",
     "dotenv": "^16",
+    "minimatch": "^10.2.5",
     "mongodb-chatbot-server": "*",
     "mongodb-mcp-server": "^0.2.0",
     "mongodb-rag-core": "*",
