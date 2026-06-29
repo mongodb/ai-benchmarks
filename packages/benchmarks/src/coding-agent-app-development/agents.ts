@@ -31,14 +31,15 @@ export interface AgentConfig {
     braintrustParent: string
   ) => Record<string, string>;
 }
+
+export const GROK_CONFIG_OUTPUT_PATH = "/tmp/grok-config.toml";
+export const GROK_MODELS_OUTPUT_PATH = "/tmp/grok-models.txt";
+
 assert(process.env.BRAINTRUST_ENDPOINT, "BRAINTRUST_ENDPOINT is not set");
 assert(
   process.env.BRAINTRUST_GATEWAY_API_KEY,
   "BRAINTRUST_GATEWAY_API_KEY is not set"
 );
-
-export const GROK_CONFIG_OUTPUT_PATH = "/tmp/grok-config.toml";
-export const GROK_MODELS_OUTPUT_PATH = "/tmp/grok-models.txt";
 
 function tomlString(value: string) {
   return JSON.stringify(value);

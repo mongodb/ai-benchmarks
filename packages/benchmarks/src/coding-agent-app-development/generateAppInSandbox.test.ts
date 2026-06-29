@@ -1,6 +1,5 @@
 import type { Sandbox } from "@vercel/sandbox";
 import { Sandbox as VercelSandbox } from "@vercel/sandbox";
-import { generateAppInSandbox } from "./generateAppInSandbox";
 
 jest.mock("@vercel/sandbox", () => ({
   Sandbox: {
@@ -13,6 +12,8 @@ const mockCreateSandbox = VercelSandbox.create as jest.MockedFunction<
 >;
 
 const describeIfNotCi = process.env.CI ? describe.skip : describe;
+
+let generateAppInSandbox: typeof import("./generateAppInSandbox.js").generateAppInSandbox;
 
 type MockSandbox = Pick<Sandbox, "runCommand" | "stop" | "fs" | "writeFiles">;
 
@@ -132,7 +133,19 @@ function makeInput() {
 }
 
 describe("generateAppInSandbox", () => {
+  const originalBraintrustEndpoint = process.env.BRAINTRUST_ENDPOINT;
+  const originalBraintrustGatewayApiKey =
+    process.env.BRAINTRUST_GATEWAY_API_KEY;
   const originalVercelOidcToken = process.env.VERCEL_OIDC_TOKEN;
+
+  beforeAll(() => {
+    process.env.BRAINTRUST_ENDPOINT = "https://braintrust.example.com/v1";
+    process.env.BRAINTRUST_GATEWAY_API_KEY = "test-gateway-key";
+    ({ generateAppInSandbox } =
+      jest.requireActual<typeof import("./generateAppInSandbox.js")>(
+        "./generateAppInSandbox"
+      ));
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -140,6 +153,17 @@ describe("generateAppInSandbox", () => {
   });
 
   afterAll(() => {
+    if (originalBraintrustEndpoint === undefined) {
+      delete process.env.BRAINTRUST_ENDPOINT;
+    } else {
+      process.env.BRAINTRUST_ENDPOINT = originalBraintrustEndpoint;
+    }
+    if (originalBraintrustGatewayApiKey === undefined) {
+      delete process.env.BRAINTRUST_GATEWAY_API_KEY;
+    } else {
+      process.env.BRAINTRUST_GATEWAY_API_KEY =
+        originalBraintrustGatewayApiKey;
+    }
     if (originalVercelOidcToken === undefined) {
       delete process.env.VERCEL_OIDC_TOKEN;
     } else {
