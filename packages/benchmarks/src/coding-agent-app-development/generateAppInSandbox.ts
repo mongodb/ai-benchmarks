@@ -2,7 +2,11 @@ import { Sandbox } from "@vercel/sandbox";
 import { CodingAgentAppDevelopmentEvalCaseInput } from "./CodingAgentAppDevelopmentEval";
 import { extractDbLibrariesUsed, extractFilesFromSandbox } from "./utils";
 import assert from "assert";
-import { AgentConfig } from "./agents";
+import {
+  type AgentConfig,
+  GROK_CONFIG_OUTPUT_PATH,
+  GROK_MODELS_OUTPUT_PATH,
+} from "./agents";
 import { OUTPUT_DIR } from "./prompts";
 
 const PROMPT_FILE_PATH = "/tmp/claude-prompt.txt";
@@ -42,6 +46,28 @@ function makeSandboxEnv({
   };
 }
 
+async function logSandboxFile(sandbox: Sandbox, path: string, label: string) {
+  const fileContents = await sandbox.fs.readFile(path).catch((error) => {
+    console.error(`failed to read ${label} output`, error);
+    return undefined;
+  });
+  if (fileContents !== undefined) {
+    const fileContentsText =
+      typeof fileContents === "string"
+        ? fileContents
+        : Buffer.from(fileContents).toString("utf8");
+    console.log(label, fileContentsText);
+  }
+}
+
+async function logGrokDebugOutput(agent: AgentConfig, sandbox: Sandbox) {
+  if (agent.id !== "xai/grok-build") {
+    return;
+  }
+  await logSandboxFile(sandbox, GROK_CONFIG_OUTPUT_PATH, "grok config");
+  await logSandboxFile(sandbox, GROK_MODELS_OUTPUT_PATH, "grok models");
+}
+
 export const generateAppInSandbox = async function ({
   agent,
   model,
@@ -76,10 +102,11 @@ export const generateAppInSandbox = async function ({
     });
 
     // setup agent in sandbox
-    const setupCommands = agent.buildSetupCommands(agent.env, model);
+    const setupCommands = agent.buildSetupCommands(sandboxEnv, model);
     for (const setupCmd of setupCommands) {
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
+    await logGrokDebugOutput(agent, sandbox);
 
     await sandbox.writeFiles([
       {
@@ -106,6 +133,7 @@ export const generateAppInSandbox = async function ({
       console.error("failed to read stderr", error);
       return "";
     });
+    console.log("stderr:", stderr);
 
     if (command.exitCode !== null && command.exitCode !== 0) {
       throw new Error(

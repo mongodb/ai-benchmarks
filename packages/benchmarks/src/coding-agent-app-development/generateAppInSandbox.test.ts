@@ -218,6 +218,35 @@ describe("generateAppInSandbox", () => {
     });
   });
 
+  test("passes the merged sandbox environment to setup commands", async () => {
+    const agent = makeAgentConfig({
+      env: {
+        AGENT_API_KEY: "test-key",
+      },
+      buildBraintrustParentEnv: () => ({
+        BRAINTRUST_PARENT: "span-export-value",
+      }),
+    });
+    const sandbox = makeMockSandbox();
+    mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
+
+    await generateAppInSandbox({
+      agent,
+      model: "test-model",
+      systemPrompt: "Build complete apps.",
+      input: makeInput(),
+      braintrustParent: "span-export-value",
+    });
+
+    expect(agent.buildSetupCommands).toHaveBeenCalledWith(
+      {
+        AGENT_API_KEY: "test-key",
+        BRAINTRUST_PARENT: "span-export-value",
+      },
+      "test-model"
+    );
+  });
+
   test("creates the output directory before setup commands", async () => {
     const sandbox = makeMockSandbox();
     mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);

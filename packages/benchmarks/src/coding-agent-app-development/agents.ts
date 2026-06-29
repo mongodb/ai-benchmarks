@@ -37,6 +37,13 @@ assert(
   "BRAINTRUST_GATEWAY_API_KEY is not set"
 );
 
+export const GROK_CONFIG_OUTPUT_PATH = "/tmp/grok-config.toml";
+export const GROK_MODELS_OUTPUT_PATH = "/tmp/grok-models.txt";
+
+function tomlString(value: string) {
+  return JSON.stringify(value);
+}
+
 export const AGENTS: AgentConfig[] = [
   {
     id: "anthropic/claude-code",
@@ -124,5 +131,41 @@ EOF`,
     buildBraintrustParentEnv: (_env, braintrustParent) => ({
       BRAINTRUST_PARENT: braintrustParent,
     }),
+  },
+  {
+    id: "xai/grok-build",
+    env: {
+      BRAINTRUST_ENDPOINT: process.env.BRAINTRUST_ENDPOINT,
+      BRAINTRUST_GATEWAY_API_KEY: process.env.BRAINTRUST_GATEWAY_API_KEY,
+    },
+    // Add BT parent span to the environment variables
+    buildBraintrustParentEnv: (_env, braintrustParent) => ({
+      BRAINTRUST_PARENT: braintrustParent,
+    }),
+    buildSetupCommands: (env, model) => {
+      const extraHeaders = env.BRAINTRUST_PARENT
+        ? `extra_headers = { "x-bt-parent" = "${env.BRAINTRUST_PARENT}" }`
+        : "";
+      const config = [
+        `[model."${model}"]`,
+        `model = ${tomlString(model)}`,
+        `base_url = ${tomlString(env.BRAINTRUST_ENDPOINT)}`,
+        `name = "Grok Build via Braintrust (${model})"`,
+        `api_backend = "responses"`,
+        `env_key = "BRAINTRUST_GATEWAY_API_KEY"`,
+        extraHeaders,
+      ]
+        .join("\n")
+        .trim();
+      return [
+        "curl -fsSL https://x.ai/cli/install.sh | bash",
+        `mkdir -p ~/.grok && cat > ~/.grok/config.toml <<'EOF'\n${config}\nEOF`,
+        // These are just for debugging purposes...when things are working, we can remove.
+        `cat ~/.grok/config.toml > ${GROK_CONFIG_OUTPUT_PATH} 2>&1 || true`,
+        `grok models > ${GROK_MODELS_OUTPUT_PATH} 2>&1 || true`,
+      ];
+    },
+    buildMainCommand: (promptFilePath, model) =>
+      `grok --model ${model} --permission-mode bypassPermissions --prompt-file ${promptFilePath}`,
   },
 ];
