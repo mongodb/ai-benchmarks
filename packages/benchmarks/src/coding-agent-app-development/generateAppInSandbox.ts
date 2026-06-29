@@ -5,6 +5,7 @@ import assert from "assert";
 import {
   type AgentConfig,
   GROK_CONFIG_OUTPUT_PATH,
+  GROK_INSPECT_OUTPUT_PATH,
   GROK_MODELS_OUTPUT_PATH,
 } from "./agents";
 import { OUTPUT_DIR } from "./prompts";
@@ -65,6 +66,7 @@ async function logGrokDebugOutput(agent: AgentConfig, sandbox: Sandbox) {
     return;
   }
   await logSandboxFile(sandbox, GROK_CONFIG_OUTPUT_PATH, "grok config");
+  await logSandboxFile(sandbox, GROK_INSPECT_OUTPUT_PATH, "grok inspect");
   await logSandboxFile(sandbox, GROK_MODELS_OUTPUT_PATH, "grok models");
 }
 

@@ -33,6 +33,7 @@ export interface AgentConfig {
 }
 
 export const GROK_CONFIG_OUTPUT_PATH = "/tmp/grok-config.toml";
+export const GROK_INSPECT_OUTPUT_PATH = "/tmp/grok-inspect.json";
 export const GROK_MODELS_OUTPUT_PATH = "/tmp/grok-models.txt";
 
 assert(process.env.BRAINTRUST_ENDPOINT, "BRAINTRUST_ENDPOINT is not set");
@@ -158,11 +159,15 @@ EOF`,
       ]
         .join("\n")
         .trim();
+
+      const grokConfigDir = "/home/vercel-sandbox/.grok";
+      const grokConfigFilePath = `${grokConfigDir}/config.toml`;
       return [
         "curl -fsSL https://x.ai/cli/install.sh | bash",
-        `mkdir -p ~/.grok && cat > ~/.grok/config.toml <<'EOF'\n${config}\nEOF`,
+        `mkdir -p ${grokConfigDir} && cat > ${grokConfigFilePath} <<'EOF'\n${config}\nEOF`,
         // These are just for debugging purposes...when things are working, we can remove.
-        `cat ~/.grok/config.toml > ${GROK_CONFIG_OUTPUT_PATH} 2>&1 || true`,
+        `cat ${grokConfigFilePath} > ${GROK_CONFIG_OUTPUT_PATH} 2>&1 || true`,
+        `grok inspect --json > ${GROK_INSPECT_OUTPUT_PATH} 2>&1 || true`,
         `grok models > ${GROK_MODELS_OUTPUT_PATH} 2>&1 || true`,
       ];
     },
