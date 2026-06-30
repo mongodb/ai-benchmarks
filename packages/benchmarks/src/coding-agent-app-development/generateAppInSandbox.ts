@@ -2,12 +2,7 @@ import { Sandbox } from "@vercel/sandbox";
 import { CodingAgentAppDevelopmentEvalCaseInput } from "./CodingAgentAppDevelopmentEval";
 import { extractDbLibrariesUsed, extractFilesFromSandbox } from "./utils";
 import assert from "assert";
-import {
-  type AgentConfig,
-  GROK_CONFIG_OUTPUT_PATH,
-  GROK_INSPECT_OUTPUT_PATH,
-  GROK_MODELS_OUTPUT_PATH,
-} from "./agents";
+import { type AgentConfig } from "./agents";
 import { OUTPUT_DIR } from "./prompts";
 
 const PROMPT_FILE_PATH = "/tmp/claude-prompt.txt";
@@ -61,15 +56,6 @@ async function logSandboxFile(sandbox: Sandbox, path: string, label: string) {
   }
 }
 
-async function logGrokDebugOutput(agent: AgentConfig, sandbox: Sandbox) {
-  if (agent.id !== "xai/grok-build") {
-    return;
-  }
-  await logSandboxFile(sandbox, GROK_CONFIG_OUTPUT_PATH, "grok config");
-  await logSandboxFile(sandbox, GROK_INSPECT_OUTPUT_PATH, "grok inspect");
-  await logSandboxFile(sandbox, GROK_MODELS_OUTPUT_PATH, "grok models");
-}
-
 export const generateAppInSandbox = async function ({
   agent,
   model,
@@ -108,7 +94,6 @@ export const generateAppInSandbox = async function ({
     for (const setupCmd of setupCommands) {
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
-    await logGrokDebugOutput(agent, sandbox);
 
     await sandbox.writeFiles([
       {
