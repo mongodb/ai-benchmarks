@@ -42,20 +42,6 @@ function makeSandboxEnv({
   };
 }
 
-async function logSandboxFile(sandbox: Sandbox, path: string, label: string) {
-  const fileContents = await sandbox.fs.readFile(path).catch((error) => {
-    console.error(`failed to read ${label} output`, error);
-    return undefined;
-  });
-  if (fileContents !== undefined) {
-    const fileContentsText =
-      typeof fileContents === "string"
-        ? fileContents
-        : Buffer.from(fileContents).toString("utf8");
-    console.log(label, fileContentsText);
-  }
-}
-
 export const generateAppInSandbox = async function ({
   agent,
   model,
@@ -120,7 +106,6 @@ export const generateAppInSandbox = async function ({
       console.error("failed to read stderr", error);
       return "";
     });
-    console.log("stderr:", stderr);
 
     if (command.exitCode !== null && command.exitCode !== 0) {
       throw new Error(
