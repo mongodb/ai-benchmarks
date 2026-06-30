@@ -14,7 +14,8 @@ export type ModelHost =
   | "GCP Vertex AI"
   | "Microsoft Azure"
   | "Anthropic"
-  | "OpenAI";
+  | "OpenAI"
+  | "X.ai";
 
 export type ModelProvider = "braintrust";
 
@@ -619,6 +620,16 @@ const allModels = [
     authorized: true,
     reasoning: true,
     host: "Microsoft Azure",
+  },
+  {
+    label: "grok-build-0.1",
+    deployment: "grok-build-0.1",
+    developer: "X.ai",
+    maxConcurrency: 10,
+    provider: "braintrust",
+    authorized: true,
+    reasoning: true,
+    host: "X.ai",
   },
 ] as const satisfies ModelConfig[];
 

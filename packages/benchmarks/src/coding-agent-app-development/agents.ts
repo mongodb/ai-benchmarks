@@ -31,11 +31,16 @@ export interface AgentConfig {
     braintrustParent: string
   ) => Record<string, string>;
 }
+
 assert(process.env.BRAINTRUST_ENDPOINT, "BRAINTRUST_ENDPOINT is not set");
 assert(
   process.env.BRAINTRUST_GATEWAY_API_KEY,
   "BRAINTRUST_GATEWAY_API_KEY is not set"
 );
+
+function tomlString(value: string) {
+  return JSON.stringify(value);
+}
 
 export const AGENTS: AgentConfig[] = [
   {
@@ -124,5 +129,41 @@ EOF`,
     buildBraintrustParentEnv: (_env, braintrustParent) => ({
       BRAINTRUST_PARENT: braintrustParent,
     }),
+  },
+  {
+    id: "xai/grok-build",
+    env: {
+      BRAINTRUST_ENDPOINT: process.env.BRAINTRUST_ENDPOINT,
+      BRAINTRUST_GATEWAY_API_KEY: process.env.BRAINTRUST_GATEWAY_API_KEY,
+    },
+    // Add BT parent span to the environment variables
+    buildBraintrustParentEnv: (_env, braintrustParent) => ({
+      BRAINTRUST_PARENT: braintrustParent,
+    }),
+    buildSetupCommands: (env, model) => {
+      const extraHeaders = env.BRAINTRUST_PARENT
+        ? `extra_headers = { "x-bt-parent" = "${env.BRAINTRUST_PARENT}" }`
+        : "";
+      const config = [
+        `[model."${model}"]`,
+        `model = ${tomlString(model)}`,
+        `base_url = ${tomlString(env.BRAINTRUST_ENDPOINT)}`,
+        `name = "Grok Build via Braintrust (${model})"`,
+        `api_backend = "chat_completions"`,
+        `env_key = "BRAINTRUST_GATEWAY_API_KEY"`,
+        extraHeaders,
+      ]
+        .join("\n")
+        .trim();
+
+      const grokConfigDir = "/home/vercel-sandbox/.grok";
+      const grokConfigFilePath = `${grokConfigDir}/config.toml`;
+      return [
+        "curl -fsSL https://x.ai/cli/install.sh | bash",
+        `mkdir -p ${grokConfigDir} && cat > ${grokConfigFilePath} <<'EOF'\n${config}\nEOF`,
+      ];
+    },
+    buildMainCommand: (promptFilePath, model) =>
+      `grok --model ${model} --permission-mode bypassPermissions --prompt-file ${promptFilePath}`,
   },
 ];

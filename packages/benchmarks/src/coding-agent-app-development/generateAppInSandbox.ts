@@ -2,7 +2,7 @@ import { Sandbox } from "@vercel/sandbox";
 import { CodingAgentAppDevelopmentEvalCaseInput } from "./CodingAgentAppDevelopmentEval";
 import { extractDbLibrariesUsed, extractFilesFromSandbox } from "./utils";
 import assert from "assert";
-import { AgentConfig } from "./agents";
+import { type AgentConfig } from "./agents";
 import { OUTPUT_DIR } from "./prompts";
 
 const PROMPT_FILE_PATH = "/tmp/claude-prompt.txt";
@@ -76,7 +76,7 @@ export const generateAppInSandbox = async function ({
     });
 
     // setup agent in sandbox
-    const setupCommands = agent.buildSetupCommands(agent.env, model);
+    const setupCommands = agent.buildSetupCommands(sandboxEnv, model);
     for (const setupCmd of setupCommands) {
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
