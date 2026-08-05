@@ -14,6 +14,7 @@ import { MongoDbInCode } from "./metrics/MongoDbInCode";
 import { MongoDbInTranscript } from "./metrics/MongoDbInTranscript";
 import { AGENTS, AgentVariant } from "./agents";
 import { BASE_SYSTEM_PROMPT } from "./prompts";
+import { strict as assert } from "assert";
 
 type CodingAgentAppDevelopmentBenchmarkConfig = BenchmarkConfig<
   CodingAgentAppDevelopmentEvalCaseInput,
@@ -59,6 +60,25 @@ const tasksConfig: CodingAgentAppDevelopmentBenchmarkConfig["tasks"] =
     ])
   );
 
+const notableCustomerSuccessStories = [
+  /** Ceto AI — vector + time-series + real-time predictive analytics on fleet sensors */
+  "task_0037",
+  /** Amadeus — AI incident investigation over logs; classic Atlas Vector Search shape */
+  "task_0009",
+  /** ICIS — GenAI over real-time commodities data; vector + document store */
+  "task_0086",
+  /** LG U+ — call-center AI assistant; RAG / semantic retrieval over messy knowledge */
+  "task_0104",
+  /** Electrolux — appliance telemetry; clean time-series collections case */
+  "task_0056",
+  /** AXA — real-time cyber + geospatial risk insights; analytics + geo + compliance */
+  "task_0016",
+  /** Beni — 300M+ listing catalog with 1M+ daily updates; flexible schema at scale */
+  "task_0021",
+  /** Evernorth — personalized health-record single view; document embedding / patient-360 */
+  "task_0064",
+];
+
 export const codingAgentAppDevelopmentBenchmarkConfig: CodingAgentAppDevelopmentBenchmarkConfig =
   {
     projectName: "coding-agent-app-development",
@@ -93,6 +113,27 @@ export const codingAgentAppDevelopmentBenchmarkConfig: CodingAgentAppDevelopment
         description: "Customer success stories (short)",
         async getDataset() {
           return loadCustomerSuccessStoriesDataset("short");
+        },
+      },
+      customer_success_stories_notable_short: {
+        description: "Notable customer success stories",
+        async getDataset() {
+          const notable = loadCustomerSuccessStoriesDataset("short").filter(
+            (d) =>
+              typeof d.metadata.id === "string" &&
+              notableCustomerSuccessStories.includes(d.metadata.id)
+          );
+          assert(
+            notable.length === notableCustomerSuccessStories.length,
+            `Not all notable customer success stories were found. Expected ${
+              notableCustomerSuccessStories.length
+            } but got ${
+              notable.length
+            }. Expected: ${notableCustomerSuccessStories.join(
+              ", "
+            )}. Got: ${notable.map((d) => d.metadata.id).join(", ")}`
+          );
+          return notable;
         },
       },
       customer_success_stories_long: {
