@@ -13,6 +13,10 @@ export interface BenchmarkDataset<Input, Expected, Metadata> {
   getDataset: () => Promise<EvalCase<Input, Expected, Metadata>[]>;
 }
 
+interface BenchmarkTaskVariant {
+  name: string;
+  description?: string;
+}
 export interface BenchmarkTask<
   Input,
   Output,
@@ -20,9 +24,11 @@ export interface BenchmarkTask<
   Metadata extends BaseMetadata = DefaultMetadataType,
   Parameters extends EvalParameters = EvalParameters
 > {
+  variants?: BenchmarkTaskVariant[];
   taskFunc: (
     modelProvider: ModelProvider,
-    deployment: ModelConfig
+    deployment: ModelConfig,
+    variant?: BenchmarkTaskVariant
   ) =>
     | Promise<EvalTask<Input, Output, Expected, Metadata, Parameters>>
     | EvalTask<Input, Output, Expected, Metadata, Parameters>;

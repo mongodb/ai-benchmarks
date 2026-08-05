@@ -89,6 +89,16 @@ describe("runBenchmark", () => {
           tasks: {
             task1: {
               description: "Test task 1",
+              variants: [
+                {
+                  name: "variant-a",
+                  description: "Test variant A",
+                },
+                {
+                  name: "variant-b",
+                  description: "Test variant B",
+                },
+              ],
               taskFunc: mockTaskFunc,
             },
             task2: {
@@ -172,6 +182,26 @@ describe("runBenchmark", () => {
 
       await expect(runBenchmark(mockConfig, invalidArgs)).rejects.toThrow(
         "No valid tasks found"
+      );
+    });
+
+    it("should throw error for unknown variant", async () => {
+      const invalidArgs = { ...mockArgs, variant: "unknown-variant" };
+
+      await expect(runBenchmark(mockConfig, invalidArgs)).rejects.toThrow(
+        "Variant for task does not exist: task1 - unknown-variant"
+      );
+    });
+
+    it("should throw error when variant provided for task with no variants", async () => {
+      const invalidArgs = {
+        ...mockArgs,
+        task: "task2",
+        variant: "variant-a",
+      };
+
+      await expect(runBenchmark(mockConfig, invalidArgs)).rejects.toThrow(
+        "Variant for task does not exist: task2 - variant-a"
       );
     });
 
@@ -284,6 +314,19 @@ describe("runBenchmark", () => {
         experimentType: "task1",
         datasets: "dataset1",
         model: expect.any(String),
+        variant: "none",
+      });
+    });
+
+    it("should create experiment name with variant when provided", async () => {
+      await runBenchmark(mockConfig, { ...mockArgs, variant: "variant-a" });
+
+      expect(mockMakeExperimentName).toHaveBeenCalledWith({
+        baseName: "test-benchmark",
+        experimentType: "task1",
+        datasets: "dataset1",
+        model: expect.any(String),
+        variant: "variant-a",
       });
     });
 
@@ -300,6 +343,7 @@ describe("runBenchmark", () => {
         experimentType: "task1",
         datasets: "dataset1+dataset2",
         model: expect.any(String),
+        variant: "none",
       });
     });
 
@@ -315,11 +359,25 @@ describe("runBenchmark", () => {
           task: "task1",
           dataset: "dataset1",
           taskConcurrency: undefined,
+          variant: "none",
         },
         task: "mock-task-result",
         scores: [mockScorerFunc],
         trialCount: undefined,
       });
+    });
+
+    it("should pass variant to Eval metadata when provided", async () => {
+      await runBenchmark(mockConfig, { ...mockArgs, variant: "variant-a" });
+
+      expect(mockEval).toHaveBeenCalledWith(
+        "test-project",
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            variant: "variant-a",
+          }),
+        })
+      );
     });
 
     it("should pass trialCount to Eval when provided", async () => {
@@ -493,7 +551,15 @@ describe("runBenchmark", () => {
         "Model(s): test-model-1, test-model-2"
       );
       expect(consoleLogSpy).toHaveBeenCalledWith("Dataset(s): dataset1");
+      expect(consoleLogSpy).toHaveBeenCalledWith("Task: task1");
+      expect(consoleLogSpy).toHaveBeenCalledWith("Variant: none");
       expect(consoleLogSpy).toHaveBeenCalledWith("Model concurrency: 2");
+    });
+
+    it("should log variant name when provided", async () => {
+      await runBenchmark(mockConfig, { ...mockArgs, variant: "variant-a" });
+
+      expect(consoleLogSpy).toHaveBeenCalledWith("Variant: variant-a");
     });
 
     it("should log experiment progress", async () => {
@@ -689,7 +755,21 @@ describe("runBenchmark", () => {
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        mockConfig.models[0]
+        mockConfig.models[0],
+        undefined
+      );
+    });
+
+    it("should call task function with variant when provided", async () => {
+      await runBenchmark(mockConfig, { ...mockArgs, variant: "variant-a" });
+
+      expect(mockTaskFunc).toHaveBeenCalledWith(
+        mockConfig.modelProvider,
+        mockConfig.models[0],
+        {
+          name: "variant-a",
+          description: "Test variant A",
+        }
       );
     });
 
@@ -698,12 +778,14 @@ describe("runBenchmark", () => {
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        mockConfig.models[0]
+        mockConfig.models[0],
+        undefined
       );
 
       expect(mockTaskFunc).toHaveBeenCalledWith(
         mockConfig.modelProvider,
-        mockConfig.models[1]
+        mockConfig.models[1],
+        undefined
       );
     });
 
