@@ -8,6 +8,7 @@ import { strict as assert } from "assert";
 export interface RunBenchmarkArgs {
   type: string;
   task: string;
+  variant?: string;
   models: ModelConfig[];
   datasets: string[];
   taskConcurrency?: number;
@@ -22,6 +23,7 @@ export async function runBenchmark(
   {
     type,
     task,
+    variant,
     models,
     datasets,
     taskConcurrency,
@@ -54,10 +56,16 @@ export async function runBenchmark(
     throw new Error("No valid tasks found");
   }
 
+  const taskVariant = taskToRun.variants?.find((v) => v.name === variant);
+  if (variant && !taskVariant) {
+    throw new Error(`Variant for task does not exist: ${task} - ${variant}`);
+  }
+
   console.log(`Running benchmark: ${type}`);
   console.log(`Model(s): ${models.map((m) => m.label).join(", ")}`);
   console.log(`Dataset(s): ${datasetsToRun.map(([name]) => name).join(", ")}`);
   console.log(`Task: ${task}`);
+  console.log(`Variant: ${taskVariant?.name ?? "none"}`);
   console.log(`Model concurrency: ${modelConcurrency}`);
 
   // Setup environment
@@ -95,6 +103,7 @@ export async function runBenchmark(
           experimentType: task,
           datasets: datasetName,
           model: model.label,
+          variant: taskVariant?.name ?? "none",
         });
 
         console.log(`Running experiment: ${experimentName}`);
@@ -115,8 +124,9 @@ export async function runBenchmark(
               task,
               dataset: datasetName,
               taskConcurrency,
+              variant: taskVariant?.name ?? "none",
             },
-            task: await taskToRun.taskFunc(config.modelProvider, model),
+            task: await taskToRun.taskFunc(config.modelProvider, model, taskVariant),
             scores,
             trialCount,
           });

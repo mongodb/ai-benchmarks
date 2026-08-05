@@ -31,6 +31,10 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             describe:
               "Tasks to run per benchmark. Defaults to first provided task for type.",
           })
+          .option("variant", {
+            type: "string",
+            describe: "Variant of task to run. Defaults to none.",
+          })
           .option("sampleSize", {
             type: "number",
             describe:
@@ -76,6 +80,23 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               errors.push(
                 `Unknown task: ${argv.task}. Use 'benchmark list' to see available tasks for type ${argv.type}.`
               );
+            }
+
+            const defaultTaskName = Object.keys(
+              config.benchmarks[argv.type]?.tasks ?? {}
+            )[0];
+
+            const taskName = argv.task ?? defaultTaskName;
+
+            // Validate that the task variant exists for the task
+            if (argv.variant) {
+              const variants =
+                config.benchmarks[argv.type]?.tasks[taskName]?.variants;
+              if (!variants?.some((v) => v.name === argv.variant)) {
+                errors.push(
+                  `Unknown variant for task: ${taskName} - ${argv.variant}. Use 'benchmark list' to see available variants for tasks ${taskName}.`
+                );
+              }
             }
 
             // Validate datasets exist
@@ -134,10 +155,7 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               errors.push("sampleSize must be a positive integer");
             }
 
-            if (
-              !Number.isInteger(argv.trialCount) ||
-              argv.trialCount < 1
-            ) {
+            if (!Number.isInteger(argv.trialCount) || argv.trialCount < 1) {
               errors.push("trialCount must be a positive integer");
             }
 
@@ -150,9 +168,10 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
       },
       async (argv) => {
         try {
-          const tasks = argv.task
-            ? [argv.task]
-            : Object.keys(config.benchmarks[argv.type].tasks);
+          const defaultTaskName = Object.keys(
+            config.benchmarks[argv.type].tasks
+          )[0];
+          const task = argv.task ? argv.task : defaultTaskName;
           const datasets = argv.dataset
             ? argv.dataset
             : [Object.keys(config.benchmarks[argv.type].datasets)[0]];
@@ -161,7 +180,8 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
             : config.models.map((m) => m.label);
           const args: RunBenchmarkArgs = {
             type: argv.type,
-            task: argv.task ?? tasks[0],
+            task,
+            variant: argv.variant,
             models: config.models.filter((m) => models.includes(m.label)),
             datasets,
             taskConcurrency: argv.taskConcurrency,
@@ -190,7 +210,14 @@ export function makeBenchmarkCli(config: BenchmarkCliConfig) {
               .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
             tasks: Object.entries(benchmarkConfig.tasks)
               .map(([name, task]) => ({
-                [name]: task.description ?? "",
+                [name]: {
+                  description: task.description ?? "",
+                  variants: (task.variants ?? [])
+                    .map((v) => ({
+                      [v.name]: v.description ?? "",
+                    }))
+                    .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+                },
               }))
               .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
             scorers: Object.entries(benchmarkConfig.scorers)

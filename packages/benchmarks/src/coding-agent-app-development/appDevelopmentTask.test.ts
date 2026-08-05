@@ -69,6 +69,25 @@ describe("makeAppDevelopmentTask", () => {
     });
   });
 
+  test("forwards variant to generateAppInSandbox", async () => {
+    mockGenerateAppInSandbox.mockResolvedValue({
+      files: {},
+      databaseLibraries: [],
+      stdout: "",
+      stderr: "",
+    });
+    const args = { ...makeTaskArgs(), variant: "plan" as const };
+
+    const task = makeAppDevelopmentTask(args);
+    await task(makeInput(), makeMockHooks());
+
+    expect(mockGenerateAppInSandbox).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: "plan",
+      })
+    );
+  });
+
   test("returns files, detected database libraries, and stdout transcript", async () => {
     const files = {
       "package.json": JSON.stringify({

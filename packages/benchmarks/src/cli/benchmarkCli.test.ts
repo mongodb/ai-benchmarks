@@ -56,6 +56,16 @@ describe("makeBenchmarkCli", () => {
           tasks: {
             task1: {
               description: "Test task 1",
+              variants: [
+                {
+                  name: "variant-a",
+                  description: "Test variant A",
+                },
+                {
+                  name: "variant-b",
+                  description: "Test variant B",
+                },
+              ],
               taskFunc: jest.fn(),
             },
             task2: {
@@ -131,6 +141,61 @@ describe("makeBenchmarkCli", () => {
         "dataset1",
         "--task",
         "unknown-task",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should validate unknown variant", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--model",
+        "test-model-1",
+        "--dataset",
+        "dataset1",
+        "--task",
+        "task1",
+        "--variant",
+        "unknown-variant",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should validate unknown variant against default task", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--model",
+        "test-model-1",
+        "--dataset",
+        "dataset1",
+        "--variant",
+        "unknown-variant",
+      ]);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should validate variant on task with no variants", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--model",
+        "test-model-1",
+        "--dataset",
+        "dataset1",
+        "--task",
+        "task2",
+        "--variant",
+        "variant-a",
       ]);
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
@@ -318,6 +383,36 @@ describe("makeBenchmarkCli", () => {
       expect(mockRunBenchmark).toHaveBeenCalledWith(mockConfig, {
         type: "test-benchmark",
         task: "task1",
+        variant: undefined,
+        models: mockConfig.models,
+        datasets: ["dataset1"],
+        modelConcurrency: 2,
+        sampleSize: undefined,
+        sampleType: undefined,
+        taskConcurrency: undefined,
+        trialCount: 1,
+      });
+    });
+
+    it("should pass variant to runBenchmark", async () => {
+      const cli = makeBenchmarkCli(mockConfig);
+
+      await cli.parse([
+        "run",
+        "--type",
+        "test-benchmark",
+        "--dataset",
+        "dataset1",
+        "--task",
+        "task1",
+        "--variant",
+        "variant-a",
+      ]);
+
+      expect(mockRunBenchmark).toHaveBeenCalledWith(mockConfig, {
+        type: "test-benchmark",
+        task: "task1",
+        variant: "variant-a",
         models: mockConfig.models,
         datasets: ["dataset1"],
         modelConcurrency: 2,
@@ -363,6 +458,7 @@ describe("makeBenchmarkCli", () => {
       expect(mockRunBenchmark).toHaveBeenCalledWith(mockConfig, {
         type: "test-benchmark",
         task: "task1", // First task
+        variant: undefined,
         models: mockConfig.models, // All models
         datasets: ["dataset1"],
         modelConcurrency: 2,
@@ -394,6 +490,7 @@ describe("makeBenchmarkCli", () => {
       expect(mockRunBenchmark).toHaveBeenCalledWith(mockConfig, {
         type: "test-benchmark",
         task: "task1",
+        variant: undefined,
         models: [mockConfig.models[0]], // Only test-model-1
         datasets: ["dataset1", "dataset2"],
         modelConcurrency: 1,
@@ -453,8 +550,17 @@ describe("makeBenchmarkCli", () => {
                 dataset2: "Test dataset 2",
               },
               tasks: {
-                task1: "Test task 1",
-                task2: "Test task 2",
+                task1: {
+                  description: "Test task 1",
+                  variants: {
+                    "variant-a": "Test variant A",
+                    "variant-b": "Test variant B",
+                  },
+                },
+                task2: {
+                  description: "Test task 2",
+                  variants: {},
+                },
               },
               scorers: {
                 scorer1: "Test scorer 1",

@@ -9,7 +9,7 @@ import {
 import { loadAppDevelopmentDataset } from "./loadAppDevelopmentDataset";
 import { MongoDbInCode } from "./metrics/MongoDbInCode";
 import { MongoDbInTranscript } from "./metrics/MongoDbInTranscript";
-import { AGENTS } from "./agents";
+import { AGENTS, AgentVariant } from "./agents";
 import { BASE_SYSTEM_PROMPT } from "./prompts";
 
 type CodingAgentAppDevelopmentBenchmarkConfig = BenchmarkConfig<
@@ -19,17 +19,38 @@ type CodingAgentAppDevelopmentBenchmarkConfig = BenchmarkConfig<
   CodingAgentAppDevelopmentMetadata
 >;
 
+const AGENT_VARIANTS: { name: AgentVariant; description: string }[] = [
+  {
+    name: "build",
+    description: "Agent runs with full write access and implements the app",
+  },
+  {
+    name: "plan",
+    description:
+      "Agent runs in plan/read-only mode before or instead of implementing",
+  },
+];
+
+function asAgentVariant(name?: string): AgentVariant | undefined {
+  if (name === "build" || name === "plan") {
+    return name;
+  }
+  return undefined;
+}
+
 const tasksConfig: CodingAgentAppDevelopmentBenchmarkConfig["tasks"] =
   Object.fromEntries(
     AGENTS.map((agent) => [
       agent.id,
       {
         description: `Runs ${agent.id} coding agent in a sandbox`,
-        taskFunc: (_modelProvider, modelConfig) =>
+        variants: AGENT_VARIANTS,
+        taskFunc: (_modelProvider, modelConfig, variant) =>
           makeAppDevelopmentTask({
             agent,
             model: modelConfig.deployment,
             systemPrompt: BASE_SYSTEM_PROMPT,
+            variant: asAgentVariant(variant?.name),
           }),
       },
     ])

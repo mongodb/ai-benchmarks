@@ -1,18 +1,28 @@
 import assert from "assert";
 import { OUTPUT_DIR } from "./prompts";
 
+export type AgentVariant = "build" | "plan";
+
 export interface AgentConfig {
   id: string;
   /** 
      @example
      ["npm install -g @anthropic-ai/claude-code"]
    */
-  buildSetupCommands: (env: Record<string, string>, model: string) => string[];
+  buildSetupCommands: (
+    env: Record<string, string>,
+    model: string,
+    variant?: AgentVariant
+  ) => string[];
   /** 
      @example
      (promptFilePath, model) => `claude --print --model ${model} < ${promptFilePath}`
    */
-  buildMainCommand: (promptFilePath: string, model: string) => string;
+  buildMainCommand: (
+    promptFilePath: string,
+    model: string,
+    variant?: AgentVariant
+  ) => string;
 
   /** 
      @example
@@ -77,8 +87,14 @@ env_key = "OPENAI_API_KEY"
 env_http_headers = { "x-bt-parent" = "BRAINTRUST_PARENT" }
 EOF`,
     ],
-    buildMainCommand: (promptFilePath, model) =>
-      `codex exec --sandbox danger-full-access --skip-git-repo-check --model ${model} - < ${promptFilePath}`,
+    buildMainCommand: (promptFilePath, model, variant) => {
+      if (variant === "plan") {
+        throw new Error(
+          "Plan variant is not supported for running openai/codex headlessly"
+        );
+      }
+      return `codex exec --sandbox danger-full-access --skip-git-repo-check --model ${model} - < ${promptFilePath}`;
+    },
     env: {
       OPENAI_BASE_URL: process.env.BRAINTRUST_ENDPOINT,
       OPENAI_API_KEY: process.env.BRAINTRUST_GATEWAY_API_KEY,
@@ -120,8 +136,15 @@ EOF`,
         )}\nEOF`,
       ];
     },
-    buildMainCommand: (promptFilePath, model) =>
-      `opencode run --dir ${OUTPUT_DIR} --model braintrust/${model} --dangerously-skip-permissions "Build the app described in the attached prompt file." --file ${promptFilePath}`,
+    buildMainCommand: (promptFilePath, model, variant) => {
+      // Plan agent denies non-plan file edits. Without
+      // --dangerously-skip-permissions, headless `opencode run` auto-rejects
+      // permission asks and the agent exits after one message.
+      if (variant === "plan") {
+        return `opencode run --dir ${OUTPUT_DIR} --model braintrust/${model} --agent plan --dangerously-skip-permissions "Create a detailed implementation plan for the app described in the attached prompt file. Do not implement the app yet." --file ${promptFilePath}`;
+      }
+      return `opencode run --dir ${OUTPUT_DIR} --model braintrust/${model} --dangerously-skip-permissions "Build the app described in the attached prompt file." --file ${promptFilePath}`;
+    },
     env: {
       OPENAI_BASE_URL: process.env.BRAINTRUST_ENDPOINT,
       OPENAI_API_KEY: process.env.BRAINTRUST_GATEWAY_API_KEY,
