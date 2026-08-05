@@ -2,7 +2,7 @@ import { Sandbox } from "@vercel/sandbox";
 import { CodingAgentAppDevelopmentEvalCaseInput } from "./CodingAgentAppDevelopmentEval";
 import { extractDbLibrariesUsed, extractFilesFromSandbox } from "./utils";
 import assert from "assert";
-import { type AgentConfig } from "./agents";
+import { type AgentConfig, type AgentVariant } from "./agents";
 import { OUTPUT_DIR } from "./prompts";
 
 const PROMPT_FILE_PATH = "/tmp/claude-prompt.txt";
@@ -24,6 +24,7 @@ export interface GenerateAppInSandboxParams {
   systemPrompt: string;
   input: CodingAgentAppDevelopmentEvalCaseInput;
   braintrustParent?: string;
+  variant?: AgentVariant;
 }
 
 function makeSandboxEnv({
@@ -48,6 +49,7 @@ export const generateAppInSandbox = async function ({
   systemPrompt,
   input,
   braintrustParent,
+  variant,
 }: GenerateAppInSandboxParams) {
   assertSandboxEnv();
   const prompt = buildFullPrompt(systemPrompt, input);
@@ -76,7 +78,7 @@ export const generateAppInSandbox = async function ({
     });
 
     // setup agent in sandbox
-    const setupCommands = agent.buildSetupCommands(sandboxEnv, model);
+    const setupCommands = agent.buildSetupCommands(sandboxEnv, model, variant);
     for (const setupCmd of setupCommands) {
       await sandbox.runCommand("sh", ["-c", setupCmd]);
     }
@@ -89,7 +91,11 @@ export const generateAppInSandbox = async function ({
     ]);
 
     // run agent!
-    const fullCommand = agent.buildMainCommand(PROMPT_FILE_PATH, model);
+    const fullCommand = agent.buildMainCommand(
+      PROMPT_FILE_PATH,
+      model,
+      variant
+    );
     const command = await sandbox.runCommand({
       cmd: "sh",
       args: ["-c", fullCommand],

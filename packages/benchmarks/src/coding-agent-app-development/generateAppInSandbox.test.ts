@@ -267,7 +267,36 @@ describe("generateAppInSandbox", () => {
         AGENT_API_KEY: "test-key",
         BRAINTRUST_PARENT: "span-export-value",
       },
-      "test-model"
+      "test-model",
+      undefined
+    );
+  });
+
+  test("passes variant through to agent setup and main commands", async () => {
+    const agent = makeAgentConfig({
+      setupCommands: ["install agent"],
+      mainCommand: "run agent",
+    });
+    const sandbox = makeMockSandbox();
+    mockCreateSandbox.mockResolvedValue(sandbox as Sandbox);
+
+    await generateAppInSandbox({
+      agent,
+      model: "test-model",
+      systemPrompt: "Build complete apps.",
+      input: makeInput(),
+      variant: "plan",
+    });
+
+    expect(agent.buildSetupCommands).toHaveBeenCalledWith(
+      agent.env,
+      "test-model",
+      "plan"
+    );
+    expect(agent.buildMainCommand).toHaveBeenCalledWith(
+      "/tmp/claude-prompt.txt",
+      "test-model",
+      "plan"
     );
   });
 
@@ -309,7 +338,8 @@ describe("generateAppInSandbox", () => {
 
     expect(agent.buildSetupCommands).toHaveBeenCalledWith(
       agent.env,
-      "test-model"
+      "test-model",
+      undefined
     );
     expect(sandbox.runCommand).toHaveBeenNthCalledWith(2, "sh", [
       "-c",
@@ -358,7 +388,8 @@ Use MongoDB for storage.
     ]);
     expect(agent.buildMainCommand).toHaveBeenCalledWith(
       "/tmp/claude-prompt.txt",
-      "gpt-test"
+      "gpt-test",
+      undefined
     );
   });
 
