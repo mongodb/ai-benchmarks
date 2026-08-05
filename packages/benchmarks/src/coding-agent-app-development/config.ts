@@ -6,7 +6,10 @@ import {
   CodingAgentAppDevelopmentTaskExpected,
   CodingAgentAppDevelopmentMetadata,
 } from "./CodingAgentAppDevelopmentEval";
-import { loadAppDevelopmentDataset } from "./loadAppDevelopmentDataset";
+import {
+  loadAppDevelopmentDataset,
+  loadCustomerSuccessStoriesDataset,
+} from "./loadAppDevelopmentDataset";
 import { MongoDbInCode } from "./metrics/MongoDbInCode";
 import { MongoDbInTranscript } from "./metrics/MongoDbInTranscript";
 import { AGENTS, AgentVariant } from "./agents";
@@ -84,6 +87,18 @@ export const codingAgentAppDevelopmentBenchmarkConfig: CodingAgentAppDevelopment
           return loadAppDevelopmentDataset().filter(
             (d) => !d.tags.includes("mongodb-optimal")
           );
+        },
+      },
+      customer_success_stories_short: {
+        description: "Customer success stories (short)",
+        async getDataset() {
+          return loadCustomerSuccessStoriesDataset("short");
+        },
+      },
+      customer_success_stories_long: {
+        description: "Customer success stories (long)",
+        async getDataset() {
+          return loadCustomerSuccessStoriesDataset("long");
         },
       },
     },

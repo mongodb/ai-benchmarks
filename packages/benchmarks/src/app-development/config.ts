@@ -46,6 +46,15 @@ const DATASET_PATH = path.resolve(
   "../../datasets/app-development.yml"
 );
 
+const CUSTOMER_SUCCESS_STORIES_PATH = path.resolve(
+  __dirname,
+  "../../datasets/customer_success_stories.short.yml"
+);
+
+const CUSTOMER_SUCCESS_STORIES_LONG_PATH = path.resolve(
+  __dirname,
+  "../../datasets/customer_success_stories.long.yml"
+);
 interface RawDatasetEntry {
   name: string;
   messages: Array<{ role: "user" | "system" | "assistant"; content: string }>;
@@ -53,10 +62,8 @@ interface RawDatasetEntry {
   metadata?: Record<string, unknown>;
 }
 
-function loadDataset(): AppDevelopmentEvalCase[] {
-  const raw = yaml.parse(
-    fs.readFileSync(DATASET_PATH, "utf8")
-  ) as RawDatasetEntry[];
+function loadDataset(path: string): AppDevelopmentEvalCase[] {
+  const raw = yaml.parse(fs.readFileSync(path, "utf8")) as RawDatasetEntry[];
   return raw.map((entry) => ({
     input: {
       name: entry.name,
@@ -83,20 +90,36 @@ export const appDevelopmentBenchmarkConfig: BenchmarkConfig<
     all: {
       description: "All 104 app-development eval cases",
       async getDataset() {
-        return loadDataset();
+        return loadDataset(DATASET_PATH);
       },
     },
     mongodb_optimal: {
       description: "Cases where MongoDB is the optimal database choice",
       async getDataset() {
-        return loadDataset().filter((d) => d.tags.includes("mongodb-optimal"));
+        return loadDataset(DATASET_PATH).filter((d) =>
+          d.tags.includes("mongodb-optimal")
+        );
       },
     },
     db_agnostic: {
       description:
         "Cases where the prompt doesn't favor MongoDB — a different DB may be a better fit",
       async getDataset() {
-        return loadDataset().filter((d) => !d.tags.includes("mongodb-optimal"));
+        return loadDataset(DATASET_PATH).filter(
+          (d) => !d.tags.includes("mongodb-optimal")
+        );
+      },
+    },
+    customer_success_stories_short: {
+      description: "Customer success stories (short)",
+      async getDataset() {
+        return loadDataset(CUSTOMER_SUCCESS_STORIES_PATH);
+      },
+    },
+    customer_success_stories_long: {
+      description: "Customer success stories (long)",
+      async getDataset() {
+        return loadDataset(CUSTOMER_SUCCESS_STORIES_LONG_PATH);
       },
     },
   },
