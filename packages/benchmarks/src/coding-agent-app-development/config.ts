@@ -13,7 +13,7 @@ import {
 import { MongoDbInCode } from "./metrics/MongoDbInCode";
 import { MongoDbInTranscript } from "./metrics/MongoDbInTranscript";
 import { AGENTS, AgentVariant } from "./agents";
-import { BASE_SYSTEM_PROMPT } from "./prompts";
+import { ARCHITECT_SYSTEM_PROMPT, BASE_SYSTEM_PROMPT } from "./prompts";
 import { strict as assert } from "assert";
 
 type CodingAgentAppDevelopmentBenchmarkConfig = BenchmarkConfig<
@@ -53,7 +53,10 @@ const tasksConfig: CodingAgentAppDevelopmentBenchmarkConfig["tasks"] =
           makeAppDevelopmentTask({
             agent,
             model: modelConfig.deployment,
-            systemPrompt: BASE_SYSTEM_PROMPT,
+            systemPrompt:
+              variant?.name === "plan"
+                ? ARCHITECT_SYSTEM_PROMPT
+                : BASE_SYSTEM_PROMPT,
             variant: asAgentVariant(variant?.name),
           }),
       },
@@ -116,9 +119,30 @@ export const codingAgentAppDevelopmentBenchmarkConfig: CodingAgentAppDevelopment
         },
       },
       customer_success_stories_notable_short: {
-        description: "Notable customer success stories",
+        description: "Notable customer success stories (short)",
         async getDataset() {
           const notable = loadCustomerSuccessStoriesDataset("short").filter(
+            (d) =>
+              typeof d.metadata.id === "string" &&
+              notableCustomerSuccessStories.includes(d.metadata.id)
+          );
+          assert(
+            notable.length === notableCustomerSuccessStories.length,
+            `Not all notable customer success stories were found. Expected ${
+              notableCustomerSuccessStories.length
+            } but got ${
+              notable.length
+            }. Expected: ${notableCustomerSuccessStories.join(
+              ", "
+            )}. Got: ${notable.map((d) => d.metadata.id).join(", ")}`
+          );
+          return notable;
+        },
+      },
+      customer_success_stories_notable_long: {
+        description: "Notable customer success stories (long)",
+        async getDataset() {
+          const notable = loadCustomerSuccessStoriesDataset("long").filter(
             (d) =>
               typeof d.metadata.id === "string" &&
               notableCustomerSuccessStories.includes(d.metadata.id)
