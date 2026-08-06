@@ -4,23 +4,19 @@ import {
   EvalScorer,
   EvalTask,
 } from "mongodb-rag-core/braintrust";
-import { ConversationEvalCase } from "mongodb-rag-core/eval";
-import { LlmOptions } from "mongodb-rag-core/executeCode";
+import {
+  AppDevelopmentEvalCaseInput,
+  AppDevelopmentMetadata,
+  AppDevelopmentTag,
+} from "../app-development/AppDevelopmentEval";
 import { DetectedDbLibrary } from "./utils/extractDbLibrariesUsed";
 
-export type CodingAgentAppDevelopmentEvalCaseInput = {
-  name: string;
-  messages: ConversationEvalCase["messages"];
-};
+export type CodingAgentAppDevelopmentEvalCaseInput =
+  AppDevelopmentEvalCaseInput;
 
-export type CodingAgentAppDevelopmentTag = string;
+export type CodingAgentAppDevelopmentTag = AppDevelopmentTag;
 
-export type CodingAgentAppDevelopmentMetadata = Record<string, unknown> &
-  Partial<Omit<LlmOptions, "openAiClient">> & {
-    difficulty: "beginner" | "intermediate" | "advanced";
-    is_mongodb_optimal?: boolean;
-    category?: string;
-  };
+export type CodingAgentAppDevelopmentMetadata = AppDevelopmentMetadata;
 
 export interface CodingAgentAppDevelopmentEvalCase
   extends EvalCase<

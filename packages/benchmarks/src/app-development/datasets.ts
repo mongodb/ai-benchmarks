@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "yaml";
+import { strict as assert } from "assert";
 
 import { BenchmarkDataset } from "../cli/BenchmarkConfig";
 import {
@@ -24,6 +25,25 @@ const CUSTOMER_SUCCESS_STORIES_LONG_PATH = path.resolve(
   __dirname,
   "../../datasets/customer_success_stories.long.yml"
 );
+
+const notableCustomerSuccessStories = [
+  /** Ceto AI - vector + time-series + real-time predictive analytics on fleet sensors */
+  "task_0037",
+  /** Amadeus - AI incident investigation over logs; classic Atlas Vector Search shape */
+  "task_0009",
+  /** ICIS - GenAI over real-time commodities data; vector + document store */
+  "task_0086",
+  /** LG U+ - call-center AI assistant; RAG / semantic retrieval over messy knowledge */
+  "task_0104",
+  /** Electrolux - appliance telemetry; clean time-series collections case */
+  "task_0056",
+  /** AXA - real-time cyber + geospatial risk insights; analytics + geo + compliance */
+  "task_0016",
+  /** Beni - 300M+ listing catalog with 1M+ daily updates; flexible schema at scale */
+  "task_0021",
+  /** Evernorth - personalized health-record single view; document embedding / patient-360 */
+  "task_0064",
+];
 
 interface RawDatasetEntry {
   name: string;
@@ -52,6 +72,25 @@ export function loadAppDevelopmentDataset(
     tags: entry.tags ?? [],
     metadata: (entry.metadata ?? {}) as unknown as AppDevelopmentMetadata,
   }));
+}
+
+function loadNotableCustomerSuccessStoriesDataset(
+  datasetPath: string
+): AppDevelopmentEvalCase[] {
+  const notable = loadAppDevelopmentDataset(datasetPath).filter(
+    (d) =>
+      typeof d.metadata.id === "string" &&
+      notableCustomerSuccessStories.includes(d.metadata.id)
+  );
+  assert(
+    notable.length === notableCustomerSuccessStories.length,
+    `Not all notable customer success stories were found. Expected ${
+      notableCustomerSuccessStories.length
+    } but got ${notable.length}. Expected: ${notableCustomerSuccessStories.join(
+      ", "
+    )}. Got: ${notable.map((d) => d.metadata.id).join(", ")}`
+  );
+  return notable;
 }
 
 export const appDevelopmentDatasets: Record<
@@ -95,6 +134,22 @@ export const appDevelopmentDatasets: Record<
     description: "Customer success stories (long)",
     async getDataset() {
       return loadAppDevelopmentDataset(CUSTOMER_SUCCESS_STORIES_LONG_PATH);
+    },
+  },
+  customer_success_stories_notable_short: {
+    description: "Notable customer success stories (short)",
+    async getDataset() {
+      return loadNotableCustomerSuccessStoriesDataset(
+        CUSTOMER_SUCCESS_STORIES_SHORT_PATH
+      );
+    },
+  },
+  customer_success_stories_notable_long: {
+    description: "Notable customer success stories (long)",
+    async getDataset() {
+      return loadNotableCustomerSuccessStoriesDataset(
+        CUSTOMER_SUCCESS_STORIES_LONG_PATH
+      );
     },
   },
 };
