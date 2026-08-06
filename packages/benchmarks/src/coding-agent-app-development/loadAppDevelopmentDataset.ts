@@ -1,5 +1,7 @@
-import { AppDevelopmentMetadata } from "../app-development/AppDevelopmentEval";
-import { CodingAgentAppDevelopmentEvalCase } from "./CodingAgentAppDevelopmentEval";
+import {
+  CodingAgentAppDevelopmentEvalCase,
+  CodingAgentAppDevelopmentMetadata,
+} from "./CodingAgentAppDevelopmentEval";
 import fs from "fs";
 import path from "path";
 import yaml from "yaml";
@@ -26,7 +28,7 @@ export function loadAppDevelopmentDataset(): CodingAgentAppDevelopmentEvalCase[]
       messages: entry.messages,
     },
     tags: entry.tags ?? [],
-    metadata: entry.metadata as unknown as AppDevelopmentMetadata,
+    metadata: entry.metadata as unknown as CodingAgentAppDevelopmentMetadata,
   }));
 }
 
@@ -53,6 +55,6 @@ export function loadCustomerSuccessStoriesDataset(
       messages: entry.messages,
     },
     tags: entry.tags ?? [],
-    metadata: entry.metadata as unknown as AppDevelopmentMetadata,
+    metadata: entry.metadata as unknown as CodingAgentAppDevelopmentMetadata,
   }));
 }

@@ -19,7 +19,7 @@ export type AppDevelopmentTag = string;
 
 export type AppDevelopmentMetadata = Record<string, unknown> &
   Partial<Omit<LlmOptions, "openAiClient">> & {
-    difficulty: "beginner" | "intermediate" | "advanced";
+    difficulty?: "beginner" | "intermediate" | "advanced";
     is_mongodb_optimal?: boolean;
     category?: string;
   };
