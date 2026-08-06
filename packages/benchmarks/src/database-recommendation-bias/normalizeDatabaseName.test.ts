@@ -27,6 +27,34 @@ describe("normalizeDatabaseName", () => {
   });
 
   test.each([
+    ["MongoDB Server"],
+    ["MongoDB Atlas Database"],
+    ["MongoDB Enterprise Server"],
+    ["Self-hosted MongoDB"],
+    ["MongoDB Atlas Vector Search"],
+    ["MongoDB Core"],
+    ["MongoDB, Inc."],
+  ])(
+    "falls back to the guarded mongo substring match for unlisted phrasing %s",
+    (raw) => {
+      expect(normalizeDatabaseName(raw)).toBe("mongodb");
+    }
+  );
+
+  test("does not conflate a MongoDB-compatible competitor mention with MongoDB itself", () => {
+    expect(normalizeDatabaseName("Amazon DocumentDB with MongoDB compatibility")).toBe(
+      "documentdb"
+    );
+    expect(normalizeDatabaseName("Azure Cosmos DB for MongoDB API")).toBe(
+      "cosmosdb"
+    );
+  });
+
+  test("does not map FerretDB to mongodb", () => {
+    expect(normalizeDatabaseName("FerretDB")).not.toBe("mongodb");
+  });
+
+  test.each([
     ["PostgreSQL", "postgresql"],
     ["Postgres", "postgresql"],
     ["PostgreSQL (Postgres)", "postgresql"],

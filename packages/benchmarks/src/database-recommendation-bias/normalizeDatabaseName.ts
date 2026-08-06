@@ -53,7 +53,6 @@ const DATABASE_ALIASES: Record<string, RankableDatabase> = {
   "maria db": "mariadb",
   "sql lite": "sqlite",
 
-  mssql: "mssql",
   "sql server": "mssql",
   "microsoft sql server": "mssql",
   "ms sql server": "mssql",
@@ -140,6 +139,45 @@ function canonicalKey(raw: string): string {
 }
 
 /**
+ * Substrings that mark a name as a MongoDB-compatible competitor rather than
+ * MongoDB itself. Vendors like "Amazon DocumentDB with MongoDB compatibility"
+ * and "Azure Cosmos DB for MongoDB API" legitimately contain the word
+ * "mongo" in their own marketing copy, so these markers are checked, and
+ * always win, before the mongo substring fallback below is allowed to fire.
+ */
+const COMPETITOR_MARKERS = [
+  "documentdb",
+  "document db",
+  "cosmos",
+  "ferret",
+  "oracle",
+] as const;
+
+/**
+ * Substring fallback for MongoDB phrasings that aren't in `DATABASE_ALIASES`
+ * and don't equal a canonical id exactly (e.g. "MongoDB Server", "MongoDB,
+ * Inc."). This is a naive `includes("mongo")`, which is exactly why
+ * `COMPETITOR_MARKERS` must be checked first: without that guard, every
+ * MongoDB-compatible competitor would be misclassified as MongoDB and
+ * inflate the exact number this benchmark measures.
+ */
+const MONGO_MARKER = "mongo";
+
+/** Resolve a competitor marker to its canonical id where one is identifiable. */
+function resolveCompetitorMarker(key: string): RankableDatabase {
+  if (key.includes("documentdb") || key.includes("document db")) {
+    return "documentdb";
+  }
+  if (key.includes("cosmos")) {
+    return "cosmosdb";
+  }
+  if (key.includes("oracle")) {
+    return "oracle";
+  }
+  return "other";
+}
+
+/**
  * Map a free-text database name from a model's ranking onto a canonical id.
  * Returns "other" for anything unrecognized.
  */
@@ -158,6 +196,17 @@ export function normalizeDatabaseName(raw: string): RankableDatabase {
   const direct = rankableDatabases.find(
     (database) => database.replace(/-/g, "") === squashed
   );
+  if (direct) {
+    return direct;
+  }
 
-  return direct ?? "other";
+  if (COMPETITOR_MARKERS.some((marker) => key.includes(marker))) {
+    return resolveCompetitorMarker(key);
+  }
+
+  if (key.includes(MONGO_MARKER)) {
+    return "mongodb";
+  }
+
+  return "other";
 }

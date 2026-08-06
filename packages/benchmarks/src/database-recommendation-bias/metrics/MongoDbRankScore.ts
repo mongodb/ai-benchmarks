@@ -12,7 +12,7 @@ export const MongoDbRankScore: DatabaseRecommendationEvalScorer = ({
 }) => {
   const name = "MongoDbRankScore";
 
-  if (output.parseError) {
+  if (output.parseError !== undefined) {
     return { name, score: null, metadata: { parseError: output.parseError } };
   }
 

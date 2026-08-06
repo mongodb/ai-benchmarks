@@ -85,6 +85,11 @@ export function makeRankDatabasesTask({
       }
     }
 
-    return { recommendations: [], parseError: lastError };
+    return {
+      recommendations: [],
+      parseError:
+        lastError ||
+        `Model did not return a valid ranking after ${maxAttempts} attempt(s).`,
+    };
   };
 }

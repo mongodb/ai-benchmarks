@@ -11,7 +11,7 @@ export const MongoDbReciprocalRank: DatabaseRecommendationEvalScorer = ({
 }) => {
   const name = "MongoDbReciprocalRank";
 
-  if (output.parseError) {
+  if (output.parseError !== undefined) {
     return { name, score: null, metadata: { parseError: output.parseError } };
   }
 

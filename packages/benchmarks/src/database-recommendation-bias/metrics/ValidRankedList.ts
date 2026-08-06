@@ -8,6 +8,6 @@ export const ValidRankedList: DatabaseRecommendationEvalScorer = ({
   output,
 }) => ({
   name: "ValidRankedList",
-  score: output.parseError ? 0 : 1,
+  score: output.parseError !== undefined ? 0 : 1,
   metadata: { parseError: output.parseError ?? null },
 });
