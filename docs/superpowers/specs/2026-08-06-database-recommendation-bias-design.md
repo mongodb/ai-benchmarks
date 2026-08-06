@@ -71,7 +71,9 @@ packages/benchmarks/src/
 - `loadAppDevelopmentDataset(path: string): AppDevelopmentEvalCase[]`
 - `appDevelopmentDatasets: Record<string, BenchmarkDataset<AppDevelopmentEvalCaseInput, void, AppDevelopmentMetadata>>`
   containing `all`, `mongodb_optimal`, `db_agnostic`, `customer_success_stories_short`,
-  `customer_success_stories_long`.
+  `customer_success_stories_long`. (Shipped with two further keys,
+  `customer_success_stories_notable_short` / `_long`, folded in from parallel work that also
+  pointed `coding-agent-app-development` at this same registry — seven keys total.)
 
 Both benchmark configs set `datasets: appDevelopmentDatasets`. A dataset added later appears in
 both automatically. `app-development/config.ts` keeps its current behavior exactly — this is a

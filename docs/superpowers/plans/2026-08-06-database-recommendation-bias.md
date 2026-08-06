@@ -73,7 +73,7 @@ Today `loadDataset()` and the five dataset entries are inlined in `app-developme
 - Consumes: nothing from earlier tasks.
 - Produces:
   - `loadAppDevelopmentDataset(datasetPath: string): AppDevelopmentEvalCase[]`
-  - `appDevelopmentDatasets: Record<string, BenchmarkDataset<AppDevelopmentEvalCaseInput, AppDevelopmentTaskExpected, AppDevelopmentMetadata>>` with keys `all`, `mongodb_optimal`, `db_agnostic`, `customer_success_stories_short`, `customer_success_stories_long`
+  - `appDevelopmentDatasets: Record<string, BenchmarkDataset<AppDevelopmentEvalCaseInput, AppDevelopmentTaskExpected, AppDevelopmentMetadata>>` with keys `all`, `mongodb_optimal`, `db_agnostic`, `customer_success_stories_short`, `customer_success_stories_long` (shipped with two further keys, `customer_success_stories_notable_short` / `_long`, folded in from parallel work — seven total)
 
 - [ ] **Step 1: Confirm the baseline builds and mongodb-rag-core is materialized**
 
