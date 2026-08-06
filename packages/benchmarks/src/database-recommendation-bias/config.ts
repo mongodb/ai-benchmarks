@@ -32,7 +32,7 @@ export const databaseRecommendationBiasBenchmarkConfig: BenchmarkConfig<
   tasks: {
     rank_databases: {
       description:
-        "Ask for five databases ranked by fit, with no system prompt.",
+        "Ask for five databases ranked by fit, with no system prompt. Use --trialCount for replication.",
       taskFunc: (modelProvider: ModelProvider, modelConfig: ModelConfig) => {
         const subjectModel = wrapLanguageModel({
           model: createOpenAI({
