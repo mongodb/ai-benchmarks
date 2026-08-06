@@ -29,3 +29,30 @@ export function loadAppDevelopmentDataset(): CodingAgentAppDevelopmentEvalCase[]
     metadata: entry.metadata as unknown as AppDevelopmentMetadata,
   }));
 }
+
+const CUSTOMER_SUCCESS_STORIES_SHORT_PATH = path.resolve(
+  __dirname,
+  "../../datasets/customer_success_stories.short.yml"
+);
+const CUSTOMER_SUCCESS_STORIES_LONG_PATH = path.resolve(
+  __dirname,
+  "../../datasets/customer_success_stories.long.yml"
+);
+
+export function loadCustomerSuccessStoriesDataset(
+  length: "short" | "long"
+): CodingAgentAppDevelopmentEvalCase[] {
+  const path =
+    length === "short"
+      ? CUSTOMER_SUCCESS_STORIES_SHORT_PATH
+      : CUSTOMER_SUCCESS_STORIES_LONG_PATH;
+  const raw = yaml.parse(fs.readFileSync(path, "utf8")) as RawDatasetEntry[];
+  return raw.map((entry) => ({
+    input: {
+      name: entry.name,
+      messages: entry.messages,
+    },
+    tags: entry.tags ?? [],
+    metadata: entry.metadata as unknown as AppDevelopmentMetadata,
+  }));
+}
