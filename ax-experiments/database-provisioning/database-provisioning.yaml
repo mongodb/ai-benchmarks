@@ -1,0 +1,176 @@
+# yaml-language-server: $schema=https://docs.514.ax/schema/experiment.v2.schema.yaml
+# Design: docs/database-provisioning/technical-design.md
+# Scope: docs/database-provisioning/experiment-design-scope.md
+
+schema_version: 2
+id: database-provisioning
+name: Database provisioning comparative friction
+description: |
+  Research questions:
+  1) Which databases are easiest for coding agents to successfully provision
+     (MongoDB vs PostgreSQL vs SQLite)?
+  2) What provisioning methods do agents use, and which are easier?
+  Measure: URI-report rate from transcript evidence; platform
+  cost/wallClockTime; provisioning method via post-hoc transcript
+  classification.
+  Bet: MongoDB completion ≳95% in base env; SQLite wins time/cost; MongoDB vs
+  Postgres is the interesting efficiency comparison.
+  Surface: none (no products axis). Agent environment stays stock.
+  Limitation: local AX test sandboxes cannot independently connect to the
+  agent-started database and do not expose transcript events during initial
+  tests. Connection acceptance is therefore not scored in this local YAML.
+
+prompts:
+  - id: mongodb
+    prompt: |
+      Provision me a MongoDB database.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done, report back to me the connection URI.
+  - id: postgresql
+    prompt: |
+      Provision me a PostgreSQL database.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done, report back to me the connection URI.
+  - id: sqlite
+    prompt: |
+      Provision me a SQLite database.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done, report back to me the connection URI.
+
+extensions:
+  - id: claude-sonnet
+    agents: [claude]
+    models: [claude-sonnet-5]
+  - id: cursor-grok
+    agents: [cursor]
+    models: [grok-4.5]
+  - id: cursor-sonnet
+    agents: [cursor]
+    models: [claude-sonnet-5]
+  - id: cursor-luna
+    agents: [cursor]
+    models: [gpt-5.6-luna]
+  - id: codex-luna
+    agents: [codex]
+    models: [gpt-5.6-luna]
+  - id: codex-terra
+    agents: [codex]
+    models: [gpt-5.6-terra]
+
+# Test bodies are packed from tests/*.sh. Do not stage those files through the
+# experiment; that would expose scoring logic to the evaluated agent.
+tests:
+  - name: uri-reported
+    description: >
+      Approximate check that a database-specific URI appears in transcript or
+      stdout events. Local initial runs currently lack this query surface and
+      fail closed; classify the final response post-hoc until AX supports it.
+    script: |
+      # BEGIN PACKED:uri-reported
+      set -euo pipefail
+      
+      # Shared helpers for database-provisioning tests.
+      # Editable source of truth — run ../pack-tests.sh after changes.
+      # Not staged into the agent workspace.
+      
+      detect_db() {
+        local haystack="${AX_VARIANT_ID:-}"
+        if [[ -n "${AX_RUN_CONTEXT_PATH:-}" && -f "$AX_RUN_CONTEXT_PATH" ]]; then
+          haystack="$haystack $(jq -r '
+            [
+              .prompt_id // empty,
+              .prompt // empty,
+              .promptId // empty,
+              .coordinates.prompt // empty,
+              .coordinates.prompt_id // empty,
+              .variant_id // empty
+            ] | map(tostring) | join(" ")
+          ' "$AX_RUN_CONTEXT_PATH" 2>/dev/null || true)"
+        fi
+      
+        case "$haystack" in
+          *postgresql*|*postgres*) printf '%s\n' postgresql ;;
+          *mongodb*) printf '%s\n' mongodb ;;
+          *sqlite*) printf '%s\n' sqlite ;;
+          *)
+            echo "Unable to detect database from variant/context: $haystack" >&2
+            return 1
+            ;;
+        esac
+      }
+      
+      resolve_run_id() {
+        if [[ -n "${AX_RUN_ID:-}" ]]; then
+          printf '%s\n' "$AX_RUN_ID"
+          return 0
+        fi
+        if [[ -n "${AX_RUN_CONTEXT_PATH:-}" && -f "$AX_RUN_CONTEXT_PATH" ]]; then
+          jq -er '.run_id // .composite_run_id' "$AX_RUN_CONTEXT_PATH"
+          return 0
+        fi
+      
+        echo "AX_RUN_ID is unavailable; local AX cannot query transcript events" >&2
+        return 1
+      }
+      
+      transcript_payloads() {
+        local run_id
+        local output
+        run_id="$(resolve_run_id)" || return 1
+        # AX CLI 0.5.726-rp does not provide ax-run-query in either local or cloud
+        # test sandboxes (confirmed 2026-08-10). Keep this fail-closed check until
+        # the platform exposes run-scoped transcript events to tests.
+        command -v ax-run-query >/dev/null 2>&1 || {
+          echo "ax-run-query is unavailable in the test sandbox" >&2
+          return 1
+        }
+      
+        output="$(
+          ax-run-query "$run_id" sql "
+            SELECT payload
+            FROM events
+            WHERE source IN ('stdout', 'transcript')
+          " --format json
+        )"
+        [[ -n "$output" ]] || {
+          echo "No transcript events were returned for run $run_id" >&2
+          return 1
+        }
+      
+        # ax-run-query emits NDJSON: one JSON object per line.
+        printf '%s\n' "$output" | jq -ers '
+          map(.payload // empty)
+          | map(if type == "string" then . else tojson end)
+          | .[]
+        '
+      }
+      
+      # Approximates URI reporting from run-scoped transcript/stdout events.
+      # Local AX currently does not expose these events to initial test sandboxes.
+      
+      db="$(detect_db)"
+      text="$(transcript_payloads)"
+      
+      case "$db" in
+        mongodb)
+          [[ "$text" =~ mongodb(\+srv)?://[^[:space:]\"\<\>]+ ]]
+          ;;
+        postgresql)
+          [[ "$text" =~ postgres(ql)?://[^[:space:]\"\<\>]+ ]]
+          ;;
+        sqlite)
+          [[ "$text" =~ (file:)?/workspace/[^[:space:]\"\<\>]+ ]] ||
+            [[ "$text" =~ sqlite:[^[:space:]\"\<\>]+ ]]
+          ;;
+      esac
+# END PACKED:uri-reported
+# TODO: Add an independent connection-accepted test once AX can run a hidden
+# probe against the live database in the agent's final network/process namespace.
+limits:
+  max_time_seconds: 1800
