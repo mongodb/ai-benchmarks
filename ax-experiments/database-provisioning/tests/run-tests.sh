@@ -177,6 +177,26 @@ else
   pass "Missing run-scoped query access fails closed"
 fi
 
+if python3 - "$ROOT/database-provisioning.yaml" <<'PY'
+from pathlib import Path
+import sys
+
+text = Path(sys.argv[1]).read_text()
+required = (
+    "name: stock",
+    "name: docker-host",
+    "docker.io docker-cli",
+    "dockerd --iptables=false --bridge=none",
+    "docker run -d --rm --network host",
+)
+raise SystemExit(0 if all(item in text for item in required) else 1)
+PY
+then
+  pass "Experiment defines paired stock and host-network Docker environments"
+else
+  fail "Experiment defines paired stock and host-network Docker environments"
+fi
+
 PACK_TMP="$TMP/pack"
 mkdir -p "$PACK_TMP/tests"
 cp "$ROOT/pack-tests.sh" "$PACK_TMP/"

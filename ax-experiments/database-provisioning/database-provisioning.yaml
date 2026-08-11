@@ -10,12 +10,14 @@ description: |
   1) Which databases are easiest for coding agents to successfully provision
      (MongoDB vs PostgreSQL vs SQLite)?
   2) What provisioning methods do agents use, and which are easier?
+  3) How does a preinstalled, usable Docker runtime change provisioning
+     completion and efficiency?
   Measure: URI-report rate and agent-initiated connection verification from run
   evidence; platform cost/wallClockTime; provisioning method via post-hoc
-  transcript classification.
+  transcript classification; all sliced by stock vs Docker-host environment.
   Bet: MongoDB completion ≳95% in base env; SQLite wins time/cost; MongoDB vs
   Postgres is the interesting efficiency comparison.
-  Surface: none (no products axis). Agent environment stays stock.
+  Surface: none (no products axis). Environment axis compares stock vs Docker.
   Limitation: AX test sandboxes cannot independently connect to the
   agent-started database. Run-evidence tests also fail closed unless AX injects
   ax-run-query with a valid run-scoped query token.
@@ -42,6 +44,80 @@ prompts:
       Leave it in the running state that accepts connections.
 
       When you are done, report back to me the connection URI.
+
+environments:
+  - name: stock
+    description: Current AX base sandbox without Docker preinstalled.
+    setup: ":"
+  - name: docker-host
+    description: >
+      Docker CLI and daemon preinstalled. The daemon disables bridge and
+      iptables management; containers must use host networking to expose
+      database ports inside the agent sandbox.
+    setup:
+      - name: install-docker
+        script: |
+          set -eux
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends docker.io docker-cli
+          docker --version
+      - name: start-docker
+        script: |
+          set -eux
+          if docker info >/dev/null 2>&1; then
+            echo "Docker daemon unexpectedly started during package installation" >&2
+            exit 1
+          fi
+
+          setsid dockerd --iptables=false --bridge=none \
+            >/tmp/dockerd.log 2>&1 </dev/null &
+
+          for _ in $(seq 1 30); do
+            if docker info >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+
+          docker info >/dev/null 2>&1 || {
+            cat /tmp/dockerd.log >&2
+            exit 1
+          }
+          chmod 0666 /var/run/docker.sock
+        setup_checks:
+          - name: docker-host-network
+            script: |
+              set -euo pipefail
+              image="busybox:1.36.1"
+              container_id=""
+
+              cleanup() {
+                if [[ -n "$container_id" ]]; then
+                  docker rm -f "$container_id" >/dev/null 2>&1 || true
+                fi
+                docker image rm "$image" >/dev/null 2>&1 || true
+              }
+              trap cleanup EXIT
+
+              docker version >/dev/null
+              docker info >/dev/null
+              container_id="$(
+                docker run -d --rm --network host "$image" \
+                  sh -c "mkdir -p /tmp/www &&
+                    echo docker-host-network-ok > /tmp/www/index.html &&
+                    exec httpd -f -p 39091 -h /tmp/www"
+              )"
+
+              response=""
+              for _ in $(seq 1 30); do
+                response="$(curl -fsS http://127.0.0.1:39091 2>/dev/null || true)"
+                if [[ "$response" == "docker-host-network-ok" ]]; then
+                  break
+                fi
+                sleep 1
+              done
+              [[ "$response" == "docker-host-network-ok" ]]
 
 extensions:
   - id: claude-sonnet
