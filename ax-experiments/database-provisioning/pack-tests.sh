@@ -27,7 +27,7 @@ import tempfile
 yaml_path = Path(sys.argv[1])
 tests_dir = Path(sys.argv[2])
 mode = sys.argv[3]
-test_names = ("uri-reported",)
+test_names = ("uri-reported", "connection-verified-in-agent")
 
 if not yaml_path.is_file():
     raise SystemExit(f"missing {yaml_path}")
@@ -58,7 +58,10 @@ for name in test_names:
 
     script_body = "\n".join(lines).strip()
     expanded = f"set -euo pipefail\n\n{lib_body}\n\n{script_body}\n"
-    indented = "".join(f"      {line}\n" for line in expanded.splitlines())
+    indented = "".join(
+        "\n" if not line else f"      {line}\n"
+        for line in expanded.splitlines()
+    )
     begin = f"# BEGIN PACKED:{name}"
     end = f"# END PACKED:{name}"
 

@@ -46,9 +46,9 @@ transcript_payloads() {
   local run_id
   local output
   run_id="$(resolve_run_id)" || return 1
-  # AX CLI 0.5.726-rp does not provide ax-run-query in either local or cloud
-  # test sandboxes (confirmed 2026-08-10). Keep this fail-closed check until
-  # the platform exposes run-scoped transcript events to tests.
+  # AX must inject both ax-run-query and a run-scoped query token. Keep this
+  # fail-closed check because initial runs have omitted the executable and a
+  # later retest injected an AX_API_KEY without run-scoped query permission.
   command -v ax-run-query >/dev/null 2>&1 || {
     echo "ax-run-query is unavailable in the test sandbox" >&2
     return 1
@@ -71,5 +71,42 @@ transcript_payloads() {
     map(.payload // empty)
     | map(if type == "string" then . else tojson end)
     | .[]
+  '
+}
+
+tool_call_rows() {
+  local run_id
+  local output
+  run_id="$(resolve_run_id)" || return 1
+  command -v ax-run-query >/dev/null 2>&1 || {
+    echo "ax-run-query is unavailable in the test sandbox" >&2
+    return 1
+  }
+
+  output="$(
+    ax-run-query "$run_id" sql "
+      SELECT status, started_ts_ns, raw_input, raw_output
+      FROM tool_calls
+      ORDER BY started_ts_ns
+    " --format json
+  )"
+  [[ -n "$output" ]] || {
+    echo "No tool-call evidence was returned for run $run_id" >&2
+    return 1
+  }
+
+  # Preserve one normalized tool-call object per line for semantic matching.
+  printf '%s\n' "$output" | jq -ec '
+    {
+      status: (.status // ""),
+      input: (
+        .raw_input // ""
+        | if type == "string" then . else tojson end
+      ),
+      output: (
+        .raw_output // ""
+        | if type == "string" then . else tojson end
+      )
+    }
   '
 }

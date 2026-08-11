@@ -10,15 +10,15 @@ description: |
   1) Which databases are easiest for coding agents to successfully provision
      (MongoDB vs PostgreSQL vs SQLite)?
   2) What provisioning methods do agents use, and which are easier?
-  Measure: URI-report rate from transcript evidence; platform
-  cost/wallClockTime; provisioning method via post-hoc transcript
-  classification.
+  Measure: URI-report rate and agent-initiated connection verification from run
+  evidence; platform cost/wallClockTime; provisioning method via post-hoc
+  transcript classification.
   Bet: MongoDB completion ≳95% in base env; SQLite wins time/cost; MongoDB vs
   Postgres is the interesting efficiency comparison.
   Surface: none (no products axis). Agent environment stays stock.
-  Limitation: local AX test sandboxes cannot independently connect to the
-  agent-started database and do not expose transcript events during initial
-  tests. Connection acceptance is therefore not scored in this local YAML.
+  Limitation: AX test sandboxes cannot independently connect to the
+  agent-started database. Run-evidence tests also fail closed unless AX injects
+  ax-run-query with a valid run-scoped query token.
 
 prompts:
   - id: mongodb
@@ -74,11 +74,11 @@ tests:
     script: |
       # BEGIN PACKED:uri-reported
       set -euo pipefail
-      
+
       # Shared helpers for database-provisioning tests.
       # Editable source of truth — run ../pack-tests.sh after changes.
       # Not staged into the agent workspace.
-      
+
       detect_db() {
         local haystack="${AX_VARIANT_ID:-}"
         if [[ -n "${AX_RUN_CONTEXT_PATH:-}" && -f "$AX_RUN_CONTEXT_PATH" ]]; then
@@ -93,7 +93,7 @@ tests:
             ] | map(tostring) | join(" ")
           ' "$AX_RUN_CONTEXT_PATH" 2>/dev/null || true)"
         fi
-      
+
         case "$haystack" in
           *postgresql*|*postgres*) printf '%s\n' postgresql ;;
           *mongodb*) printf '%s\n' mongodb ;;
@@ -104,7 +104,7 @@ tests:
             ;;
         esac
       }
-      
+
       resolve_run_id() {
         if [[ -n "${AX_RUN_ID:-}" ]]; then
           printf '%s\n' "$AX_RUN_ID"
@@ -114,23 +114,23 @@ tests:
           jq -er '.run_id // .composite_run_id' "$AX_RUN_CONTEXT_PATH"
           return 0
         fi
-      
+
         echo "AX_RUN_ID is unavailable; local AX cannot query transcript events" >&2
         return 1
       }
-      
+
       transcript_payloads() {
         local run_id
         local output
         run_id="$(resolve_run_id)" || return 1
-        # AX CLI 0.5.726-rp does not provide ax-run-query in either local or cloud
-        # test sandboxes (confirmed 2026-08-10). Keep this fail-closed check until
-        # the platform exposes run-scoped transcript events to tests.
+        # AX must inject both ax-run-query and a run-scoped query token. Keep this
+        # fail-closed check because initial runs have omitted the executable and a
+        # later retest injected an AX_API_KEY without run-scoped query permission.
         command -v ax-run-query >/dev/null 2>&1 || {
           echo "ax-run-query is unavailable in the test sandbox" >&2
           return 1
         }
-      
+
         output="$(
           ax-run-query "$run_id" sql "
             SELECT payload
@@ -142,7 +142,7 @@ tests:
           echo "No transcript events were returned for run $run_id" >&2
           return 1
         }
-      
+
         # ax-run-query emits NDJSON: one JSON object per line.
         printf '%s\n' "$output" | jq -ers '
           map(.payload // empty)
@@ -150,13 +150,50 @@ tests:
           | .[]
         '
       }
-      
+
+      tool_call_rows() {
+        local run_id
+        local output
+        run_id="$(resolve_run_id)" || return 1
+        command -v ax-run-query >/dev/null 2>&1 || {
+          echo "ax-run-query is unavailable in the test sandbox" >&2
+          return 1
+        }
+
+        output="$(
+          ax-run-query "$run_id" sql "
+            SELECT status, started_ts_ns, raw_input, raw_output
+            FROM tool_calls
+            ORDER BY started_ts_ns
+          " --format json
+        )"
+        [[ -n "$output" ]] || {
+          echo "No tool-call evidence was returned for run $run_id" >&2
+          return 1
+        }
+
+        # Preserve one normalized tool-call object per line for semantic matching.
+        printf '%s\n' "$output" | jq -ec '
+          {
+            status: (.status // ""),
+            input: (
+              .raw_input // ""
+              | if type == "string" then . else tojson end
+            ),
+            output: (
+              .raw_output // ""
+              | if type == "string" then . else tojson end
+            )
+          }
+        '
+      }
+
       # Approximates URI reporting from run-scoped transcript/stdout events.
       # Local AX currently does not expose these events to initial test sandboxes.
-      
+
       db="$(detect_db)"
       text="$(transcript_payloads)"
-      
+
       case "$db" in
         mongodb)
           [[ "$text" =~ mongodb(\+srv)?://[^[:space:]\"\<\>]+ ]]
@@ -170,6 +207,248 @@ tests:
           ;;
       esac
 # END PACKED:uri-reported
+  - name: connection-verified-in-agent
+    description: >
+      Check ordered agent tool calls for a successful database-specific
+      application operation after the latest start or restart. Readiness-only
+      evidence and assistant self-attestation do not pass. This is agent-initiated
+      verification, not an independent post-agent connection probe.
+    script: |
+      # BEGIN PACKED:connection-verified-in-agent
+      set -euo pipefail
+
+      # Shared helpers for database-provisioning tests.
+      # Editable source of truth — run ../pack-tests.sh after changes.
+      # Not staged into the agent workspace.
+
+      detect_db() {
+        local haystack="${AX_VARIANT_ID:-}"
+        if [[ -n "${AX_RUN_CONTEXT_PATH:-}" && -f "$AX_RUN_CONTEXT_PATH" ]]; then
+          haystack="$haystack $(jq -r '
+            [
+              .prompt_id // empty,
+              .prompt // empty,
+              .promptId // empty,
+              .coordinates.prompt // empty,
+              .coordinates.prompt_id // empty,
+              .variant_id // empty
+            ] | map(tostring) | join(" ")
+          ' "$AX_RUN_CONTEXT_PATH" 2>/dev/null || true)"
+        fi
+
+        case "$haystack" in
+          *postgresql*|*postgres*) printf '%s\n' postgresql ;;
+          *mongodb*) printf '%s\n' mongodb ;;
+          *sqlite*) printf '%s\n' sqlite ;;
+          *)
+            echo "Unable to detect database from variant/context: $haystack" >&2
+            return 1
+            ;;
+        esac
+      }
+
+      resolve_run_id() {
+        if [[ -n "${AX_RUN_ID:-}" ]]; then
+          printf '%s\n' "$AX_RUN_ID"
+          return 0
+        fi
+        if [[ -n "${AX_RUN_CONTEXT_PATH:-}" && -f "$AX_RUN_CONTEXT_PATH" ]]; then
+          jq -er '.run_id // .composite_run_id' "$AX_RUN_CONTEXT_PATH"
+          return 0
+        fi
+
+        echo "AX_RUN_ID is unavailable; local AX cannot query transcript events" >&2
+        return 1
+      }
+
+      transcript_payloads() {
+        local run_id
+        local output
+        run_id="$(resolve_run_id)" || return 1
+        # AX must inject both ax-run-query and a run-scoped query token. Keep this
+        # fail-closed check because initial runs have omitted the executable and a
+        # later retest injected an AX_API_KEY without run-scoped query permission.
+        command -v ax-run-query >/dev/null 2>&1 || {
+          echo "ax-run-query is unavailable in the test sandbox" >&2
+          return 1
+        }
+
+        output="$(
+          ax-run-query "$run_id" sql "
+            SELECT payload
+            FROM events
+            WHERE source IN ('stdout', 'transcript')
+          " --format json
+        )"
+        [[ -n "$output" ]] || {
+          echo "No transcript events were returned for run $run_id" >&2
+          return 1
+        }
+
+        # ax-run-query emits NDJSON: one JSON object per line.
+        printf '%s\n' "$output" | jq -ers '
+          map(.payload // empty)
+          | map(if type == "string" then . else tojson end)
+          | .[]
+        '
+      }
+
+      tool_call_rows() {
+        local run_id
+        local output
+        run_id="$(resolve_run_id)" || return 1
+        command -v ax-run-query >/dev/null 2>&1 || {
+          echo "ax-run-query is unavailable in the test sandbox" >&2
+          return 1
+        }
+
+        output="$(
+          ax-run-query "$run_id" sql "
+            SELECT status, started_ts_ns, raw_input, raw_output
+            FROM tool_calls
+            ORDER BY started_ts_ns
+          " --format json
+        )"
+        [[ -n "$output" ]] || {
+          echo "No tool-call evidence was returned for run $run_id" >&2
+          return 1
+        }
+
+        # Preserve one normalized tool-call object per line for semantic matching.
+        printf '%s\n' "$output" | jq -ec '
+          {
+            status: (.status // ""),
+            input: (
+              .raw_input // ""
+              | if type == "string" then . else tojson end
+            ),
+            output: (
+              .raw_output // ""
+              | if type == "string" then . else tojson end
+            )
+          }
+        '
+      }
+
+      db="$(detect_db)"
+      rows="$(tool_call_rows)"
+
+      classification="$(
+        printf '%s\n' "$rows" | jq -ers --arg db "$db" '
+          def text:
+            ((.input // "") + "\n" + (.output // "") | ascii_downcase);
+
+          def input_text:
+            (.input // "" | ascii_downcase);
+
+          def completed:
+            (.status // "" | ascii_downcase) as $status
+            | ($status == "completed"
+                or $status == "success"
+                or $status == "succeeded");
+
+          def command_failed:
+            (.status // "" | ascii_downcase) as $status
+            | text as $text
+            | ($status == "failed"
+                or $status == "error"
+                or ($text | test("\"exit_code\"[[:space:]]*:[[:space:]]*[1-9]|exit code[=: ]+[1-9]"))
+                or ($text | test("econnrefused|connection refused|could not connect to server|server selection timed out|serverselectiontimeouterror|unable to open database file")));
+
+          def mongo_candidate:
+            input_text | test("mongosh|mongodb(\\+srv)?://|mongoclient|pymongo|from mongodb|require[^\\n]*mongodb");
+          def mongo_operation:
+            input_text | test("runcommand|db\\.[a-z0-9_$-]+\\(|db\\.[a-z0-9_$-]+\\.(find|findone|insert|aggregate|count|update|delete|createindex)|\\.(connect|command|find|findone|insertone|insertmany|aggregate|countdocuments|updateone|updatemany|deleteone|deletemany)\\(");
+          def mongo_start:
+            (.input // "" | ascii_downcase)
+            | test("(^|[;&|[:space:]])mongod([;&|[:space:]]|$)|systemctl[[:space:]]+start[[:space:]]+mongod|service[[:space:]]+mongod[[:space:]]+start|docker[[:space:]]+run[^\\n]*mongo");
+          def mongo_weak:
+            input_text | test("(/dev/tcp/[^/ ]+/27017|create_connection[^\\n]*27017|nc[[:space:]][^\\n]*27017|ss[[:space:]][^\\n]*27017)");
+
+          def postgres_candidate:
+            input_text | test("psql|postgres(ql)?://|psycopg|pg\\.client|new client|createconnection");
+          def postgres_operation:
+            input_text | test("(^|[^a-z])(select|insert|update|delete|create|alter|drop|with|call|begin|commit|rollback|vacuum|analyze|explain)[[:space:](]|\\\\conninfo|\\.(query|execute|executemany)\\(");
+          def postgres_start:
+            (.input // "" | ascii_downcase)
+            | test("pg_ctl[^\\n]*[[:space:]]start|systemctl[[:space:]]+start[[:space:]]+postgres|service[[:space:]]+postgres[^\\n]*[[:space:]]start|(^|[;&|[:space:]])postgres([;&|[:space:]]|$)|docker[[:space:]]+run[^\\n]*postgres");
+          def postgres_weak:
+            input_text | test("pg_isready|/dev/tcp/[^/ ]+/5432|create_connection[^\\n]*5432|nc[[:space:]][^\\n]*5432|ss[[:space:]][^\\n]*5432");
+
+          def sqlite_candidate:
+            input_text | test("sqlite3|better-sqlite3|from sqlite3|import sqlite3|require[^\\n]*sqlite3");
+          def sqlite_operation:
+            input_text | test("(^|[^a-z])(select|insert|update|delete|create|alter|drop|with|pragma|vacuum|analyze|explain|begin|commit|rollback)[[:space:](]|\\.(execute|executemany|executescript|query|prepare|all|get|run)\\(|(^|[[:space:]])\\.(tables|schema|databases|indexes|dbinfo|lint|recover)([[:space:]]|$)");
+          def sqlite_weak:
+            input_text | test("test[[:space:]]+-[ef][[:space:]][^\\n]*\\.(db|sqlite|sqlite3)|file[[:space:]][^\\n]*\\.(db|sqlite|sqlite3)");
+
+          def candidate:
+            if $db == "mongodb" then mongo_candidate
+            elif $db == "postgresql" then postgres_candidate
+            else sqlite_candidate
+            end;
+
+          def operation:
+            if $db == "mongodb" then mongo_operation
+            elif $db == "postgresql" then postgres_operation
+            else sqlite_operation
+            end;
+
+          def start:
+            if $db == "mongodb" then mongo_start
+            elif $db == "postgresql" then postgres_start
+            else false
+            end;
+
+          def weak:
+            if $db == "mongodb" then mongo_weak
+            elif $db == "postgresql" then postgres_weak
+            else sqlite_weak
+            end;
+
+          to_entries as $calls
+          | ([$calls[] | select(.value | start) | .key] | max // -1) as $last_start
+          | ([
+              $calls[]
+              | select(.key >= $last_start)
+              | select(.value | completed and (command_failed | not) and candidate and operation)
+              | .key
+            ] | max // -1) as $last_success
+          | ([
+              $calls[]
+              | select(.key > $last_success)
+              | select(.value | command_failed and candidate and operation)
+            ] | length) as $later_failures
+          | if $last_success >= 0 and $later_failures == 0 then
+              "application-operation"
+            elif any(.[]; completed and (command_failed | not) and weak) then
+              "readiness-only"
+            elif any(.[]; completed and candidate) then
+              "unrecognized-candidate"
+            else
+              "no-evidence"
+            end
+        '
+      )"
+
+      case "$classification" in
+        application-operation)
+          echo "Found a successful $db application-level operation in agent tool calls"
+          ;;
+        readiness-only)
+          echo "Only readiness/TCP evidence was found for $db; an application-level operation is required" >&2
+          exit 1
+          ;;
+        unrecognized-candidate)
+          echo "Completed $db candidate calls were found, but no recognized successful application operation matched the codebook" >&2
+          exit 1
+          ;;
+        *)
+          echo "No completed $db connection evidence was found in agent tool calls" >&2
+          exit 1
+          ;;
+      esac
+# END PACKED:connection-verified-in-agent
 # TODO: Add an independent connection-accepted test once AX can run a hidden
 # probe against the live database in the agent's final network/process namespace.
 limits:
