@@ -4,9 +4,11 @@ transcript_payloads() {
   local run_id
   local output
   run_id="$(resolve_run_id)" || return 1
-  # AX must inject both ax-run-query and a run-scoped query token. Keep this
-  # fail-closed check because initial runs have omitted the executable and a
-  # later retest injected an AX_API_KEY without run-scoped query permission.
+  # AX must inject ax-run-query and a run-scoped query token. Final agent
+  # messages are kind=message. ax-run-query defaults to 100 rows, which can
+  # drop those messages when stdout/transcript also include lifecycle, usage,
+  # and tool-call rows. Keep the old sources, prefer messages, and raise the
+  # limit.
   command -v ax-run-query >/dev/null 2>&1 || {
     echo "ax-run-query is unavailable in the test sandbox" >&2
     return 1
@@ -16,8 +18,10 @@ transcript_payloads() {
     ax-run-query "$run_id" sql "
       SELECT payload
       FROM events
-      WHERE source IN ('stdout', 'transcript')
-    " --format json
+      WHERE kind = 'message'
+         OR source IN ('stdout', 'transcript')
+      ORDER BY if(kind = 'message', 0, 1), source_seq
+    " --format json --limit 10000
   )"
   [[ -n "$output" ]] || {
     echo "No transcript events were returned for run $run_id" >&2

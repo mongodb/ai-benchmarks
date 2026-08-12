@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Approximates URI reporting from run-scoped transcript/stdout events.
+# Approximates URI reporting from run-scoped message, transcript, and stdout events.
 # Local AX currently does not expose these events to initial test sandboxes.
 set -euo pipefail
 # pack:inline-lib
