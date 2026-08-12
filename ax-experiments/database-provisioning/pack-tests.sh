@@ -28,15 +28,20 @@ yaml_path = Path(sys.argv[1])
 tests_dir = Path(sys.argv[2])
 mode = sys.argv[3]
 test_names = ("uri-reported", "connection-verified-in-agent")
+helpers_by_test = {
+    "uri-reported": ("lib.sh", "transcript-helpers.sh"),
+    "connection-verified-in-agent": ("lib.sh", "tool-call-helpers.sh"),
+}
 
 if not yaml_path.is_file():
     raise SystemExit(f"missing {yaml_path}")
 
-lib_path = tests_dir / "lib.sh"
-if not lib_path.is_file():
-    raise SystemExit(f"missing {lib_path}")
+helper_names = {name for names in helpers_by_test.values() for name in names}
+for helper_name in helper_names:
+    helper_path = tests_dir / helper_name
+    if not helper_path.is_file():
+        raise SystemExit(f"missing {helper_path}")
 
-lib_body = lib_path.read_text().rstrip()
 rendered = yaml_path.read_text()
 
 for name in test_names:
@@ -52,12 +57,18 @@ for name in test_names:
             continue
         if line == "set -euo pipefail":
             continue
-        if line.startswith("source ") and "lib.sh" in line:
+        if line.startswith("source ") and any(
+            helper_name in line for helper_name in helper_names
+        ):
             continue
         lines.append(line)
 
+    helper_body = "\n\n".join(
+        (tests_dir / helper_name).read_text().rstrip()
+        for helper_name in helpers_by_test[name]
+    )
     script_body = "\n".join(lines).strip()
-    expanded = f"set -euo pipefail\n\n{lib_body}\n\n{script_body}\n"
+    expanded = f"set -euo pipefail\n\n{helper_body}\n\n{script_body}\n"
     indented = "".join(
         "\n" if not line else f"      {line}\n"
         for line in expanded.splitlines()

@@ -3,10 +3,15 @@ set -euo pipefail
 
 # pack:inline-lib
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/tool-call-helpers.sh"
 
 db="$(detect_db)"
 rows="$(tool_call_rows)"
 
+# This heuristic codebook was validated against the 30-run Codex/Luna sample
+# (run request 01KZPMF9YMW933F9X4E9KMEPA3): 29 runs had recognized
+# application-level verification and one was correctly readiness-only. Re-audit
+# real transcripts when changing it because unrecognized evidence fails closed.
 classification="$(
   printf '%s\n' "$rows" | jq -ers --arg db "$db" '
     def text:

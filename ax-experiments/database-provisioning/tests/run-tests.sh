@@ -68,6 +68,18 @@ expect_uri_pass \
   "SQLite path is found in transcript events" \
   '{"payload":"Done: file:/workspace/app.sqlite"}' \
   "codex::openai-gpt-5.6-luna::sqlite::codex-luna"
+expect_uri_pass \
+  "SQLite URI with an absolute database path is accepted" \
+  '{"payload":"Connection URI: sqlite:////workspace/data/app.db"}' \
+  "codex::openai-gpt-5.6-luna::sqlite::codex-luna"
+expect_uri_pass \
+  "SQLite URI inside Markdown code is accepted" \
+  '{"payload":"Connection URI: `sqlite:////workspace/data/app.db`"}' \
+  "cursor::xai-grok-4.5::sqlite::cursor-grok"
+expect_uri_pass \
+  "Loopback libSQL URI is accepted for SQLite" \
+  '{"payload":"Connection URI: libsql://127.0.0.1:8080"}' \
+  "cursor::xai-grok-4.5::sqlite::cursor-grok"
 expect_uri_fail \
   "Missing URI is rejected" \
   '{"payload":"Done, database is ready"}' \
@@ -76,6 +88,31 @@ expect_uri_fail \
   "Wrong database URI is rejected" \
   '{"payload":"Done: postgresql://localhost:5432/postgres"}' \
   "codex::openai-gpt-5.6-luna::mongodb::codex-luna"
+expect_uri_fail \
+  "Generic workspace paths are not SQLite connection URIs" \
+  '{"payload":"Created /workspace/package.json and finished setup"}' \
+  "codex::openai-gpt-5.6-luna::sqlite::codex-luna"
+expect_uri_fail \
+  "SQLite-looking source paths are not database URIs" \
+  '{"payload":"Read file:/workspace/schema.sqlite.ts during setup"}' \
+  "codex::openai-gpt-5.6-luna::sqlite::codex-luna"
+expect_uri_fail \
+  "Remote libSQL URIs are not accepted" \
+  '{"payload":"Connection URI: libsql://database.example.com:8080"}' \
+  "cursor::xai-grok-4.5::sqlite::cursor-grok"
+
+printf '%s\n' '{"prompt_id":"sqlite"}' >"$TMP/run-context.json"
+if AX_RUN_ID=test-run \
+  AX_RUN_CONTEXT_PATH="$TMP/run-context.json" \
+  AX_VARIANT_ID="misleading-mongodb-variant" \
+  AX_TEST_EVENTS='{"payload":"Connection URI: file:/workspace/app.sqlite"}' \
+  PATH="$TMP/bin:$PATH" \
+  bash "$TESTS_DIR/uri-reported.sh" >/dev/null 2>&1
+then
+  pass "Database detection uses documented run-context prompt_id"
+else
+  fail "Database detection uses documented run-context prompt_id"
+fi
 
 run_connection_test() {
   local rows="$1"
@@ -202,6 +239,8 @@ mkdir -p "$PACK_TMP/tests"
 cp "$ROOT/pack-tests.sh" "$PACK_TMP/"
 cp "$ROOT/database-provisioning.yaml" "$PACK_TMP/"
 cp "$TESTS_DIR/lib.sh" "$PACK_TMP/tests/"
+cp "$TESTS_DIR/transcript-helpers.sh" "$PACK_TMP/tests/"
+cp "$TESTS_DIR/tool-call-helpers.sh" "$PACK_TMP/tests/"
 cp "$TESTS_DIR/uri-reported.sh" "$PACK_TMP/tests/" 2>/dev/null || true
 cp "$TESTS_DIR/connection-verified-in-agent.sh" "$PACK_TMP/tests/" 2>/dev/null || true
 
@@ -235,6 +274,31 @@ if awk '/BASH_SOURCE/ { found = 1 } END { exit found }' \
   pass "Packed tests do not depend on BASH_SOURCE"
 else
   fail "Packed tests do not depend on BASH_SOURCE"
+fi
+if python3 - "$PACK_TMP/database-provisioning.yaml" <<'PY'
+from pathlib import Path
+import sys
+
+text = Path(sys.argv[1]).read_text()
+
+def packed_body(name: str) -> str:
+    begin = f"# BEGIN PACKED:{name}"
+    end = f"# END PACKED:{name}"
+    return text.split(begin, 1)[1].split(end, 1)[0]
+
+uri_body = packed_body("uri-reported")
+connection_body = packed_body("connection-verified-in-agent")
+raise SystemExit(
+    0
+    if "tool_call_rows()" not in uri_body
+    and "transcript_payloads()" not in connection_body
+    else 1
+)
+PY
+then
+  pass "Packer includes only helpers required by each test"
+else
+  fail "Packer includes only helpers required by each test"
 fi
 
 python3 - "$PACK_TMP/database-provisioning.yaml" <<'PY'
