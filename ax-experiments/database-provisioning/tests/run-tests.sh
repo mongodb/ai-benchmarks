@@ -20,6 +20,7 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/bin"
 cat >"$TMP/bin/ax-run-query" <<'SH'
 #!/usr/bin/env bash
+printf '%s\n' "$@" > "${AX_TEST_QUERY_ARGS:-/dev/null}"
 printf '%s\n' "${AX_TEST_EVENTS:-}"
 SH
 chmod +x "$TMP/bin/ax-run-query"
@@ -112,6 +113,26 @@ expect_uri_fail \
   "Remote HTTP URIs are not accepted for SQLite" \
   '{"payload":"Connection URI: http://database.example.com:8080"}' \
   "codex::openai-gpt-5.6-terra::sqlite::codex-terra"
+expect_uri_pass \
+  "PostgreSQL URI in a JSON message payload is accepted" \
+  '{"payload":"{\"kind\":\"message\",\"text\":\"postgresql://localhost:5432/postgres\"}"}' \
+  "claude::anthropic-claude-sonnet-5::postgresql::docker-host::claude-sonnet"
+
+QUERY_ARGS="$TMP/query-args.txt"
+if AX_RUN_ID=test-run \
+  AX_VARIANT_ID="claude::anthropic-claude-sonnet-5::postgresql::docker-host::claude-sonnet" \
+  AX_TEST_EVENTS='{"payload":"postgresql://localhost:5432/postgres"}' \
+  AX_TEST_QUERY_ARGS="$QUERY_ARGS" \
+  PATH="$TMP/bin:$PATH" \
+  bash "$TESTS_DIR/uri-reported.sh" >/dev/null 2>&1 \
+  && grep -q "kind = 'message'" "$QUERY_ARGS" \
+  && grep -q -- '--limit' "$QUERY_ARGS" \
+  && grep -q '10000' "$QUERY_ARGS"
+then
+  pass "uri-reported queries message events with a raised row limit"
+else
+  fail "uri-reported queries message events with a raised row limit"
+fi
 
 printf '%s\n' '{"prompt_id":"sqlite"}' >"$TMP/run-context.json"
 if AX_RUN_ID=test-run \
@@ -357,6 +378,9 @@ raise SystemExit(
     and "kind = 'tool_call'" in connection_body
     and "argMax(payload, source_seq)" not in connection_body
     and "group_by(.tool_call_id)" in connection_body
+    and "kind = 'message'" in uri_body
+    and "--limit" in uri_body
+    and "10000" in uri_body
     else 1
 )
 PY
