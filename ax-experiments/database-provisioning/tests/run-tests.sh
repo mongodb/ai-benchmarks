@@ -117,9 +117,30 @@ fi
 run_connection_test() {
   local rows="$1"
   local variant="$2"
+  local events
+  events="$(
+    printf '%s\n' "$rows" | jq -c '
+      {
+        payload: (
+          {
+            kind: "tool_call",
+            status: (.status // ""),
+            input: { command: (.raw_input // "") },
+            output: {
+              aggregated_output: (.raw_output // ""),
+              exit_code: (
+                if (.status // "") == "failed" then 1 else 0 end
+              )
+            }
+          }
+          | tojson
+        )
+      }
+    '
+  )"
   AX_RUN_ID=test-run \
     AX_VARIANT_ID="$variant" \
-    AX_TEST_EVENTS="$rows" \
+    AX_TEST_EVENTS="$events" \
     PATH="$TMP/bin:$PATH" \
     bash "$TESTS_DIR/connection-verified-in-agent.sh" >/dev/null 2>&1
 }
@@ -292,6 +313,8 @@ raise SystemExit(
     0
     if "tool_call_rows()" not in uri_body
     and "transcript_payloads()" not in connection_body
+    and "FROM tool_calls" not in connection_body
+    and "kind = 'tool_call'" in connection_body
     else 1
 )
 PY

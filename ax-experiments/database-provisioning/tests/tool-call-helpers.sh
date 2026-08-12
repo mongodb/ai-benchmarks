@@ -11,9 +11,15 @@ tool_call_rows() {
 
   output="$(
     ax-run-query "$run_id" sql "
-      SELECT status, started_ts_ns, raw_input, raw_output
-      FROM tool_calls
-      ORDER BY started_ts_ns
+      SELECT
+        min(source_seq) AS order_seq,
+        argMax(payload, source_seq) AS payload
+      FROM events
+      WHERE kind = 'tool_call'
+        AND coalesce(assertion_role, 'primary') = 'primary'
+        AND tool_call_id IS NOT NULL
+      GROUP BY tool_call_id
+      ORDER BY order_seq
     " --format json
   )"
   [[ -n "$output" ]] || {
@@ -21,16 +27,28 @@ tool_call_rows() {
     return 1
   }
 
-  # Preserve one normalized tool-call object per line for semantic matching.
+  # Session-data events contain lifecycle rows for each tool call. The query
+  # keeps the latest payload while ordering calls by their first source event.
   printf '%s\n' "$output" | jq -ec '
+    (
+      .payload
+      | if type == "string" then fromjson else . end
+    ) as $call
+    |
     {
-      status: (.status // ""),
+      status: ($call.status // ""),
       input: (
-        .raw_input // ""
-        | if type == "string" then . else tojson end
+        $call.input // ""
+        | if type == "string" then
+            .
+          elif type == "object" and (.command? | type == "string") then
+            .command
+          else
+            tojson
+          end
       ),
       output: (
-        .raw_output // ""
+        $call.output // ""
         | if type == "string" then . else tojson end
       )
     }
