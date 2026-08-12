@@ -245,6 +245,9 @@ required = (
     "name: docker-host",
     "docker.io docker-cli",
     "dockerd --iptables=false --bridge=none",
+    "/usr/local/bin/docker",
+    "Docker bridge networking is unavailable in this sandbox.",
+    "Retry with --network host; published ports are unsupported.",
     "docker run -d --rm --network host",
 )
 raise SystemExit(0 if all(item in text for item in required) else 1)

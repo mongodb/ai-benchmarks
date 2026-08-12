@@ -52,8 +52,8 @@ environments:
   - name: docker-host
     description: >
       Docker CLI and daemon preinstalled. The daemon disables bridge and
-      iptables management; containers must use host networking to expose
-      database ports inside the agent sandbox.
+      iptables management. Unsupported bridge-network runs fail with guidance
+      after an agent chooses Docker; services must use host networking.
     setup:
       - name: install-docker
         script: |
@@ -61,6 +61,45 @@ environments:
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
           apt-get install -y --no-install-recommends docker.io docker-cli
+          docker --version
+      - name: install-docker-network-guard
+        script: |
+          set -eux
+          cat >/usr/local/bin/docker <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          real_docker="/usr/bin/docker"
+          if [[ "${1:-}" != "run" ]]; then
+            exec "$real_docker" "$@"
+          fi
+
+          network=""
+          args=("$@")
+          for ((i = 1; i < ${#args[@]}; i++)); do
+            case "${args[$i]}" in
+              --network|--net)
+                ((i += 1))
+                network="${args[$i]:-}"
+                ;;
+              --network=*|--net=*)
+                network="${args[$i]#*=}"
+                ;;
+            esac
+          done
+
+          case "$network" in
+            host|none)
+              exec "$real_docker" "$@"
+              ;;
+            *)
+              echo "Docker bridge networking is unavailable in this sandbox." >&2
+              echo "Retry with --network host; published ports are unsupported." >&2
+              exit 64
+              ;;
+          esac
+          SH
+          chmod 0755 /usr/local/bin/docker
           docker --version
       - name: start-docker
         script: |
@@ -102,6 +141,16 @@ environments:
 
               docker version >/dev/null
               docker info >/dev/null
+
+              guard_error=""
+              if guard_error="$(docker run --rm -p 39091:39091 "$image" true 2>&1)"; then
+                echo "Docker network guard unexpectedly allowed bridge networking" >&2
+                exit 1
+              fi
+              [[ "$guard_error" == *"Docker bridge networking is unavailable in this sandbox."* ]]
+              [[ "$guard_error" == *"Retry with --network host; published ports are unsupported."* ]]
+
+              docker run --rm --network none "$image" true
               container_id="$(
                 docker run -d --rm --network host "$image" \
                   sh -c "mkdir -p /tmp/www &&
