@@ -12,14 +12,14 @@ tool_call_rows() {
   output="$(
     ax-run-query "$run_id" sql "
       SELECT
-        min(source_seq) AS order_seq,
-        argMax(payload, source_seq) AS payload
+        source_seq,
+        tool_call_id,
+        payload
       FROM events
       WHERE kind = 'tool_call'
         AND coalesce(assertion_role, 'primary') = 'primary'
         AND tool_call_id IS NOT NULL
-      GROUP BY tool_call_id
-      ORDER BY order_seq
+      ORDER BY source_seq
     " --format json
   )"
   [[ -n "$output" ]] || {
@@ -27,30 +27,81 @@ tool_call_rows() {
     return 1
   }
 
-  # Session-data events contain lifecycle rows for each tool call. The query
-  # keeps the latest payload while ordering calls by their first source event.
-  printf '%s\n' "$output" | jq -ec '
-    (
-      .payload
-      | if type == "string" then fromjson else . end
-    ) as $call
-    |
-    {
-      status: ($call.status // ""),
-      input: (
-        $call.input // ""
-        | if type == "string" then
-            .
-          elif type == "object" and (.command? | type == "string") then
-            .command
-          else
-            tojson
-          end
-      ),
-      output: (
-        $call.output // ""
-        | if type == "string" then . else tojson end
-      )
-    }
+  # Session-data events emit multiple lifecycle rows per tool_call_id. Merge
+  # them instead of taking the latest payload: Claude can append a duplicate
+  # in_progress row after completed, which would otherwise drop input or
+  # status. Keep the latest terminal status and the latest non-empty input
+  # and output so split start/result events still reconstruct one call.
+  printf '%s\n' "$output" | jq -s -ec '
+    def parse:
+      if type == "string" then fromjson else . end;
+
+    def call_fields:
+      parse as $call
+      | {
+          status: ($call.status // ""),
+          input: (
+            $call.input // ""
+            | if type == "string" then
+                .
+              elif type == "object" and (.command? | type == "string") then
+                .command
+              elif type == "object" and . == {} then
+                ""
+              else
+                tojson
+              end
+          ),
+          output: (
+            $call.output // ""
+            | if type == "string" then
+                .
+              elif type == "object" and . == {} then
+                ""
+              else
+                tojson
+              end
+          )
+        };
+
+    def terminal:
+      (.status // "" | ascii_downcase) as $status
+      | ($status == "completed"
+          or $status == "success"
+          or $status == "succeeded"
+          or $status == "failed"
+          or $status == "error");
+
+    def merge:
+      sort_by(.source_seq) as $rows
+      | [$rows[] | .payload | call_fields] as $fields
+      | {
+          status: (
+            ([$fields[] | select(terminal)] | last | .status)
+            // ($fields | last | .status)
+            // ""
+          ),
+          input: (
+            ([$fields[] | .input | select(type == "string" and length > 0)] | last)
+            // ""
+          ),
+          output: (
+            ([$fields[] | .output | select(type == "string" and length > 0)] | last)
+            // ""
+          )
+        };
+
+    map({
+      source_seq: (.source_seq // 0),
+      tool_call_id: (.tool_call_id // null),
+      payload
+    })
+    | group_by(.tool_call_id)
+    | map({
+        order_seq: (map(.source_seq) | min),
+        merged: merge
+      })
+    | sort_by(.order_seq)
+    | .[].merged
   '
 }

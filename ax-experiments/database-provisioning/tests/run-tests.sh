@@ -80,6 +80,14 @@ expect_uri_pass \
   "Loopback libSQL URI is accepted for SQLite" \
   '{"payload":"Connection URI: libsql://127.0.0.1:8080"}' \
   "cursor::xai-grok-4.5::sqlite::cursor-grok"
+expect_uri_pass \
+  "Loopback libSQL HTTP URI is accepted for SQLite" \
+  '{"payload":"Connection URI: http://127.0.0.1:8080"}' \
+  "codex::openai-gpt-5.6-terra::sqlite::codex-terra"
+expect_uri_pass \
+  "Loopback libSQL WebSocket URI is accepted for SQLite" \
+  '{"payload":"Connection URI: ws://localhost:8080"}' \
+  "codex::openai-gpt-5.6-terra::sqlite::codex-terra"
 expect_uri_fail \
   "Missing URI is rejected" \
   '{"payload":"Done, database is ready"}' \
@@ -100,6 +108,10 @@ expect_uri_fail \
   "Remote libSQL URIs are not accepted" \
   '{"payload":"Connection URI: libsql://database.example.com:8080"}' \
   "cursor::xai-grok-4.5::sqlite::cursor-grok"
+expect_uri_fail \
+  "Remote HTTP URIs are not accepted for SQLite" \
+  '{"payload":"Connection URI: http://database.example.com:8080"}' \
+  "codex::openai-gpt-5.6-terra::sqlite::codex-terra"
 
 printf '%s\n' '{"prompt_id":"sqlite"}' >"$TMP/run-context.json"
 if AX_RUN_ID=test-run \
@@ -119,19 +131,36 @@ run_connection_test() {
   local variant="$2"
   local events
   events="$(
-    printf '%s\n' "$rows" | jq -c '
-      {
+    printf '%s\n' "$rows" | jq -s -c '
+      to_entries[]
+      | .key as $i
+      | .value
+      | {
+        source_seq: (.source_seq // ($i + 1)),
+        tool_call_id: (.tool_call_id // ("row-" + (($i + 1) | tostring))),
         payload: (
           {
             kind: "tool_call",
             status: (.status // ""),
-            input: { command: (.raw_input // "") },
-            output: {
-              aggregated_output: (.raw_output // ""),
-              exit_code: (
-                if (.status // "") == "failed" then 1 else 0 end
-              )
-            }
+            input: (
+              if (.raw_input // "") == "" then
+                {}
+              else
+                { command: .raw_input }
+              end
+            ),
+            output: (
+              if (.raw_output // "") == "" then
+                {}
+              else
+                {
+                  aggregated_output: .raw_output,
+                  exit_code: (
+                    if (.status // "") == "failed" then 1 else 0 end
+                  )
+                }
+              end
+            )
           }
           | tojson
         )
@@ -223,6 +252,14 @@ expect_connection_fail \
   "Failed application probe after success invalidates earlier evidence" \
   $'{"status":"completed","raw_input":"psql postgresql://localhost/app -c SELECT 1","raw_output":"1"}\n{"status":"failed","raw_input":"psql postgresql://localhost/app -c SELECT 1","raw_output":"connection refused"}' \
   "codex::openai-gpt-5.6-luna::postgresql::codex-luna"
+expect_connection_pass \
+  "Split Claude lifecycle rows still count as a completed MongoDB operation" \
+  $'{"tool_call_id":"claude-mongo","source_seq":1,"status":"in_progress","raw_input":"docker exec mongodb mongosh --eval db.runCommand({ping:1})"}\n{"tool_call_id":"claude-mongo","source_seq":2,"status":"completed","raw_output":"{ ok: 1 }"}\n{"tool_call_id":"claude-mongo","source_seq":3,"status":"in_progress","raw_input":"docker exec mongodb mongosh --eval db.runCommand({ping:1})"}' \
+  "claude::anthropic-claude-sonnet-5::mongodb::claude-sonnet"
+expect_connection_pass \
+  "libSQL HTTP pipeline SQL is accepted as SQLite connection evidence" \
+  '{"status":"completed","raw_input":"curl --fail --request POST http://127.0.0.1:8080/v2/pipeline --data {\"requests\":[{\"type\":\"execute\",\"stmt\":{\"sql\":\"SELECT 1 AS ready\"}}]}","raw_output":"{\"results\":[{\"response\":{\"type\":\"execute\",\"result\":{\"cols\":[{\"name\":\"ready\"}],\"rows\":[[{\"type\":\"Integer\",\"value\":\"1\"}]]}}}]}"}' \
+  "codex::openai-gpt-5.6-terra::sqlite::codex-terra"
 
 if env -u AX_RUN_ID -u AX_RUN_CONTEXT_PATH \
   AX_VARIANT_ID="codex::openai-gpt-5.6-luna::mongodb::codex-luna" \
@@ -318,6 +355,8 @@ raise SystemExit(
     and "transcript_payloads()" not in connection_body
     and "FROM tool_calls" not in connection_body
     and "kind = 'tool_call'" in connection_body
+    and "argMax(payload, source_seq)" not in connection_body
+    and "group_by(.tool_call_id)" in connection_body
     else 1
 )
 PY

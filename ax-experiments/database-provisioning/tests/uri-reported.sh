@@ -19,7 +19,11 @@ case "$db" in
   sqlite)
     sqlite_file_pattern='(file|sqlite):/+workspace/[^[:space:]"<>`]+\.(db|sqlite|sqlite3)([?][^[:space:]"<>`]*)?([[:space:]"<>,;)`]|$)'
     libsql_pattern='libsql://(localhost|127\.0\.0\.1|\[::1\])(:[0-9]{1,5})?([/?][^[:space:]"<>`]*)?([[:space:]"<>,;)`]|$)'
+    sqlite_http_pattern='https?://(localhost|127\.0\.0\.1|\[::1\]):[0-9]{1,5}([/?][^[:space:]"<>`]*)?([[:space:]"<>,;)`]|$)'
+    sqlite_ws_pattern='wss?://(localhost|127\.0\.0\.1|\[::1\]):[0-9]{1,5}([/?][^[:space:]"<>`]*)?([[:space:]"<>,;)`]|$)'
     [[ "$text" =~ $sqlite_file_pattern ]] ||
-      [[ "$text" =~ $libsql_pattern ]]
+      [[ "$text" =~ $libsql_pattern ]] ||
+      [[ "$text" =~ $sqlite_http_pattern ]] ||
+      [[ "$text" =~ $sqlite_ws_pattern ]]
     ;;
 esac

@@ -9,9 +9,9 @@ db="$(detect_db)"
 rows="$(tool_call_rows)"
 
 # This heuristic codebook was validated against the 30-run Codex/Luna sample
-# (run request 01KZPMF9YMW933F9X4E9KMEPA3): 29 runs had recognized
-# application-level verification and one was correctly readiness-only. Re-audit
-# real transcripts when changing it because unrecognized evidence fails closed.
+# (run request 01KZPMF9YMW933F9X4E9KMEPA3) and re-checked against the guarded
+# Docker smoke (01KZV9RX27QGF57NKKBWEZFSC8). Re-audit real transcripts when
+# changing it because unrecognized evidence fails closed.
 classification="$(
   printf '%s\n' "$rows" | jq -ers --arg db "$db" '
     def text:
@@ -55,7 +55,7 @@ classification="$(
       input_text | test("pg_isready|/dev/tcp/[^/ ]+/5432|create_connection[^\\n]*5432|nc[[:space:]][^\\n]*5432|ss[[:space:]][^\\n]*5432");
 
     def sqlite_candidate:
-      input_text | test("sqlite3|better-sqlite3|from sqlite3|import sqlite3|require[^\\n]*sqlite3");
+      input_text | test("sqlite3|better-sqlite3|from sqlite3|import sqlite3|require[^\\n]*sqlite3|libsql|/v2/pipeline|(^|[^a-z])sqld([^a-z]|$)");
     def sqlite_operation:
       input_text | test("(^|[^a-z])(select|insert|update|delete|create|alter|drop|with|pragma|vacuum|analyze|explain|begin|commit|rollback)[[:space:](]|\\.(execute|executemany|executescript|query|prepare|all|get|run)\\(|(^|[[:space:]])\\.(tables|schema|databases|indexes|dbinfo|lint|recover)([[:space:]]|$)");
     def sqlite_weak:
