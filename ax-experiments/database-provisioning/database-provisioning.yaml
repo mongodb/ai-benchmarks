@@ -57,6 +57,9 @@ extensions:
   - id: cursor-luna
     agents: [cursor]
     models: [gpt-5.6-luna]
+  - id: cursor-terra
+    agents: [cursor]
+    models: [gpt-5.6-terra]
   - id: codex-luna
     agents: [codex]
     models: [gpt-5.6-luna]
