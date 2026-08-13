@@ -249,9 +249,13 @@ expect_connection_fail \
   "MongoDB connection error is rejected" \
   '{"status":"completed","raw_input":"mongosh mongodb://127.0.0.1:27017 --eval db.widgets.findOne()","raw_output":"MongoNetworkError: connect ECONNREFUSED"}' \
   "codex::openai-gpt-5.6-luna::mongodb::codex-luna"
-expect_connection_fail \
-  "PostgreSQL readiness-only evidence is not application-level verification" \
+expect_connection_pass \
+  "PostgreSQL pg_isready is accepted as connection evidence" \
   '{"status":"completed","raw_input":"pg_isready -h 127.0.0.1 -p 5432","raw_output":"accepting connections"}' \
+  "codex::openai-gpt-5.6-luna::postgresql::codex-luna"
+expect_connection_fail \
+  "PostgreSQL TCP-only evidence is not connection verification" \
+  '{"status":"completed","raw_input":"nc -z 127.0.0.1 5432","raw_output":"Connection to 127.0.0.1 5432 port [tcp/postgresql] succeeded"}' \
   "codex::openai-gpt-5.6-luna::postgresql::codex-luna"
 expect_connection_fail \
   "SQLite installation output is not mistaken for a SQL operation" \
