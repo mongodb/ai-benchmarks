@@ -116,11 +116,11 @@ expect_uri_fail \
 expect_uri_pass \
   "PostgreSQL URI in a JSON message payload is accepted" \
   '{"payload":"{\"kind\":\"message\",\"text\":\"postgresql://localhost:5432/postgres\"}"}' \
-  "claude::anthropic-claude-sonnet-5::postgresql::docker-host::claude-sonnet"
+  "claude::anthropic-claude-sonnet-5::postgresql::claude-sonnet"
 
 QUERY_ARGS="$TMP/query-args.txt"
 if AX_RUN_ID=test-run \
-  AX_VARIANT_ID="claude::anthropic-claude-sonnet-5::postgresql::docker-host::claude-sonnet" \
+  AX_VARIANT_ID="claude::anthropic-claude-sonnet-5::postgresql::claude-sonnet" \
   AX_TEST_EVENTS='{"payload":"postgresql://localhost:5432/postgres"}' \
   AX_TEST_QUERY_ARGS="$QUERY_ARGS" \
   PATH="$TMP/bin:$PATH" \
@@ -299,21 +299,32 @@ import sys
 
 text = Path(sys.argv[1]).read_text()
 required = (
+    "id: mongodb",
+    "id: postgresql",
+    "id: sqlite",
+)
+forbidden = (
+    "environments:",
     "name: stock",
     "name: docker-host",
-    "docker.io docker-cli",
     "dockerd --iptables=false --bridge=none",
     "/usr/local/bin/docker",
     "Docker bridge networking is unavailable in this sandbox.",
     "Retry with --network host; published ports are unsupported.",
-    "docker run -d --rm --network host",
+    "name: docker-published-port",
+    "docker-host-network",
 )
-raise SystemExit(0 if all(item in text for item in required) else 1)
+raise SystemExit(
+    0
+    if all(item in text for item in required)
+    and not any(item in text for item in forbidden)
+    else 1
+)
 PY
 then
-  pass "Experiment defines paired stock and host-network Docker environments"
+  pass "Experiment has no stock/docker-host environment axis"
 else
-  fail "Experiment defines paired stock and host-network Docker environments"
+  fail "Experiment has no stock/docker-host environment axis"
 fi
 
 PACK_TMP="$TMP/pack"

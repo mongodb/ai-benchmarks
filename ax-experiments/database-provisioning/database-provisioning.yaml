@@ -10,14 +10,13 @@ description: |
   1) Which databases are easiest for coding agents to successfully provision
      (MongoDB vs PostgreSQL vs SQLite)?
   2) What provisioning methods do agents use, and which are easier?
-  3) How does a preinstalled, usable Docker runtime change provisioning
-     completion and efficiency?
   Measure: URI-report rate and agent-initiated connection verification from run
   evidence; platform cost/wallClockTime; provisioning method via post-hoc
-  transcript classification; all sliced by stock vs Docker-host environment.
+  transcript classification.
   Bet: MongoDB completion ≳95% in base env; SQLite wins time/cost; MongoDB vs
   Postgres is the interesting efficiency comparison.
-  Surface: none (no products axis). Environment axis compares stock vs Docker.
+  Surface: none (no products or environments axis).
+  Docker is platform-provided in every sandbox.
   Limitation: AX test sandboxes cannot independently connect to the
   agent-started database. Run-evidence tests also fail closed unless AX injects
   ax-run-query with a valid run-scoped query token.
@@ -44,129 +43,6 @@ prompts:
       Leave it in the running state that accepts connections.
 
       When you are done, report back to me the connection URI.
-
-environments:
-  - name: stock
-    description: Current AX base sandbox without Docker preinstalled.
-    setup: ":"
-  - name: docker-host
-    description: >
-      Docker CLI and daemon preinstalled. The daemon disables bridge and
-      iptables management. Unsupported bridge-network runs fail with guidance
-      after an agent chooses Docker; services must use host networking.
-    setup:
-      - name: install-docker
-        script: |
-          set -eux
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update
-          apt-get install -y --no-install-recommends docker.io docker-cli
-          docker --version
-      - name: install-docker-network-guard
-        script: |
-          set -eux
-          cat >/usr/local/bin/docker <<'SH'
-          #!/usr/bin/env bash
-          set -euo pipefail
-
-          real_docker="/usr/bin/docker"
-          if [[ "${1:-}" != "run" ]]; then
-            exec "$real_docker" "$@"
-          fi
-
-          network=""
-          args=("$@")
-          for ((i = 1; i < ${#args[@]}; i++)); do
-            case "${args[$i]}" in
-              --network|--net)
-                ((i += 1))
-                network="${args[$i]:-}"
-                ;;
-              --network=*|--net=*)
-                network="${args[$i]#*=}"
-                ;;
-            esac
-          done
-
-          case "$network" in
-            host|none)
-              exec "$real_docker" "$@"
-              ;;
-            *)
-              echo "Docker bridge networking is unavailable in this sandbox." >&2
-              echo "Retry with --network host; published ports are unsupported." >&2
-              exit 64
-              ;;
-          esac
-          SH
-          chmod 0755 /usr/local/bin/docker
-          docker --version
-      - name: start-docker
-        script: |
-          set -eux
-          if docker info >/dev/null 2>&1; then
-            echo "Docker daemon unexpectedly started during package installation" >&2
-            exit 1
-          fi
-
-          setsid dockerd --iptables=false --bridge=none \
-            >/tmp/dockerd.log 2>&1 </dev/null &
-
-          for _ in $(seq 1 30); do
-            if docker info >/dev/null 2>&1; then
-              break
-            fi
-            sleep 1
-          done
-
-          docker info >/dev/null 2>&1 || {
-            cat /tmp/dockerd.log >&2
-            exit 1
-          }
-          chmod 0666 /var/run/docker.sock
-        setup_checks:
-          - name: docker-host-network
-            script: |
-              set -euo pipefail
-              image="busybox:1.36.1"
-              container_id=""
-
-              cleanup() {
-                if [[ -n "$container_id" ]]; then
-                  docker rm -f "$container_id" >/dev/null 2>&1 || true
-                fi
-                docker image rm "$image" >/dev/null 2>&1 || true
-              }
-              trap cleanup EXIT
-
-              docker version >/dev/null
-              docker info >/dev/null
-
-              guard_error=""
-              if guard_error="$(docker run --rm -p 39091:39091 "$image" true 2>&1)"; then
-                echo "Docker network guard unexpectedly allowed bridge networking" >&2
-                exit 1
-              fi
-              [[ "$guard_error" == *"Docker bridge networking is unavailable in this sandbox."* ]]
-              [[ "$guard_error" == *"Retry with --network host; published ports are unsupported."* ]]
-
-              docker run --rm --network none "$image" true
-              container_id="$(
-                docker run -d --rm --network host "$image" \
-                  sh -c "mkdir -p /tmp/www &&
-                    echo docker-host-network-ok > /tmp/www/index.html &&
-                    exec httpd -f -p 39091 -h /tmp/www"
-              )"
-
-              response=""
-              for _ in $(seq 1 30); do
-                response="$(curl -fsS http://127.0.0.1:39091 2>/dev/null || true)"
-                if [[ "$response" == "docker-host-network-ok" ]]; then
-                  break
-                fi
-                sleep 1
-              done
-              [[ "$response" == "docker-host-network-ok" ]]
 
 extensions:
   - id: claude-sonnet
@@ -304,7 +180,7 @@ tests:
             [[ "$text" =~ $sqlite_ws_pattern ]]
           ;;
       esac
-# END PACKED:uri-reported
+  # END PACKED:uri-reported
   - name: connection-verified-in-agent
     description: >
       Check ordered agent tool calls for a successful database-specific
