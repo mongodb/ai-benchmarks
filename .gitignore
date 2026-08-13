@@ -14,3 +14,4 @@ build/
 .ipynb_checkpoints/
 .vercel
 .axp/
+.matplotlib-cache/
