@@ -45,14 +45,14 @@ classification="$(
       input_text | test("(/dev/tcp/[^/ ]+/27017|create_connection[^\\n]*27017|nc[[:space:]][^\\n]*27017|ss[[:space:]][^\\n]*27017)");
 
     def postgres_candidate:
-      input_text | test("psql|postgres(ql)?://|psycopg|pg\\.client|new client|createconnection");
+      input_text | test("psql|pg_isready|postgres(ql)?://|psycopg|pg\\.client|new client|createconnection");
     def postgres_operation:
-      input_text | test("(^|[^a-z])(select|insert|update|delete|create|alter|drop|with|call|begin|commit|rollback|vacuum|analyze|explain)[[:space:](]|\\\\conninfo|\\.(query|execute|executemany)\\(");
+      input_text | test("pg_isready|(^|[^a-z])(select|insert|update|delete|create|alter|drop|with|call|begin|commit|rollback|vacuum|analyze|explain)[[:space:](]|\\\\conninfo|\\.(query|execute|executemany)\\(");
     def postgres_start:
       (.input // "" | ascii_downcase)
       | test("pg_ctl[^\\n]*[[:space:]]start|systemctl[[:space:]]+start[[:space:]]+postgres|service[[:space:]]+postgres[^\\n]*[[:space:]]start|(^|[;&|[:space:]])postgres([;&|[:space:]]|$)|docker[[:space:]]+run[^\\n]*postgres");
     def postgres_weak:
-      input_text | test("pg_isready|/dev/tcp/[^/ ]+/5432|create_connection[^\\n]*5432|nc[[:space:]][^\\n]*5432|ss[[:space:]][^\\n]*5432");
+      input_text | test("(/dev/tcp/[^/ ]+/5432|create_connection[^\\n]*5432|nc[[:space:]][^\\n]*5432|ss[[:space:]][^\\n]*5432)");
 
     def sqlite_candidate:
       input_text | test("sqlite3|better-sqlite3|from sqlite3|import sqlite3|require[^\\n]*sqlite3|libsql|/v2/pipeline|(^|[^a-z])sqld([^a-z]|$)");
