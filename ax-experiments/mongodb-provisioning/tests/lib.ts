@@ -66,7 +66,7 @@ export function methodIdFromPrompt(prompt: string): MethodId {
   if (value.includes("docker")) {
     return "docker";
   }
-  if (value.includes("apt")) {
+  if (value.includes("local-package-manager") || value.includes("apt")) {
     return "apt";
   }
   throw new Error(`Unable to detect method from prompt: ${prompt}`);
@@ -101,6 +101,10 @@ function commandExists(name: string): boolean {
   return result.status === 0;
 }
 
+const QUERY_PAYLOAD_CHARS = 65536;
+const MAX_QUERY_BUFFER_BYTES = 32 * 1024 * 1024;
+const ERROR_DETAIL_CHARS = 500;
+
 export function axRunQuery(sql: string, extraArgs: string[] = []): unknown[] {
   if (!commandExists("ax-run-query")) {
     throw new Error("ax-run-query is unavailable in the test sandbox");
@@ -109,10 +113,13 @@ export function axRunQuery(sql: string, extraArgs: string[] = []): unknown[] {
   const result = spawnSync(
     "ax-run-query",
     [runId, "sql", sql, "--format", "json", ...extraArgs],
-    { encoding: "utf8" },
+    { encoding: "utf8", maxBuffer: MAX_QUERY_BUFFER_BYTES },
   );
+  if (result.error) {
+    throw new Error(`ax-run-query failed: ${result.error.message}`);
+  }
   if (result.status !== 0) {
-    const detail = (result.stderr || result.stdout || "").trim();
+    const detail = shortError(result.stderr || result.stdout || "");
     throw new Error(
       detail || `ax-run-query exited with status ${result.status ?? "null"}`,
     );
@@ -126,7 +133,11 @@ export function axRunQuery(sql: string, extraArgs: string[] = []): unknown[] {
     if (!line.trim()) {
       continue;
     }
-    rows.push(JSON.parse(line) as unknown);
+    try {
+      rows.push(JSON.parse(line) as unknown);
+    } catch {
+      continue;
+    }
   }
   return rows;
 }
@@ -134,10 +145,13 @@ export function axRunQuery(sql: string, extraArgs: string[] = []): unknown[] {
 export function transcriptPayloads(): string {
   const rows = axRunQuery(
     `
-            SELECT payload
+            SELECT substring(payload, 1, ${QUERY_PAYLOAD_CHARS}) AS payload
             FROM events
             WHERE kind = 'message'
-               OR source IN ('stdout', 'transcript')
+               OR (
+                 source IN ('stdout', 'transcript')
+                 AND kind NOT IN ('tool_call', 'file_manifest', 'usage', 'harness_span')
+               )
             ORDER BY if(kind = 'message', 0, 1), source_seq
           `,
     ["--limit", "10000"],
@@ -153,6 +167,22 @@ export function transcriptPayloads(): string {
     .join("\n");
 }
 
+function shortError(text: string): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= ERROR_DETAIL_CHARS) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, ERROR_DETAIL_CHARS)}…`;
+}
+
+function looksLikeHtmlDump(text: string): boolean {
+  return (
+    /<!DOCTYPE html/i.test(text) ||
+    /<html[\s>]/i.test(text) ||
+    /leafygreen-ui-/.test(text)
+  );
+}
+
 function payloadText(row: unknown): string {
   if (!row || typeof row !== "object" || !("payload" in row)) {
     return "";
@@ -161,7 +191,54 @@ function payloadText(row: unknown): string {
   if (payload == null) {
     return "";
   }
-  return typeof payload === "string" ? payload : JSON.stringify(payload);
+  const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
+  if (looksLikeHtmlDump(raw)) {
+    return "";
+  }
+  const parts: string[] = [];
+  collectSearchable(payload, parts);
+  if (parts.length === 0 && !looksLikeHtmlDump(raw)) {
+    parts.push(raw);
+  }
+  return parts.join("\n");
+}
+
+function collectSearchable(value: unknown, parts: string[], depth = 0): void {
+  if (depth > 8 || value == null) {
+    return;
+  }
+  if (typeof value === "string") {
+    if (looksLikeHtmlDump(value)) {
+      return;
+    }
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (parsed && typeof parsed === "object") {
+        collectSearchable(parsed, parts, depth + 1);
+        return;
+      }
+    } catch {
+      // Plain text.
+    }
+    parts.push(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectSearchable(item, parts, depth + 1);
+    }
+    return;
+  }
+  if (typeof value !== "object") {
+    return;
+  }
+  const record = value as Record<string, unknown>;
+  for (const [key, nested] of Object.entries(record)) {
+    if (key === "data" || key === "bytes_and_json") {
+      continue;
+    }
+    collectSearchable(nested, parts, depth + 1);
+  }
 }
 
 type RawToolEvent = {
@@ -175,7 +252,7 @@ export function toolCallRows(): ToolCall[] {
             SELECT
               source_seq,
               tool_call_id,
-              payload
+              substring(payload, 1, ${QUERY_PAYLOAD_CHARS}) AS payload
             FROM events
             WHERE kind = 'tool_call'
               AND coalesce(assertion_role, 'primary') = 'primary'

@@ -68,9 +68,9 @@ prompts:
       Leave it in the running state that accepts connections.
 
       When you are done verify the database is running with an operation and report back to me the connection URI.
-  - id: apt
+  - id: local-package-manager
     prompt: |
-      Provision me a MongoDB database. Use apt / the native OS package manager to provision it.
+      Provision me a MongoDB database. Use the native OS package manager to provision it.
 
       Leave it in the running state that accepts connections.
 
@@ -160,6 +160,9 @@ tests:
         });
         return result.status === 0;
       }
+      var QUERY_PAYLOAD_CHARS = 65536;
+      var MAX_QUERY_BUFFER_BYTES = 32 * 1024 * 1024;
+      var ERROR_DETAIL_CHARS = 500;
       function axRunQuery(sql, extraArgs = []) {
         if (!commandExists("ax-run-query")) {
           throw new Error("ax-run-query is unavailable in the test sandbox");
@@ -168,10 +171,13 @@ tests:
         const result = (0, import_node_child_process.spawnSync)(
           "ax-run-query",
           [runId, "sql", sql, "--format", "json", ...extraArgs],
-          { encoding: "utf8" }
+          { encoding: "utf8", maxBuffer: MAX_QUERY_BUFFER_BYTES }
         );
+        if (result.error) {
+          throw new Error(`ax-run-query failed: ${result.error.message}`);
+        }
         if (result.status !== 0) {
-          const detail = (result.stderr || result.stdout || "").trim();
+          const detail = shortError(result.stderr || result.stdout || "");
           throw new Error(
             detail || `ax-run-query exited with status ${result.status ?? "null"}`
           );
@@ -185,17 +191,24 @@ tests:
           if (!line.trim()) {
             continue;
           }
-          rows.push(JSON.parse(line));
+          try {
+            rows.push(JSON.parse(line));
+          } catch {
+            continue;
+          }
         }
         return rows;
       }
       function transcriptPayloads() {
         const rows = axRunQuery(
           `
-                  SELECT payload
+                  SELECT substring(payload, 1, ${QUERY_PAYLOAD_CHARS}) AS payload
                   FROM events
                   WHERE kind = 'message'
-                     OR source IN ('stdout', 'transcript')
+                     OR (
+                       source IN ('stdout', 'transcript')
+                       AND kind NOT IN ('tool_call', 'file_manifest', 'usage', 'harness_span')
+                     )
                   ORDER BY if(kind = 'message', 0, 1), source_seq
                 `,
           ["--limit", "10000"]
@@ -207,6 +220,16 @@ tests:
         }
         return rows.map((row) => payloadText(row)).filter((text) => text.length > 0).join("\n");
       }
+      function shortError(text) {
+        const trimmed = text.trim();
+        if (trimmed.length <= ERROR_DETAIL_CHARS) {
+          return trimmed;
+        }
+        return `${trimmed.slice(0, ERROR_DETAIL_CHARS)}\u2026`;
+      }
+      function looksLikeHtmlDump(text) {
+        return /<!DOCTYPE html/i.test(text) || /<html[\s>]/i.test(text) || /leafygreen-ui-/.test(text);
+      }
       function payloadText(row) {
         if (!row || typeof row !== "object" || !("payload" in row)) {
           return "";
@@ -215,7 +238,52 @@ tests:
         if (payload == null) {
           return "";
         }
-        return typeof payload === "string" ? payload : JSON.stringify(payload);
+        const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
+        if (looksLikeHtmlDump(raw)) {
+          return "";
+        }
+        const parts = [];
+        collectSearchable(payload, parts);
+        if (parts.length === 0 && !looksLikeHtmlDump(raw)) {
+          parts.push(raw);
+        }
+        return parts.join("\n");
+      }
+      function collectSearchable(value, parts, depth = 0) {
+        if (depth > 8 || value == null) {
+          return;
+        }
+        if (typeof value === "string") {
+          if (looksLikeHtmlDump(value)) {
+            return;
+          }
+          try {
+            const parsed = JSON.parse(value);
+            if (parsed && typeof parsed === "object") {
+              collectSearchable(parsed, parts, depth + 1);
+              return;
+            }
+          } catch {
+          }
+          parts.push(value);
+          return;
+        }
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            collectSearchable(item, parts, depth + 1);
+          }
+          return;
+        }
+        if (typeof value !== "object") {
+          return;
+        }
+        const record = value;
+        for (const [key, nested] of Object.entries(record)) {
+          if (key === "data" || key === "bytes_and_json") {
+            continue;
+          }
+          collectSearchable(nested, parts, depth + 1);
+        }
       }
       function extractMongoUris(text) {
         const uris = [];
@@ -316,6 +384,9 @@ tests:
         });
         return result.status === 0;
       }
+      var QUERY_PAYLOAD_CHARS = 65536;
+      var MAX_QUERY_BUFFER_BYTES = 32 * 1024 * 1024;
+      var ERROR_DETAIL_CHARS = 500;
       function axRunQuery(sql, extraArgs = []) {
         if (!commandExists("ax-run-query")) {
           throw new Error("ax-run-query is unavailable in the test sandbox");
@@ -324,10 +395,13 @@ tests:
         const result = (0, import_node_child_process.spawnSync)(
           "ax-run-query",
           [runId, "sql", sql, "--format", "json", ...extraArgs],
-          { encoding: "utf8" }
+          { encoding: "utf8", maxBuffer: MAX_QUERY_BUFFER_BYTES }
         );
+        if (result.error) {
+          throw new Error(`ax-run-query failed: ${result.error.message}`);
+        }
         if (result.status !== 0) {
-          const detail = (result.stderr || result.stdout || "").trim();
+          const detail = shortError(result.stderr || result.stdout || "");
           throw new Error(
             detail || `ax-run-query exited with status ${result.status ?? "null"}`
           );
@@ -341,16 +415,27 @@ tests:
           if (!line.trim()) {
             continue;
           }
-          rows.push(JSON.parse(line));
+          try {
+            rows.push(JSON.parse(line));
+          } catch {
+            continue;
+          }
         }
         return rows;
+      }
+      function shortError(text) {
+        const trimmed = text.trim();
+        if (trimmed.length <= ERROR_DETAIL_CHARS) {
+          return trimmed;
+        }
+        return `${trimmed.slice(0, ERROR_DETAIL_CHARS)}\u2026`;
       }
       function toolCallRows() {
         const rows = axRunQuery(`
                   SELECT
                     source_seq,
                     tool_call_id,
-                    payload
+                    substring(payload, 1, ${QUERY_PAYLOAD_CHARS}) AS payload
                   FROM events
                   WHERE kind = 'tool_call'
                     AND coalesce(assertion_role, 'primary') = 'primary'
@@ -667,7 +752,7 @@ tests:
         if (value.includes("docker")) {
           return "docker";
         }
-        if (value.includes("apt")) {
+        if (value.includes("local-package-manager") || value.includes("apt")) {
           return "apt";
         }
         throw new Error(`Unable to detect method from prompt: ${prompt}`);
@@ -693,6 +778,9 @@ tests:
         });
         return result.status === 0;
       }
+      var QUERY_PAYLOAD_CHARS = 65536;
+      var MAX_QUERY_BUFFER_BYTES = 32 * 1024 * 1024;
+      var ERROR_DETAIL_CHARS = 500;
       function axRunQuery(sql, extraArgs = []) {
         if (!commandExists("ax-run-query")) {
           throw new Error("ax-run-query is unavailable in the test sandbox");
@@ -701,10 +789,13 @@ tests:
         const result = (0, import_node_child_process.spawnSync)(
           "ax-run-query",
           [runId, "sql", sql, "--format", "json", ...extraArgs],
-          { encoding: "utf8" }
+          { encoding: "utf8", maxBuffer: MAX_QUERY_BUFFER_BYTES }
         );
+        if (result.error) {
+          throw new Error(`ax-run-query failed: ${result.error.message}`);
+        }
         if (result.status !== 0) {
-          const detail = (result.stderr || result.stdout || "").trim();
+          const detail = shortError(result.stderr || result.stdout || "");
           throw new Error(
             detail || `ax-run-query exited with status ${result.status ?? "null"}`
           );
@@ -718,17 +809,24 @@ tests:
           if (!line.trim()) {
             continue;
           }
-          rows.push(JSON.parse(line));
+          try {
+            rows.push(JSON.parse(line));
+          } catch {
+            continue;
+          }
         }
         return rows;
       }
       function transcriptPayloads() {
         const rows = axRunQuery(
           `
-                  SELECT payload
+                  SELECT substring(payload, 1, ${QUERY_PAYLOAD_CHARS}) AS payload
                   FROM events
                   WHERE kind = 'message'
-                     OR source IN ('stdout', 'transcript')
+                     OR (
+                       source IN ('stdout', 'transcript')
+                       AND kind NOT IN ('tool_call', 'file_manifest', 'usage', 'harness_span')
+                     )
                   ORDER BY if(kind = 'message', 0, 1), source_seq
                 `,
           ["--limit", "10000"]
@@ -740,6 +838,16 @@ tests:
         }
         return rows.map((row) => payloadText(row)).filter((text) => text.length > 0).join("\n");
       }
+      function shortError(text) {
+        const trimmed = text.trim();
+        if (trimmed.length <= ERROR_DETAIL_CHARS) {
+          return trimmed;
+        }
+        return `${trimmed.slice(0, ERROR_DETAIL_CHARS)}\u2026`;
+      }
+      function looksLikeHtmlDump(text) {
+        return /<!DOCTYPE html/i.test(text) || /<html[\s>]/i.test(text) || /leafygreen-ui-/.test(text);
+      }
       function payloadText(row) {
         if (!row || typeof row !== "object" || !("payload" in row)) {
           return "";
@@ -748,7 +856,52 @@ tests:
         if (payload == null) {
           return "";
         }
-        return typeof payload === "string" ? payload : JSON.stringify(payload);
+        const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
+        if (looksLikeHtmlDump(raw)) {
+          return "";
+        }
+        const parts = [];
+        collectSearchable(payload, parts);
+        if (parts.length === 0 && !looksLikeHtmlDump(raw)) {
+          parts.push(raw);
+        }
+        return parts.join("\n");
+      }
+      function collectSearchable(value, parts, depth = 0) {
+        if (depth > 8 || value == null) {
+          return;
+        }
+        if (typeof value === "string") {
+          if (looksLikeHtmlDump(value)) {
+            return;
+          }
+          try {
+            const parsed = JSON.parse(value);
+            if (parsed && typeof parsed === "object") {
+              collectSearchable(parsed, parts, depth + 1);
+              return;
+            }
+          } catch {
+          }
+          parts.push(value);
+          return;
+        }
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            collectSearchable(item, parts, depth + 1);
+          }
+          return;
+        }
+        if (typeof value !== "object") {
+          return;
+        }
+        const record = value;
+        for (const [key, nested] of Object.entries(record)) {
+          if (key === "data" || key === "bytes_and_json") {
+            continue;
+          }
+          collectSearchable(nested, parts, depth + 1);
+        }
       }
       function extractMongoUris(text) {
         const uris = [];

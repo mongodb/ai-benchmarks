@@ -12,6 +12,28 @@ before(setupFakeAxRunQuery);
 after(teardownFakeAxRunQuery);
 
 describe("connection-verified-in-agent", () => {
+  test("HTML documentation tool output does not hide a later ping", () => {
+    assert.equal(
+      runMain(
+        main,
+        connectionEvents([
+          {
+            status: "completed",
+            raw_input: "curl -sS https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-debian/",
+            raw_output: `<!DOCTYPE html><html><body class="leafygreen-ui-1">${"docs ".repeat(50)}</body></html>`,
+          },
+          {
+            status: "completed",
+            raw_input: "mongosh mongodb://127.0.0.1:27017 --eval db.runCommand({ping:1})",
+            raw_output: "{ ok: 1 }",
+          },
+        ]),
+        "local-package-manager",
+      ),
+      0,
+    );
+  });
+
   test("MongoDB find operation is accepted", () => {
     assert.equal(
       runMain(

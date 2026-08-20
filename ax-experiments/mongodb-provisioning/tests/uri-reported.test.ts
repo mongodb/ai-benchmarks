@@ -69,6 +69,36 @@ describe("uri-reported", () => {
     assert.equal(status, 0);
   });
 
+  test("skips invalid NDJSON and still finds a URI in a later message", () => {
+    const events = [
+      "<!DOCTYPE html><html><body class='leafygreen-ui-1'>docs</body></html>",
+      JSON.stringify({ payload: "Connection URI: mongodb://127.0.0.1:27017" }),
+    ].join("\n");
+    assert.equal(runMain(main, events, "local-package-manager"), 0);
+  });
+
+  test("URI in an unknown agent_message payload is found", () => {
+    const payload = JSON.stringify({
+      kind: "unknown",
+      original_kind: "event_msg:agent_message",
+      value: {
+        payload: {
+          message:
+            "MongoDB is running.\n\nConnection URI:\n\n```text\nmongodb://127.0.0.1:27017\n```",
+        },
+      },
+    });
+    assert.equal(
+      runMain(main, `${JSON.stringify({ payload })}\n`, "local-package-manager"),
+      0,
+    );
+  });
+
+  test("HTML documentation dumps are not treated as a reported URI", () => {
+    const html = `<!DOCTYPE html><html><body class="leafygreen-ui-1">Example mongodb://localhost:27017 in docs</body></html>`;
+    assert.equal(runMain(main, uriEvents(html), "local-package-manager"), 1);
+  });
+
   test("queries message events with a raised row limit", () => {
     const argsPath = join(testFixtureDir(), "query-args.txt");
     const status = runMain(main, uriEvents("mongodb://localhost:27017"), "docker", {
@@ -77,6 +107,7 @@ describe("uri-reported", () => {
     const args = readFileSync(argsPath, "utf8");
     assert.equal(status, 0);
     assert.match(args, /kind = 'message'/);
+    assert.match(args, /tool_call/);
     assert.match(args, /--limit/);
     assert.match(args, /10000/);
   });

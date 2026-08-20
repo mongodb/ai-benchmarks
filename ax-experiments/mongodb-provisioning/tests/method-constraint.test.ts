@@ -58,6 +58,21 @@ describe("method-constraint", () => {
     assert.equal(runMain(main, uriEvents("mongodb://localhost:27017"), "apt"), 0);
   });
 
+  test("local-package-manager does not fail on localhost", () => {
+    assert.equal(
+      runMain(main, uriEvents("mongodb://localhost:27017"), "local-package-manager"),
+      0,
+    );
+  });
+
+  test("local-package-manager survives an HTML NDJSON dump", () => {
+    const events = [
+      "<!DOCTYPE html><html><body class='leafygreen-ui-1'>docs</body></html>",
+      JSON.stringify({ payload: "mongodb://127.0.0.1:27017" }),
+    ].join("\n");
+    assert.equal(runMain(main, events, "local-package-manager"), 0);
+  });
+
   test("atlas-cli-local does not fail on localhost", () => {
     assert.equal(
       runMain(main, uriEvents("mongodb://localhost:27017"), "atlas-cli-local"),

@@ -83,7 +83,7 @@ describe("packer", () => {
       "id: atlas-ephemeral",
       "id: atlas-cli-local",
       "id: atlas-cli-cloud",
-      "id: apt",
+      "id: local-package-manager",
       "name: uri-reported",
       "name: connection-verified-in-agent",
       "name: method-constraint",
