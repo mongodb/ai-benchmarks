@@ -1,0 +1,810 @@
+# yaml-language-server: $schema=https://docs.514.ax/schema/experiment.v2.schema.yaml
+# Design: docs/mongodb-provisioning/experiment-design.md
+
+schema_version: 2
+id: mongodb-provisioning
+name: MongoDB provisioning methods
+description: |
+  Research questions:
+  1) Can coding agents provision MongoDB across methods that do not require
+     Atlas authentication (Docker, Atlas CLI local, apt, Atlas ephemeral)?
+  2) Can they provision a hosted Atlas cluster when authentication is required
+     (Atlas CLI cloud; expected to fail)?
+  3) How efficiently do they provision by method (platform cost, wall clock,
+     turns)?
+  Measure: URI-report rate and agent-initiated MongoDB connection verification
+  from run evidence; method-constraint so a local URI cannot count as success
+  for atlas-cli-cloud or atlas-ephemeral; platform cost/wallClockTime/turns.
+  Bet: unauthenticated methods complete ≳95% (agent bet: Docker ≥95%, Atlas
+  local ~90%, apt ~85%, ephemeral ~75% and high variance); Atlas cloud ~0%,
+  with a substitution tail if grading only checks that a URI works.
+  Surface: none (no products or environments axis).
+  Docker is platform-provided in every sandbox. Agents must install Atlas CLI
+  and OS packages themselves.
+  Limitation: AX test sandboxes cannot independently connect to the
+  agent-started database. connection-verified-in-agent is agent-initiated
+  evidence, not a live post-agent probe. Run-evidence tests fail closed unless
+  AX injects ax-run-query with a valid run-scoped query token.
+
+prompts:
+  - id: docker
+    prompt: |
+      Provision me a MongoDB database. Use Docker to provision it.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done verify the database is running with an operation and report back to me the connection URI.
+  - id: atlas-ephemeral-naive
+    prompt: |
+      Provision me a MongoDB database. Use Atlas ephemeral clusters to provision it.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done verify the database is running with an operation and report back to me the connection URI.
+  - id: atlas-ephemeral-curl
+    prompt: |
+      Provision me a MongoDB database. Use Atlas ephemeral clusters to provision it.
+
+      Use this curl command to provision the database:
+      ```bash
+      curl -sS -X POST 'https://cloud-dev.mongodb.com/api/atlas/v2/unauth/ephemeralClusters:create?pretty=true' \
+        -H 'Accept: application/vnd.atlas.preview+json'
+      ```
+
+      Leave it in the running state that accepts connections.
+
+      When you are done verify the database is running with an operation and report back to me the connection URI.
+  - id: atlas-cli-local
+    prompt: |
+      Provision me a MongoDB database. Use the Atlas CLI to create an Atlas local deployment.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done verify the database is running with an operation and report back to me the connection URI.
+  - id: atlas-cli-cloud
+    prompt: |
+      Provision me a MongoDB database. Use the Atlas CLI to create a hosted MongoDB Atlas cluster.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done verify the database is running with an operation and report back to me the connection URI.
+  - id: apt
+    prompt: |
+      Provision me a MongoDB database. Use apt / the native OS package manager to provision it.
+
+      Leave it in the running state that accepts connections.
+
+      When you are done verify the database is running with an operation and report back to me the connection URI.
+
+extensions:
+  - id: claude-sonnet
+    agents: [claude]
+    models: [claude-sonnet-5]
+  - id: cursor-grok
+    agents: [cursor]
+    models: [grok-4.5]
+  - id: cursor-sonnet
+    agents: [cursor]
+    models: [claude-sonnet-5]
+  - id: cursor-terra
+    agents: [cursor]
+    models: [gpt-5.6-terra]
+  - id: codex-terra
+    agents: [codex]
+    models: [gpt-5.6-terra]
+  - id: codex-luna
+    agents: [codex]
+    models: [gpt-5.6-luna]
+
+# Test bodies are packed from tests/*.ts. Do not stage those files through the
+# experiment; that would expose scoring logic to the evaluated agent.
+tests:
+  - name: uri-reported
+    description: >
+      Approximate check that a MongoDB URI appears in transcript or stdout
+      events. Fails closed unless AX injects ax-run-query with a valid
+      run-scoped query token.
+    script: |
+      # BEGIN PACKED:uri-reported
+      set -euo pipefail
+      command -v node >/dev/null || { echo "node missing in test sandbox" >&2; exit 1; }
+      node - <<'AXP_PACKED_JS'
+      "use strict";
+      var __defProp = Object.defineProperty;
+      var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+      var __getOwnPropNames = Object.getOwnPropertyNames;
+      var __hasOwnProp = Object.prototype.hasOwnProperty;
+      var __export = (target, all) => {
+        for (var name in all)
+          __defProp(target, name, { get: all[name], enumerable: true });
+      };
+      var __copyProps = (to, from, except, desc) => {
+        if (from && typeof from === "object" || typeof from === "function") {
+          for (let key of __getOwnPropNames(from))
+            if (!__hasOwnProp.call(to, key) && key !== except)
+              __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+        }
+        return to;
+      };
+      var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+      // tests/uri-reported.ts
+      var uri_reported_exports = {};
+      __export(uri_reported_exports, {
+        main: () => main
+      });
+      module.exports = __toCommonJS(uri_reported_exports);
+
+      // tests/lib.ts
+      var import_node_child_process = require("node:child_process");
+      var import_node_fs = require("node:fs");
+      var MONGO_URI_RE = /mongodb(\+srv)?:\/\/[^\s"<>]+/gi;
+      function resolveRunId() {
+        if (process.env.AX_RUN_ID) {
+          return process.env.AX_RUN_ID;
+        }
+        const contextPath = process.env.AX_RUN_CONTEXT_PATH;
+        if (contextPath) {
+          const parsed = JSON.parse((0, import_node_fs.readFileSync)(contextPath, "utf8"));
+          if (parsed && typeof parsed === "object" && "run_id" in parsed && typeof parsed.run_id === "string" && parsed.run_id.length > 0) {
+            return parsed.run_id;
+          }
+        }
+        throw new Error(
+          "AX_RUN_ID is unavailable; local AX cannot query transcript events"
+        );
+      }
+      function commandExists(name) {
+        const result = (0, import_node_child_process.spawnSync)("sh", ["-c", `command -v ${JSON.stringify(name)}`], {
+          encoding: "utf8"
+        });
+        return result.status === 0;
+      }
+      function axRunQuery(sql, extraArgs = []) {
+        if (!commandExists("ax-run-query")) {
+          throw new Error("ax-run-query is unavailable in the test sandbox");
+        }
+        const runId = resolveRunId();
+        const result = (0, import_node_child_process.spawnSync)(
+          "ax-run-query",
+          [runId, "sql", sql, "--format", "json", ...extraArgs],
+          { encoding: "utf8" }
+        );
+        if (result.status !== 0) {
+          const detail = (result.stderr || result.stdout || "").trim();
+          throw new Error(
+            detail || `ax-run-query exited with status ${result.status ?? "null"}`
+          );
+        }
+        const output = result.stdout ?? "";
+        if (!output.trim()) {
+          throw new Error(`No query results were returned for run ${runId}`);
+        }
+        const rows = [];
+        for (const line of output.split("\n")) {
+          if (!line.trim()) {
+            continue;
+          }
+          rows.push(JSON.parse(line));
+        }
+        return rows;
+      }
+      function transcriptPayloads() {
+        const rows = axRunQuery(
+          `
+                  SELECT payload
+                  FROM events
+                  WHERE kind = 'message'
+                     OR source IN ('stdout', 'transcript')
+                  ORDER BY if(kind = 'message', 0, 1), source_seq
+                `,
+          ["--limit", "10000"]
+        );
+        if (rows.length === 0) {
+          throw new Error(
+            `No transcript events were returned for run ${resolveRunId()}`
+          );
+        }
+        return rows.map((row) => payloadText(row)).filter((text) => text.length > 0).join("\n");
+      }
+      function payloadText(row) {
+        if (!row || typeof row !== "object" || !("payload" in row)) {
+          return "";
+        }
+        const payload = row.payload;
+        if (payload == null) {
+          return "";
+        }
+        return typeof payload === "string" ? payload : JSON.stringify(payload);
+      }
+      function extractMongoUris(text) {
+        const uris = [];
+        for (const match of text.matchAll(MONGO_URI_RE)) {
+          const raw = match[0]?.replace(/[.,;:)\]}`]+$/, "") ?? "";
+          try {
+            uris.push(new URL(raw));
+          } catch {
+            continue;
+          }
+        }
+        return uris;
+      }
+
+      // tests/uri-reported.ts
+      function main() {
+        try {
+          const text = transcriptPayloads();
+          if (extractMongoUris(text).length === 0) {
+            console.error("No MongoDB URI was found in transcript or stdout events");
+            return 1;
+          }
+          console.log("Found a MongoDB URI in run evidence");
+          return 0;
+        } catch (error) {
+          console.error(error instanceof Error ? error.message : error);
+          return 1;
+        }
+      }
+      // Annotate the CommonJS export names for ESM import in node:
+      0 && (module.exports = {
+        main
+      });
+
+      process.exit(module.exports.main());
+      AXP_PACKED_JS
+# END PACKED:uri-reported
+  - name: connection-verified-in-agent
+    description: >
+      Check ordered agent tool calls for a successful MongoDB application
+      operation after the latest start or restart. TCP-only probes (nc,
+      /dev/tcp) and assistant self-attestation do not count. This is
+      agent-initiated verification, not an independent post-agent connection
+      probe.
+    script: |
+      # BEGIN PACKED:connection-verified-in-agent
+      set -euo pipefail
+      command -v node >/dev/null || { echo "node missing in test sandbox" >&2; exit 1; }
+      node - <<'AXP_PACKED_JS'
+      "use strict";
+      var __defProp = Object.defineProperty;
+      var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+      var __getOwnPropNames = Object.getOwnPropertyNames;
+      var __hasOwnProp = Object.prototype.hasOwnProperty;
+      var __export = (target, all) => {
+        for (var name in all)
+          __defProp(target, name, { get: all[name], enumerable: true });
+      };
+      var __copyProps = (to, from, except, desc) => {
+        if (from && typeof from === "object" || typeof from === "function") {
+          for (let key of __getOwnPropNames(from))
+            if (!__hasOwnProp.call(to, key) && key !== except)
+              __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+        }
+        return to;
+      };
+      var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+      // tests/connection-verified.ts
+      var connection_verified_exports = {};
+      __export(connection_verified_exports, {
+        classifyConnection: () => classifyConnection,
+        main: () => main
+      });
+      module.exports = __toCommonJS(connection_verified_exports);
+
+      // tests/lib.ts
+      var import_node_child_process = require("node:child_process");
+      var import_node_fs = require("node:fs");
+      function resolveRunId() {
+        if (process.env.AX_RUN_ID) {
+          return process.env.AX_RUN_ID;
+        }
+        const contextPath = process.env.AX_RUN_CONTEXT_PATH;
+        if (contextPath) {
+          const parsed = JSON.parse((0, import_node_fs.readFileSync)(contextPath, "utf8"));
+          if (parsed && typeof parsed === "object" && "run_id" in parsed && typeof parsed.run_id === "string" && parsed.run_id.length > 0) {
+            return parsed.run_id;
+          }
+        }
+        throw new Error(
+          "AX_RUN_ID is unavailable; local AX cannot query transcript events"
+        );
+      }
+      function commandExists(name) {
+        const result = (0, import_node_child_process.spawnSync)("sh", ["-c", `command -v ${JSON.stringify(name)}`], {
+          encoding: "utf8"
+        });
+        return result.status === 0;
+      }
+      function axRunQuery(sql, extraArgs = []) {
+        if (!commandExists("ax-run-query")) {
+          throw new Error("ax-run-query is unavailable in the test sandbox");
+        }
+        const runId = resolveRunId();
+        const result = (0, import_node_child_process.spawnSync)(
+          "ax-run-query",
+          [runId, "sql", sql, "--format", "json", ...extraArgs],
+          { encoding: "utf8" }
+        );
+        if (result.status !== 0) {
+          const detail = (result.stderr || result.stdout || "").trim();
+          throw new Error(
+            detail || `ax-run-query exited with status ${result.status ?? "null"}`
+          );
+        }
+        const output = result.stdout ?? "";
+        if (!output.trim()) {
+          throw new Error(`No query results were returned for run ${runId}`);
+        }
+        const rows = [];
+        for (const line of output.split("\n")) {
+          if (!line.trim()) {
+            continue;
+          }
+          rows.push(JSON.parse(line));
+        }
+        return rows;
+      }
+      function toolCallRows() {
+        const rows = axRunQuery(`
+                  SELECT
+                    source_seq,
+                    tool_call_id,
+                    payload
+                  FROM events
+                  WHERE kind = 'tool_call'
+                    AND coalesce(assertion_role, 'primary') = 'primary'
+                    AND tool_call_id IS NOT NULL
+                  ORDER BY source_seq
+                `);
+        const events = [];
+        for (const row of rows) {
+          if (!row || typeof row !== "object") {
+            continue;
+          }
+          const record = row;
+          if (typeof record.tool_call_id !== "string" || !record.tool_call_id) {
+            continue;
+          }
+          events.push({
+            source_seq: typeof record.source_seq === "number" ? record.source_seq : 0,
+            tool_call_id: record.tool_call_id,
+            payload: record.payload
+          });
+        }
+        if (events.length === 0) {
+          throw new Error(
+            `No tool-call evidence was returned for run ${resolveRunId()}`
+          );
+        }
+        const grouped = /* @__PURE__ */ new Map();
+        for (const event of events) {
+          const group = grouped.get(event.tool_call_id) ?? [];
+          group.push(event);
+          grouped.set(event.tool_call_id, group);
+        }
+        return [...grouped.values()].map((group) => ({
+          orderSeq: Math.min(...group.map((event) => event.source_seq)),
+          merged: mergeToolCall(group)
+        })).sort((a, b) => a.orderSeq - b.orderSeq).map((entry) => entry.merged);
+      }
+      function mergeToolCall(events) {
+        const ordered = [...events].sort((a, b) => a.source_seq - b.source_seq);
+        const fields = ordered.map((event) => callFields(event.payload));
+        const terminal = [...fields].reverse().find((field) => isTerminal(field.status));
+        const input = [...fields].reverse().find((field) => field.input.length > 0)?.input;
+        const output = [...fields].reverse().find((field) => field.output.length > 0)?.output;
+        return {
+          status: terminal?.status ?? fields.at(-1)?.status ?? "",
+          input: input ?? "",
+          output: output ?? ""
+        };
+      }
+      function isTerminal(status) {
+        const value = status.toLowerCase();
+        return value === "completed" || value === "success" || value === "succeeded" || value === "failed" || value === "error";
+      }
+      function callFields(payload) {
+        const call = parsePayload(payload);
+        return {
+          status: stringField(call, "status"),
+          input: normalizeField(call["input"]),
+          output: normalizeField(call["output"])
+        };
+      }
+      function parsePayload(payload) {
+        if (typeof payload === "string") {
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              return parsed;
+            }
+          } catch {
+            return {};
+          }
+          return {};
+        }
+        if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+          return payload;
+        }
+        return {};
+      }
+      function stringField(record, key) {
+        const value = record[key];
+        return typeof value === "string" ? value : "";
+      }
+      function normalizeField(value) {
+        if (typeof value === "string") {
+          return value;
+        }
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          const command = value.command;
+          if (typeof command === "string") {
+            return command;
+          }
+          if (Object.keys(value).length === 0) {
+            return "";
+          }
+          return JSON.stringify(value);
+        }
+        if (value == null) {
+          return "";
+        }
+        return JSON.stringify(value);
+      }
+
+      // tests/connection-verified.ts
+      var COMPLETED = /* @__PURE__ */ new Set(["completed", "success", "succeeded"]);
+      var EXIT_CODE_FAILURE = /"exit_code"\s*:\s*[1-9]|exit code[=: ]+[1-9]/i;
+      var CONNECT_FAILURE = /econnrefused|connection refused|could not connect to server|server selection timed out|serverselectiontimeouterror|unable to open database file/i;
+      var APPLICATION_OK = /[{,]\s*"?ok"?\s*:\s*1\b/;
+      var MONGO_CANDIDATE = /mongosh|mongodb(\+srv)?:\/\/|mongoclient|pymongo|from mongodb|require[^\n]*mongodb/i;
+      var MONGO_OPERATION = /runcommand|db\.[a-z0-9_$-]+\(|db\.[a-z0-9_$-]+\.(find|findone|insert|aggregate|count|update|delete|createindex)|\.(connect|command|find|findone|insertone|insertmany|aggregate|countdocuments|updateone|updatemany|deleteone|deletemany)\(/i;
+      var MONGO_START = /(^|[;&|\s])mongod([;&|\s]|$)|systemctl\s+start\s+mongod|service\s+mongod\s+start|docker\s+run[^\n]*mongo|docker\s+compose[^\n]*mongo|atlas\s+deployments\s+(setup|start)/i;
+      var MONGO_WEAK = /(\/dev\/tcp\/[^/ ]+\/27017|create_connection[^\n]*27017|nc\s[^\n]*27017|ss\s[^\n]*27017)/i;
+      function textOf(call) {
+        return `${call.input}
+      ${outputBody(call)}`.toLowerCase();
+      }
+      function outputBody(call) {
+        const raw = call.output;
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && "aggregated_output" in parsed && typeof parsed.aggregated_output === "string") {
+            return parsed.aggregated_output;
+          }
+        } catch {
+        }
+        return raw;
+      }
+      function isCompleted(call) {
+        return COMPLETED.has(call.status.toLowerCase());
+      }
+      function processFailed(call) {
+        const status = call.status.toLowerCase();
+        const text = textOf(call);
+        return status === "failed" || status === "error" || EXIT_CODE_FAILURE.test(text) || CONNECT_FAILURE.test(text);
+      }
+      function hasApplicationOk(call) {
+        return APPLICATION_OK.test(outputBody(call)) && !CONNECT_FAILURE.test(textOf(call));
+      }
+      function commandFailed(call) {
+        if (isCandidate(call) && isOperation(call) && hasApplicationOk(call)) {
+          return false;
+        }
+        return processFailed(call);
+      }
+      function isSuccessfulApplicationOp(call) {
+        if (!isCandidate(call) || !isOperation(call)) {
+          return false;
+        }
+        if (CONNECT_FAILURE.test(textOf(call))) {
+          return false;
+        }
+        if (hasApplicationOk(call)) {
+          return true;
+        }
+        return isCompleted(call) && !processFailed(call);
+      }
+      function isCandidate(call) {
+        return MONGO_CANDIDATE.test(call.input);
+      }
+      function isOperation(call) {
+        return MONGO_OPERATION.test(call.input);
+      }
+      function isStart(call) {
+        return MONGO_START.test(call.input);
+      }
+      function isWeak(call) {
+        return MONGO_WEAK.test(call.input);
+      }
+      function classifyConnection(calls) {
+        const lastStart = calls.reduce(
+          (max, call, index) => isStart(call) ? index : max,
+          -1
+        );
+        const lastSuccess = calls.reduce((max, call, index) => {
+          if (index < lastStart) {
+            return max;
+          }
+          if (isSuccessfulApplicationOp(call)) {
+            return index;
+          }
+          return max;
+        }, -1);
+        const laterFailures = calls.filter(
+          (call, index) => index > lastSuccess && commandFailed(call) && isCandidate(call) && isOperation(call)
+        ).length;
+        if (lastSuccess >= 0 && laterFailures === 0) {
+          return "application-operation";
+        }
+        if (calls.some((call) => isCompleted(call) && !commandFailed(call) && isWeak(call))) {
+          return "readiness-only";
+        }
+        if (calls.some((call) => isCompleted(call) && isCandidate(call))) {
+          return "unrecognized-candidate";
+        }
+        return "no-evidence";
+      }
+      function main() {
+        try {
+          const classification = classifyConnection(toolCallRows());
+          switch (classification) {
+            case "application-operation":
+              console.log(
+                "Found a successful mongodb application-level operation in agent tool calls"
+              );
+              return 0;
+            case "readiness-only":
+              console.error(
+                "Only readiness/TCP evidence was found for mongodb; an application-level operation is required"
+              );
+              return 1;
+            case "unrecognized-candidate":
+              console.error(
+                "Completed mongodb candidate calls were found, but no recognized successful application operation matched the codebook"
+              );
+              return 1;
+            default:
+              console.error(
+                "No completed mongodb connection evidence was found in agent tool calls"
+              );
+              return 1;
+          }
+        } catch (error) {
+          console.error(error instanceof Error ? error.message : error);
+          return 1;
+        }
+      }
+      // Annotate the CommonJS export names for ESM import in node:
+      0 && (module.exports = {
+        classifyConnection,
+        main
+      });
+
+      process.exit(module.exports.main());
+      AXP_PACKED_JS
+# END PACKED:connection-verified-in-agent
+  - name: method-constraint
+    description: >
+      For atlas-cli-cloud and atlas-ephemeral, the reported URI must be an
+      Atlas cloud host (*.mongodb.net or *.mongodb-dev.net), not loopback.
+      Other prompts are unconstrained on URI shape. Fails closed without
+      ax-run-query.
+    script: |
+      # BEGIN PACKED:method-constraint
+      set -euo pipefail
+      command -v node >/dev/null || { echo "node missing in test sandbox" >&2; exit 1; }
+      node - <<'AXP_PACKED_JS'
+      "use strict";
+      var __defProp = Object.defineProperty;
+      var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+      var __getOwnPropNames = Object.getOwnPropertyNames;
+      var __hasOwnProp = Object.prototype.hasOwnProperty;
+      var __export = (target, all) => {
+        for (var name in all)
+          __defProp(target, name, { get: all[name], enumerable: true });
+      };
+      var __copyProps = (to, from, except, desc) => {
+        if (from && typeof from === "object" || typeof from === "function") {
+          for (let key of __getOwnPropNames(from))
+            if (!__hasOwnProp.call(to, key) && key !== except)
+              __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+        }
+        return to;
+      };
+      var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+      // tests/method-constraint.ts
+      var method_constraint_exports = {};
+      __export(method_constraint_exports, {
+        main: () => main
+      });
+      module.exports = __toCommonJS(method_constraint_exports);
+
+      // tests/lib.ts
+      var import_node_child_process = require("node:child_process");
+      var import_node_fs = require("node:fs");
+      var MONGO_URI_RE = /mongodb(\+srv)?:\/\/[^\s"<>]+/gi;
+      var LOOPBACK_HOSTS = /* @__PURE__ */ new Set([
+        "localhost",
+        "127.0.0.1",
+        "::1",
+        "0.0.0.0",
+        "host.docker.internal"
+      ]);
+      function promptId() {
+        const contextPath = process.env.AX_RUN_CONTEXT_PATH;
+        if (contextPath) {
+          let parsed;
+          try {
+            parsed = JSON.parse((0, import_node_fs.readFileSync)(contextPath, "utf8"));
+          } catch {
+            throw new Error("run context is missing documented prompt_id");
+          }
+          const prompt = parsed && typeof parsed === "object" && "prompt_id" in parsed && typeof parsed.prompt_id === "string" && parsed.prompt_id.length > 0 ? parsed.prompt_id : null;
+          if (!prompt) {
+            throw new Error("run context is missing documented prompt_id");
+          }
+          return prompt;
+        }
+        return process.env.AX_VARIANT_ID ?? "";
+      }
+      function methodId() {
+        return methodIdFromPrompt(promptId());
+      }
+      function methodIdFromPrompt(prompt) {
+        const value = prompt.toLowerCase();
+        if (value.includes("atlas-ephemeral")) {
+          return "atlas-ephemeral";
+        }
+        if (value.includes("atlas-cli-local")) {
+          return "atlas-cli-local";
+        }
+        if (value.includes("atlas-cli-cloud")) {
+          return "atlas-cli-cloud";
+        }
+        if (value.includes("docker")) {
+          return "docker";
+        }
+        if (value.includes("apt")) {
+          return "apt";
+        }
+        throw new Error(`Unable to detect method from prompt: ${prompt}`);
+      }
+      function resolveRunId() {
+        if (process.env.AX_RUN_ID) {
+          return process.env.AX_RUN_ID;
+        }
+        const contextPath = process.env.AX_RUN_CONTEXT_PATH;
+        if (contextPath) {
+          const parsed = JSON.parse((0, import_node_fs.readFileSync)(contextPath, "utf8"));
+          if (parsed && typeof parsed === "object" && "run_id" in parsed && typeof parsed.run_id === "string" && parsed.run_id.length > 0) {
+            return parsed.run_id;
+          }
+        }
+        throw new Error(
+          "AX_RUN_ID is unavailable; local AX cannot query transcript events"
+        );
+      }
+      function commandExists(name) {
+        const result = (0, import_node_child_process.spawnSync)("sh", ["-c", `command -v ${JSON.stringify(name)}`], {
+          encoding: "utf8"
+        });
+        return result.status === 0;
+      }
+      function axRunQuery(sql, extraArgs = []) {
+        if (!commandExists("ax-run-query")) {
+          throw new Error("ax-run-query is unavailable in the test sandbox");
+        }
+        const runId = resolveRunId();
+        const result = (0, import_node_child_process.spawnSync)(
+          "ax-run-query",
+          [runId, "sql", sql, "--format", "json", ...extraArgs],
+          { encoding: "utf8" }
+        );
+        if (result.status !== 0) {
+          const detail = (result.stderr || result.stdout || "").trim();
+          throw new Error(
+            detail || `ax-run-query exited with status ${result.status ?? "null"}`
+          );
+        }
+        const output = result.stdout ?? "";
+        if (!output.trim()) {
+          throw new Error(`No query results were returned for run ${runId}`);
+        }
+        const rows = [];
+        for (const line of output.split("\n")) {
+          if (!line.trim()) {
+            continue;
+          }
+          rows.push(JSON.parse(line));
+        }
+        return rows;
+      }
+      function transcriptPayloads() {
+        const rows = axRunQuery(
+          `
+                  SELECT payload
+                  FROM events
+                  WHERE kind = 'message'
+                     OR source IN ('stdout', 'transcript')
+                  ORDER BY if(kind = 'message', 0, 1), source_seq
+                `,
+          ["--limit", "10000"]
+        );
+        if (rows.length === 0) {
+          throw new Error(
+            `No transcript events were returned for run ${resolveRunId()}`
+          );
+        }
+        return rows.map((row) => payloadText(row)).filter((text) => text.length > 0).join("\n");
+      }
+      function payloadText(row) {
+        if (!row || typeof row !== "object" || !("payload" in row)) {
+          return "";
+        }
+        const payload = row.payload;
+        if (payload == null) {
+          return "";
+        }
+        return typeof payload === "string" ? payload : JSON.stringify(payload);
+      }
+      function extractMongoUris(text) {
+        const uris = [];
+        for (const match of text.matchAll(MONGO_URI_RE)) {
+          const raw = match[0]?.replace(/[.,;:)\]}`]+$/, "") ?? "";
+          try {
+            uris.push(new URL(raw));
+          } catch {
+            continue;
+          }
+        }
+        return uris;
+      }
+      function isLoopbackHost(hostname) {
+        const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
+        return LOOPBACK_HOSTS.has(host);
+      }
+      function isAtlasCloudUri(uri) {
+        const host = uri.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+        if (isLoopbackHost(host)) {
+          return false;
+        }
+        return host === "mongodb.net" || host.endsWith(".mongodb.net") || host === "mongodb-dev.net" || host.endsWith(".mongodb-dev.net");
+      }
+
+      // tests/method-constraint.ts
+      var CLOUD_BOUND = /* @__PURE__ */ new Set(["atlas-cli-cloud", "atlas-ephemeral"]);
+      function main() {
+        try {
+          const method = methodId();
+          const text = transcriptPayloads();
+          if (!CLOUD_BOUND.has(method)) {
+            console.log(`method-constraint is not applied for ${method}`);
+            return 0;
+          }
+          const cloudUris = extractMongoUris(text).filter(isAtlasCloudUri);
+          if (cloudUris.length === 0) {
+            console.error(
+              "Cloud-bound prompt requires an Atlas cloud URI (*.mongodb.net), not a local URI"
+            );
+            return 1;
+          }
+          console.log("Found an Atlas cloud URI for the cloud-bound prompt");
+          return 0;
+        } catch (error) {
+          console.error(error instanceof Error ? error.message : error);
+          return 1;
+        }
+      }
+      // Annotate the CommonJS export names for ESM import in node:
+      0 && (module.exports = {
+        main
+      });
+
+      process.exit(module.exports.main());
+      AXP_PACKED_JS
+# END PACKED:method-constraint
+limits:
+  max_time_seconds: 1800
