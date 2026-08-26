@@ -313,4 +313,115 @@ describe("connection-verified-in-agent", () => {
       1,
     );
   });
+
+  test("apt ping still counts after systemctl status mongod and ss 27017", () => {
+    assert.equal(
+      runMain(
+        main,
+        connectionEvents([
+          {
+            status: "completed",
+            raw_input: "sudo systemctl start mongod",
+            raw_output: "",
+          },
+          {
+            status: "completed",
+            raw_input:
+              "mongosh mongodb://127.0.0.1:27017 --quiet --eval 'db.getSiblingDB(\"verifydb\").testcol.insertOne({check:true}); db.runCommand({ping:1})'",
+            raw_output: "{ ok: 1 }",
+          },
+          {
+            status: "completed",
+            raw_input: "sudo systemctl status mongod --no-pager",
+            raw_output: "Active: active (running)",
+          },
+          {
+            status: "completed",
+            raw_input: "ss -tlnp | grep 27017",
+            raw_output: "LISTEN 0 4096 127.0.0.1:27017",
+          },
+        ]),
+        "local-package-manager",
+      ),
+      0,
+    );
+  });
+
+  test("apt ping still counts after systemctl enable --now mongod", () => {
+    assert.equal(
+      runMain(
+        main,
+        connectionEvents([
+          {
+            status: "completed",
+            raw_input: "sudo systemctl enable --now mongod",
+            raw_output: "Created symlink",
+          },
+          {
+            status: "completed",
+            raw_input:
+              "mongosh --quiet --eval 'db.runCommand({ping:1})' mongodb://127.0.0.1:27017",
+            raw_output: "{ ok: 1 }",
+          },
+          {
+            status: "completed",
+            raw_input: "systemctl is-active mongod",
+            raw_output: "active",
+          },
+        ]),
+        "local-package-manager",
+      ),
+      0,
+    );
+  });
+
+  test("apt start plus TCP-only evidence is still not connection verification", () => {
+    assert.equal(
+      runMain(
+        main,
+        connectionEvents([
+          {
+            status: "completed",
+            raw_input: "sudo systemctl start mongod",
+            raw_output: "",
+          },
+          {
+            status: "completed",
+            raw_input: "ss -tlnp | grep 27017",
+            raw_output: "LISTEN 0 4096 127.0.0.1:27017",
+          },
+        ]),
+        "local-package-manager",
+      ),
+      1,
+    );
+  });
+
+  test("real restart after ping still invalidates earlier evidence", () => {
+    assert.equal(
+      runMain(
+        main,
+        connectionEvents([
+          {
+            status: "completed",
+            raw_input: "sudo systemctl start mongod",
+            raw_output: "",
+          },
+          {
+            status: "completed",
+            raw_input:
+              "mongosh mongodb://127.0.0.1:27017 --eval db.runCommand({ping:1})",
+            raw_output: "{ ok: 1 }",
+          },
+          {
+            status: "completed",
+            raw_input: "sudo systemctl restart mongod",
+            raw_output: "",
+          },
+        ]),
+        "local-package-manager",
+      ),
+      1,
+    );
+  });
 });
