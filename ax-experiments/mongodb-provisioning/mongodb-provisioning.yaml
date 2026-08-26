@@ -545,7 +545,19 @@ tests:
       var APPLICATION_OK = /[{,]\s*"?ok"?\s*:\s*1\b/;
       var MONGO_CANDIDATE = /mongosh|mongodb(\+srv)?:\/\/|mongoclient|pymongo|from mongodb|require[^\n]*mongodb/i;
       var MONGO_OPERATION = /runcommand|db\.[a-z0-9_$-]+\(|db\.[a-z0-9_$-]+\.(find|findone|insert|aggregate|count|update|delete|createindex)|\.(connect|command|find|findone|insertone|insertmany|aggregate|countdocuments|updateone|updatemany|deleteone|deletemany)\(/i;
-      var MONGO_START = /(^|[;&|\s])mongod([;&|\s]|$)|systemctl\s+start\s+mongod|service\s+mongod\s+start|docker\s+run[^\n]*mongo|docker\s+compose[^\n]*mongo|atlas\s+deployments\s+(setup|start)/i;
+      var MONGO_START = new RegExp(
+        [
+          String.raw`systemctl\s+(?:start|restart|stop)\s+mongod(?:\.service)?`,
+          String.raw`systemctl\s+enable\s+--now\s+mongod(?:\.service)?`,
+          String.raw`systemctl\s+enable\s+mongod(?:\.service)?\s+--now`,
+          String.raw`service\s+mongod(?:\.service)?\s+(?:start|restart|stop)`,
+          String.raw`(?:^|[;&|\s])mongod(?:\.exe)?\s+(?:-f\b|--(?:fork|dbpath|config|port|bind_ip_all|bind_ip|replSet|logpath|syslog|auth|noauth)\b)`,
+          String.raw`docker\s+run[^\n]*mongo`,
+          String.raw`docker\s+compose[^\n]*mongo`,
+          String.raw`atlas\s+deployments\s+(setup|start)`
+        ].join("|"),
+        "i"
+      );
       var MONGO_WEAK = /(\/dev\/tcp\/[^/ ]+\/27017|create_connection[^\n]*27017|nc\s[^\n]*27017|ss\s[^\n]*27017)/i;
       function textOf(call) {
         return `${call.input}
