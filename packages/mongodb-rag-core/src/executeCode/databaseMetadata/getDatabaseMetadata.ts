@@ -1,5 +1,5 @@
 import { Db, Document, IndexDescription, MongoClient } from "mongodb";
-import { getSimplifiedSchema } from "mongodb-schema";
+import { getSimplifiedSchema } from "@mongodb-js/mongodb-schema";
 import { extractDeterministicSampleOfDocuments } from "./extractDeterministicSampleOfDocuments";
 import { truncateDbOperationOutputForLlm } from "../truncateDbOperationOutputForLlm";
 

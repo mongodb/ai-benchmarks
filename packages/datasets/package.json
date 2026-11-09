@@ -39,6 +39,7 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.12",
     "@huggingface/hub": "^1.0.1",
+    "@mongodb-js/mongodb-schema": "^12.8.15",
     "@supercharge/promise-pool": "^3.2.0",
     "@types/unist": "^3.0.2",
     "csv": "^6.3.9",

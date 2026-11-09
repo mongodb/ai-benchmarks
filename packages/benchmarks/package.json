@@ -48,6 +48,7 @@
     "@ai-sdk/mcp": "^1.0.25",
     "@ai-sdk/openai": "^3.0.0",
     "@modelcontextprotocol/sdk": "^1.17.2",
+    "@mongodb-js/mongodb-schema": "^12.8.15",
     "@supercharge/promise-pool": "^3.2.0",
     "@vercel/sandbox": "^1.10.2",
     "ai": "^6.0.0",
@@ -56,9 +57,7 @@
     "dotenv": "^16",
     "minimatch": "^10.2.5",
     "mongodb-chatbot-server": "*",
-    "mongodb-mcp-server": "^0.2.0",
     "mongodb-rag-core": "*",
-    "mongodb-schema": "^12.2.0",
     "yaml": "^2.7.1",
     "yargs": "^17.7.2",
     "zod": "^3.23.8"

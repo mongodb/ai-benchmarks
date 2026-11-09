@@ -4,7 +4,7 @@ import {
   IndexDescription,
   MongoClient,
 } from "mongodb-rag-core/mongodb";
-import { getSimplifiedSchema } from "mongodb-schema";
+import { getSimplifiedSchema } from "@mongodb-js/mongodb-schema";
 import { extractDeterministicSampleOfDocuments } from "mongodb-rag-core/executeCode";
 import { truncateDbOperationOutputForLlm } from "./truncateDbOperationOutputForLlm";
 
