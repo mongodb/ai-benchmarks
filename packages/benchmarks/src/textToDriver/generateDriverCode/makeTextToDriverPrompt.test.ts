@@ -1,5 +1,5 @@
 // Import necessary modules and functions
-import parseSchema from "mongodb-schema";
+import parseSchema from "@mongodb-js/mongodb-schema";
 import {
   ChatCompletionMessageParam,
   makeTextToDriverPrompt,

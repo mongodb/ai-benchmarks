@@ -2,7 +2,7 @@ import {
   getSimplifiedSchema,
   SimplifiedSchema,
   SimplifiedSchemaField,
-} from "mongodb-schema";
+} from "@mongodb-js/mongodb-schema";
 import { DatabaseExecutionResult } from "../DatabaseExecutionResult";
 
 /**
